@@ -1,0 +1,3448 @@
+{
+  "entities": [
+    {
+      "id": "C_QUAN_SONG_WEN",
+      "label": "Compilation",
+      "text": "全宋文",
+      "properties": {
+        "compilationTitle": "全宋文",
+        "contentType": "诗文总集"
+      }
+    },
+    {
+      "id": "C_YU_HAI",
+      "label": "Compilation",
+      "text": "玉海",
+      "properties": {
+        "compilationTitle": "玉海",
+        "compiler": "王应麟"
+      }
+    },
+    {
+      "id": "T_QING",
+      "label": "Time",
+      "text": "清代",
+      "properties": {
+        "periodName": "清代",
+        "compilationFeature": "辑佚的繁兴/辑佚的繁兴与集成/辑佚极盛，成专门之业",
+        "academicAtmosphere": "汉学/考据学/考据学盛行/崇古尚古，汉学盛行"
+      }
+    },
+    {
+      "id": "M_JIAO_KAN",
+      "label": "Method",
+      "text": "校勘",
+      "properties": {
+        "methodName": "校勘",
+        "methodDescription": "佚文文字的校理与常法"
+      }
+    },
+    {
+      "id": "C_XIANG_HE_JING",
+      "label": "Compilation",
+      "text": "相鹤经",
+      "properties": {
+        "compilationTitle": "相鹤经",
+        "compiler": "陈景元",
+        "editionInfo": "辑写本，最晚成于北宋熙宁元年（1068）之前"
+      }
+    },
+    {
+      "id": "C_GU_WEN_SHANG_SHU",
+      "label": "Compilation",
+      "text": "古文尚书",
+      "properties": {
+        "compilationTitle": "伪古文尚书（梅本）",
+        "compiler": "梅赜（传）",
+        "compilationStyle": "采缀古书而成（伪作但具辑佚性质）",
+        "annotationHistory": "明梅夔、清阎若璩等对其爬梳寻源"
+      }
+    },
+    {
+      "id": "M_BIAN_WEI",
+      "label": "Method",
+      "text": "辨伪寻源",
+      "properties": {
+        "methodName": "辨伪寻源",
+        "methodDescription": "通过寻找伪书各篇各句的出处，反向证明其采缀古书的辑佚性质",
+        "methodEvaluation": "是认识早期“不著明辑者”之辑佚作品的关键手段"
+      }
+    },
+    {
+      "id": "C_YI_LIN",
+      "label": "Compilation",
+      "text": "意林",
+      "properties": {
+        "compilationTitle": "意林",
+        "compiler": "马总",
+        "compilationStyle": "摘录要语体",
+        "editionInfo": "所列诸子多非据原书，而是从梁人《子钞》中辑出"
+      }
+    },
+    {
+      "id": "C_GU_WEN_YUAN",
+      "label": "Compilation",
+      "text": "古文苑",
+      "properties": {
+        "compilationTitle": "古文苑",
+        "compiler": "佚名（唐人编）",
+        "editionInfo": "收录史传、文选不载之诗赋，多赖《艺文类聚》等删节本传世"
+      }
+    },
+    {
+      "id": "M_XUE_SHU_YAN_JIU_FA",
+      "label": "Method",
+      "text": "学术研究方法（辑佚）",
+      "properties": {
+        "methodName": "作为方法的辑佚",
+        "methodDescription": "不仅是一种文献现象，也是古人著述、辨伪和整理文献的常用手段"
+      }
+    },
+    {
+      "id": "C_YANG_ZI_YUN_JI",
+      "label": "Compilation",
+      "text": "扬子云集",
+      "properties": {
+        "compilationTitle": "扬子云集",
+        "compiler": "谭愈（南宋辑本）",
+        "compilationStyle": "辑汇散佚之篇",
+        "editionInfo": "录自《汉书》及《古文苑》，共四十余篇"
+      }
+    },
+    {
+      "id": "C_WEN_YUAN_YING_HUA",
+      "label": "Compilation",
+      "text": "文苑英华",
+      "properties": {
+        "compilationTitle": "文苑英华",
+        "contentType": "文学总集",
+        "compilationStyle": "含有辑佚性质的工作（辑汇唐以上散佚之篇）"
+      }
+    },
+    {
+      "id": "C_GU_SHI_BEN",
+      "label": "Compilation",
+      "text": "古世本",
+      "properties": {
+        "compilationTitle": "古世本",
+        "compiler": "高似孙",
+        "compilationStyle": "纯正辑佚书"
+      }
+    },
+    {
+      "id": "M_JI_HUI_SAN_YI",
+      "label": "Method",
+      "text": "辑汇散佚之篇",
+      "properties": {
+        "methodName": "辑汇散佚之篇",
+        "methodDescription": "针对因战乱亡佚的个人文集，从史传、类书中抄录残篇以复原一家之作",
+        "methodEvaluation": "虽非系统搜集，但开启了文集补遗与重构的范式"
+      }
+    },
+    {
+      "id": "C_SHUO_FU",
+      "label": "Compilation",
+      "text": "说郛",
+      "properties": {
+        "compilationTitle": "说郛",
+        "compiler": "陶宗仪",
+        "compilationStyle": "大型辑佚性丛书",
+        "editionInfo": "收录大量散佚的小说、笔记、杂著"
+      }
+    },
+    {
+      "id": "T_MING_DAI",
+      "label": "Time",
+      "text": "明代",
+      "properties": {
+        "periodName": "明代",
+        "compilationFeature": "辑佚成果细微，成书草率，商业化色彩浓厚",
+        "academicAtmosphere": "城市经济发展，市民阶层对稗官野史需求增加"
+      }
+    },
+    {
+      "id": "A_SHI_MIN_WEN_HUA",
+      "label": "Academic",
+      "text": "市民文化/商业出版",
+      "properties": {
+        "schoolName": "明代书坊文化",
+        "methodCharacteristic": "射利之徒伪为小说、杂著，迎合大众口味",
+        "origin": "明代中叶以后城镇手工业与资本主义萌芽"
+      }
+    },
+    {
+      "id": "C_BAI_JIA_YI_YUAN",
+      "label": "Compilation",
+      "text": "百家异苑",
+      "properties": {
+        "compilationTitle": "百家异苑",
+        "compiler": "胡应麟",
+        "compilationStyle": "古佚小说辑本",
+        "editionInfo": "收录约六十家，从《太平御览》、《太平广记》等类书中抄合"
+      }
+    },
+    {
+      "id": "C_ER_YOU_ZHUI_YI",
+      "label": "Compilation",
+      "text": "二酉缀遗",
+      "properties": {
+        "compilationTitle": "二酉缀遗",
+        "compiler": "胡应麟",
+        "editionInfo": "存有《百家异苑序》，是研究胡氏早期辑佚思想的重要参考"
+      }
+    },
+    {
+      "id": "M_SI_JIA_CANG_SHU",
+      "label": "Method",
+      "text": "私家藏书/鉴藏",
+      "properties": {
+        "methodName": "私家藏书",
+        "methodDescription": "明代盛行的藏书风气，导致对珍本秘书的渴求，间接推动了搜辑与伪作的产生",
+        "methodEvaluation": "虽有作伪之嫌，但对搜辑佚遗起到了不可低估的作用"
+      }
+    },
+    {
+      "id": "C_LI_DAI_WEN_JI",
+      "label": "Compilation",
+      "text": "历代文纪",
+      "properties": {
+        "compilationTitle": "历代文纪",
+        "compiler": "梅鼎祚",
+        "volumeCount": "203卷",
+        "editionInfo": "包含《汉文纪》、《梁文纪》等，规模宏大，远超宋人辑本"
+      }
+    },
+    {
+      "id": "C_GU_JIN_YI_SHI",
+      "label": "Compilation",
+      "text": "古今逸史",
+      "properties": {
+        "compilationTitle": "古今逸史",
+        "compiler": "吴琯",
+        "compilationStyle": "大型辑佚性丛书",
+        "editionInfo": "收辑汉魏六朝至唐宋之古佚、奇罕之书"
+      }
+    },
+    {
+      "id": "C_TANG_SHI_JI",
+      "label": "Compilation",
+      "text": "唐诗纪",
+      "properties": {
+        "compilationTitle": "唐诗纪",
+        "compiler": "吴琯",
+        "compilationStyle": "辑汇散佚之诗",
+        "description": "效仿冯惟纳《古诗纪》，开启唐诗大规模补遗之先河"
+      }
+    },
+    {
+      "id": "C_GU_WEN_XUAN",
+      "label": "Compilation",
+      "text": "古文选",
+      "properties": {
+        "compilationTitle": "古文选",
+        "compiler": "屠乔孙、项琳（之）等",
+        "volumeCount": "50卷",
+        "editionInfo": "收录秦汉至隋代诗文，含有大量辑佚成分"
+      }
+    },
+    {
+      "id": "C_HAN_WEI_LIU_CHAO_BAI_SAN_JIA_JI",
+      "label": "Compilation",
+      "text": "汉魏六朝百三家集",
+      "properties": {
+        "compilationTitle": "汉魏六朝百三家集",
+        "compiler": "张溥",
+        "compilationStyle": "别集辑汇",
+        "description": "搜罗秦汉至隋代103家文集，虽有草率之嫌，但保存文献功不可没"
+      }
+    },
+    {
+      "id": "M_SI_KU_GUAN_JI_YI",
+      "label": "Method",
+      "text": "四库馆臣辑佚/官家辑佚",
+      "properties": {
+        "methodName": "官家辑佚",
+        "methodDescription": "乾隆年间设专门纂修官，从《永乐大典》中系统辑录唐宋元佚书",
+        "methodEvaluation": "清代辑佚学空前繁兴的关键转折点，带动了私家辑佚风气"
+      }
+    },
+    {
+      "id": "T_QING_DAI_FOUR_STAGES",
+      "label": "Time",
+      "text": "清代辑佚四阶段",
+      "properties": {
+        "stage1": "清初至乾隆中：汉学家治经驱动（吴派惠栋为首）",
+        "stage2": "乾隆中至乾隆末：四库馆臣官家辑佚（《永乐大典》开发）",
+        "stage3": "乾隆末至道光：私家辑佚广泛盛行（受官家辑佚启发）",
+        "stage4": "咸丰至清末：私家专类辑佚（学科深化）"
+      }
+    },
+    {
+      "id": "C_GU_JING_JIE_GOU_CHEN",
+      "label": "Compilation",
+      "text": "古经解钩沈",
+      "properties": {
+        "compilationTitle": "古经解钩沈",
+        "compiler": "余萧客",
+        "volumeCount": "30卷",
+        "editionInfo": "采录唐以前诸儒经说，旁及史传、类书，被收入《四库全书》"
+      }
+    },
+    {
+      "id": "C_YONG_LE_DA_DIAN",
+      "label": "Compilation",
+      "text": "永乐大典",
+      "properties": {
+        "compilationTitle": "永乐大典",
+        "roleInCompilation": "清代官家辑佚的核心原始库（矿藏）",
+        "description": "保存了大量宋、元及以前的散佚文献"
+      }
+    },
+    {
+      "id": "M_GUAN_JIA_JI_YI",
+      "label": "Method",
+      "text": "四库馆辑/官家辑佚",
+      "properties": {
+        "methodName": "官家辑佚",
+        "methodDescription": "设立专门机构（如校勘《永乐大典》纂修兼分校官），大规模、系统性地从类书中提取佚书",
+        "methodEvaluation": "清代辑佚学发展的最高峰，使大批湮没已久的典籍复现于世"
+      }
+    },
+    {
+      "id": "C_JIU_WU_DAI_SHI",
+      "label": "Compilation",
+      "text": "旧五代史",
+      "properties": {
+        "compilationTitle": "旧五代史",
+        "compiler": "邵晋涵（辑自《大典》）",
+        "status": "传世",
+        "description": "四库馆辑最著名的成果之一，使亡佚已久的史传重现"
+      }
+    },
+    {
+      "id": "C_YUAN_CHAO_MI_SHI",
+      "label": "Compilation",
+      "text": "元朝秘史",
+      "properties": {
+        "compilationTitle": "元朝秘史",
+        "volumeCount": "15卷",
+        "status": "传世",
+        "description": "四库馆臣从《大典》中辑出，对元史研究具有极高价值"
+      }
+    },
+    {
+      "id": "C_JIN_BI_GU_SHI",
+      "label": "Compilation",
+      "text": "金碧故事",
+      "properties": {
+        "compilationTitle": "金碧故事",
+        "status": "复亡",
+        "description": "虽经四库馆臣辑录并有清本进呈，但现已不可见"
+      }
+    },
+    {
+      "id": "C_HAN_WEI_YI_SHU_CHAO",
+      "label": "Compilation",
+      "text": "汉魏遗书钞",
+      "properties": {
+        "compilationTitle": "汉魏遗书钞",
+        "compiler": "王谟",
+        "description": "搜罗汉魏以来经解、注疏、史乘、诸子，是清代著名的辑佚丛书"
+      }
+    },
+    {
+      "id": "C_QUAN_SHANG_GU_WEN",
+      "label": "Compilation",
+      "text": "全上古三代秦汉三国六朝文",
+      "properties": {
+        "compilationTitle": "全上古三代秦汉三国六朝文",
+        "compiler": "严可均",
+        "volumeCount": "746卷",
+        "authorCount": "3519人",
+        "compilationProcess": "草创9年，拾遗考异18年，共计27年之功"
+      }
+    },
+    {
+      "id": "M_WANG_LUO_ZONG_LU",
+      "label": "Method",
+      "text": "网罗综录/校勘精细",
+      "properties": {
+        "methodName": "全覆盖辑录法",
+        "methodDescription": "不仅采自类书、文集，还广泛利用金石碑刻、释道典籍作为辑佚资源",
+        "methodEvaluation": "严可均开创了‘一字一句异同必订’的严谨辑佚范式"
+      }
+    },
+    {
+      "id": "C_JINJI_YIWEN",
+      "label": "Compilation",
+      "text": "经籍佚文",
+      "properties": {
+        "compilationTitle": "经籍佚文",
+        "compiler": "王仁俊"
+      }
+    },
+    {
+      "id": "C_ZHUANGZI_YIPIAN",
+      "label": "Compilation",
+      "text": "庄子逸篇",
+      "properties": {
+        "compilationTitle": "庄子逸篇",
+        "compiler": "王应麟",
+        "compilationStyle": "笔记辑补体",
+        "editionInfo": "收入《困学纪闻》卷十"
+      }
+    },
+    {
+      "id": "L_YI_WEN_LEI_JU",
+      "label": "Leishu",
+      "text": "艺文类聚",
+      "properties": {
+        "title": "艺文类聚",
+        "contentType": "类书",
+        "compilationPeriod": "唐代"
+      }
+    },
+    {
+      "id": "L_TAI_PING_YU_LAN",
+      "label": "Leishu",
+      "text": "太平御览",
+      "properties": {
+        "title": "太平御览",
+        "contentType": "类书",
+        "compilationPeriod": "宋代"
+      }
+    },
+    {
+      "id": "M_JI_XIAO_TUO_YI",
+      "label": "Method",
+      "text": "辑校脱佚",
+      "properties": {
+        "methodName": "辑校脱佚",
+        "methodDescription": "将原书完存但有脱简缺句的文字逐一辑出并独立成篇",
+        "methodEvaluation": "与校勘学补脱不同，不直接补入原书而是另行附存"
+      }
+    },
+    {
+      "id": "C_YU_HAN_SHAN_FANG_JI_YI_SHU",
+      "label": "Compilation",
+      "text": "玉函山房辑佚书",
+      "properties": {
+        "compilationTitle": "玉函山房辑佚书",
+        "compiler": "马国翰",
+        "volumeCount": "594卷（或谓辑佚书近六百种）",
+        "description": "涵盖经、史、子三部，是清代规模最宏大、体系最完整的私家辑佚丛书"
+      }
+    },
+    {
+      "id": "C_HUANG_SHI_YI_SHU_KAO",
+      "label": "Compilation",
+      "text": "黄氏逸书考",
+      "properties": {
+        "compilationTitle": "黄氏逸书考",
+        "compiler": "黄奭",
+        "description": "包含《汉学堂经解》、《子史钩沈》等，部分存在照录前人成果而不标名之嫌"
+      }
+    },
+    {
+      "id": "C_QI_JIA_HOU_HAN_SHU",
+      "label": "Compilation",
+      "text": "七家后汉书",
+      "properties": {
+        "compilationTitle": "七家后汉书",
+        "compiler": "汪文台",
+        "description": "系统辑录范晔《后汉书》盛行前之七家史作，复原了东汉史料的多元面貌"
+      }
+    },
+    {
+      "id": "C_LU_SHAN_JING_SHE_CONG_SHU",
+      "label": "Compilation",
+      "text": "麓山精舍丛书",
+      "properties": {
+        "compilationTitle": "麓山精舍丛书",
+        "compiler": "汤中",
+        "description": "收录辑佚类书85种，集中于湖南先贤佚著、地理佚籍及海外史料",
+        "academicImpact": "体现了晚清辑佚学与乡邦文献建设、边疆地理研究的紧密结合"
+      }
+    },
+    {
+      "id": "C_SHI_LIU_GUO_CHUN_QIU_JI_BU",
+      "label": "Compilation",
+      "text": "十六国春秋辑补",
+      "properties": {
+        "compilationTitle": "十六国春秋辑补",
+        "volumeCount": "100卷",
+        "description": "对北魏崔鸿原作的系统复原，包含《汉赵记》、《秦书》、《凉记》等多种佚书的分辑"
+      }
+    },
+    {
+      "id": "M_XIANG_BANG_WEN_XIAN_JI_YI",
+      "label": "Method",
+      "text": "乡邦文献辑佚",
+      "properties": {
+        "methodName": "地方志专项辑佚",
+        "methodDescription": "以特定地域（如湖南）为核心，搜采史传、类书中的地方人物传记与古地志",
+        "methodEvaluation": "推动了地方史志研究的科学化，保存了大量基层行政与社会史料"
+      }
+    },
+    {
+      "id": "C_YU_HAN_SHAN_FANG_JI_YI_SHU_XU_BIAN",
+      "label": "Compilation",
+      "text": "玉函山房辑佚书拾遗/增刊",
+      "properties": {
+        "compilationTitle": "玉函山房辑佚书拾遗",
+        "compiler": "孙星华（主持）",
+        "description": "在马国翰原书基础上，增补《麟台故事》、《傅子》等23种佚书",
+        "academicImpact": "标志着清代最大规模辑佚丛书的最终定型与完善"
+      }
+    },
+    {
+      "id": "C_JING_WEN_JI_SHI_YI",
+      "label": "Compilation",
+      "text": "景文集拾遗",
+      "properties": {
+        "compilationTitle": "景文集拾遗",
+        "volumeCount": "22卷",
+        "compiler": "孙星华",
+        "description": "针对宋代名臣宋祁（景文）文集的补辑作品"
+      }
+    },
+    {
+      "id": "M_SHI_YI_BU_JI",
+      "label": "Method",
+      "text": "拾遗/补辑",
+      "properties": {
+        "methodName": "递修补正法",
+        "methodDescription": "在前人已有的辑本基础上，利用新发现的资料（如新出土金石、新发现抄本）进行二次搜采",
+        "methodEvaluation": "体现了学术研究的连续性，使零散文献趋于完整"
+      }
+    },
+    {
+      "id": "C_SHI_SAN_JIA_YI_JI_SHU",
+      "label": "Compilation",
+      "text": "诗三家义集疏",
+      "properties": {
+        "compilationTitle": "诗三家义集疏",
+        "compiler": "王先谦",
+        "description": "集邵晋涵、严可均、冯登府及陈氏父子辑佚之大成，是研究今文三家诗的权威文献"
+      }
+    },
+    {
+      "id": "M_JI_YI_SHI_KAO",
+      "label": "Method_Critique",
+      "text": "辑佚失考/不辨真伪",
+      "properties": {
+        "issueName": "学术失范现象",
+        "description": "在大规模辑佚（如马国翰、张澍、严可均）中，存在误将彼书之文当作此书佚文的现象",
+        "example": "张澍辑本《十三州志》误入应劭及《三秦记》之文"
+      }
+    },
+    {
+      "id": "C_SONG_HUI_YAO_JI_GAO_REVISION",
+      "label": "Compilation",
+      "text": "宋会要辑稿（整理本）",
+      "properties": {
+        "compilationTitle": "宋会要辑稿",
+        "organizer": "刘富曾（整理）",
+        "issue": "编次杂乱、大加删并",
+        "description": "徐松去世后，辑稿几经易手，刘氏整理时未能遵循原书体例，导致部分学术价值受损"
+      }
+    },
+    {
+      "id": "M_ER_ZHENG_FA",
+      "label": "Method",
+      "text": "二重证据法",
+      "properties": {
+        "methodName": "二重证据法",
+        "description": "将地下之新材料（出土文献）与纸上之遗文（传世典籍）相互印证",
+        "impact": "使辑佚学从传统的类书采掇转向了地下实物的科学考证"
+      }
+    },
+    {
+      "id": "C_GU_XIAO_SHUO_GOU_CHEN",
+      "label": "Compilation",
+      "text": "古小说钩沉",
+      "properties": {
+        "compilationTitle": "古小说钩沉",
+        "compiler": "鲁迅",
+        "description": "辑录唐以前佚失小说36种，如《幽明录》、《妒记》等",
+        "academicValue": "中国古代小说研究的基础性文献"
+      }
+    },
+    {
+      "id": "C_JI_YI_CONG_KAN",
+      "label": "Compilation",
+      "text": "辑佚丛刊",
+      "properties": {
+        "compilationTitle": "辑佚丛刊",
+        "compiler": "陶廷诒",
+        "publicationYear": "1948年（中华书局）",
+        "content": "收录《东观汉记》、《晋纪》、《埤苍》等10余种"
+      }
+    },
+    {
+      "id": "C_QUAN_SONG_CI",
+      "label": "Compilation",
+      "text": "全宋词",
+      "properties": {
+        "compilationTitle": "全宋词",
+        "compiler": "唐圭璋",
+        "compilationStyle": "断代总集",
+        "editionInfo": "对旧辑本进行了系统的综合整理",
+        "revisionHistory": "1940年初版，1965年中华书局修订本",
+        "volume": "收录宋代词人1330余家，词作19900余首",
+        "academicValue": "断代词作总集的巅峰，保存了大量通过辑佚复现的残词"
+      }
+    },
+    {
+      "id": "C_SONG_SHI_HUA_JI_YI",
+      "label": "Compilation",
+      "text": "宋诗话辑佚",
+      "properties": {
+        "compilationTitle": "宋诗话辑佚",
+        "compiler": "郭绍虞",
+        "structure": "分为“辑补”（残本补缺）与“全辑”（全佚复原）两部分",
+        "academicImpact": "为宋代文学批评研究提供了关键的理论碎片"
+      }
+    },
+    {
+      "id": "C_DI_WANG_SHI_JI_XIN_JI",
+      "label": "Compilation",
+      "text": "帝王世纪（徐氏辑本）",
+      "properties": {
+        "compilationTitle": "帝王世纪",
+        "compiler": "徐宗泽",
+        "structure": "10卷（含皇古至汉、魏、星野户口等）",
+        "academicValue": "较清人辑本更趋完善，方法更科学"
+      }
+    },
+    {
+      "id": "C_YOU_WEI_YI_DAI_QUAN_JI",
+      "label": "Compilation",
+      "text": "有魏一代全辑",
+      "properties": {
+        "compilationTitle": "有魏一代全辑",
+        "compiler": "朱铭盘",
+        "scope": "收录北魏经、史、子、集四部佚书共36种以上",
+        "innovation": "突破了总辑四部或独辑一类的传统，转向断代系统辑佚"
+      }
+    },
+    {
+      "id": "C_MOZI_YIWEN",
+      "label": "Compilation",
+      "text": "墨子佚文",
+      "properties": {
+        "compilationTitle": "墨子佚文",
+        "compiler": "孙诒让",
+        "annotationHistory": "附《墨子间诂》后",
+        "compilationStyle": "辑补体"
+      }
+    },
+    {
+      "id": "C_QUAN_TANG_SHI_BUYI",
+      "label": "Compilation",
+      "text": "全唐诗补逸",
+      "properties": {
+        "compilationTitle": "全唐诗补逸",
+        "completionPeriod": "1982年",
+        "editionInfo": "中华书局出版，合成4家5种辑本"
+      }
+    },
+    {
+      "id": "M_JI_BU_QUE_YI",
+      "label": "Method",
+      "text": "辑补缺佚之书",
+      "properties": {
+        "methodName": "辑补缺佚之书",
+        "methodDescription": "以“部分佚书”（残缺之书）为对象的辑佚活动",
+        "methodEvaluation": "能使残缺之本复成完帙"
+      }
+    },
+    {
+      "id": "M_JI_SHI_LOU_YI",
+      "label": "Method",
+      "text": "辑拾漏佚之篇",
+      "properties": {
+        "methodName": "辑拾漏佚之篇",
+        "methodDescription": "针对总集、别集编成后有意或无意漏收之诗文进行搜辑"
+      }
+    },
+    {
+      "id": "C_GU_BEN_ZHU_SHU_JI_NIAN_JI_ZHENG",
+      "label": "Compilation",
+      "text": "古本竹书纪年辑证",
+      "properties": {
+        "compilationTitle": "古本竹书纪年辑证",
+        "features": "不仅辑佚，且重在“证”，即通过史实互证提高结论可靠性",
+        "status": "当代古本《竹书纪年》研究的里程碑"
+      }
+    },
+    {
+      "id": "J_WEN_XIAN",
+      "label": "Journal",
+      "text": "《文献》杂志",
+      "properties": {
+        "significance": "当代辑佚成果的主要发布平台",
+        "content": "刊载了涵盖宋濂、杨维贞、黄遵宪、范成大等多位名家的佚文拾遗"
+      }
+    },
+    {
+      "id": "T_JI_YI_XUE",
+      "label": "Discipline",
+      "text": "辑佚学",
+      "properties": {
+        "definition": "研究如何从传世文献中搜集、整理已散佚古籍的学科",
+        "developmentStage": "清代以前为零散思想，近十年开始逐渐形成独立学科体系"
+      }
+    },
+    {
+      "id": "M_JI_YI_STANDARD",
+      "label": "Methodology",
+      "text": "辑佚评价五标准",
+      "properties": {
+        "standards": [
+          "1.搜辑是否完备",
+          "2.出处是否明确",
+          "3.校勘是否精审",
+          "4.编次是否有条理（求还本来面目）",
+          "5.原书价值之高下"
+        ]
+      }
+    },
+    {
+      "id": "B_JI_YI_XUE_GAO",
+      "label": "Monograph",
+      "text": "辑佚学稿",
+      "properties": {
+        "author": "王冀青",
+        "structure": "全书共12章，涵盖绪论、兴起、历代辑佚、弊端、方法论及未来展望",
+        "academicPosition": "辑佚学走向成熟的重要一步"
+      }
+    },
+    {
+      "id": "T_METHODOLOGY",
+      "label": "Discipline_Component",
+      "text": "辑佚方法论",
+      "properties": {
+        "definition": "辑佚工作的基本原则和技术方法",
+        "composition": "包括准备阶段、辑录阶段、整理阶段等标准化程序",
+        "significance": "是学科构成的核心内容，确保辑佚工作的科学性与统一性"
+      }
+    },
+    {
+      "id": "P_PREPARATION_STAGE",
+      "label": "Work_Process",
+      "text": "前期准备程序",
+      "properties": {
+        "steps": [
+          "1. 选题与论证（学术价值评估）",
+          "2. 佚书基本情况调查（名实、性质、存佚考）",
+          "3. 现有辑本调查（避免重复劳动）",
+          "4. 资料来源分析（总结前人得失）",
+          "5. 确定查阅书目范围",
+          "6. 拟定统一工作方案（体例规范）"
+        ]
+      }
+    },
+    {
+      "id": "P_COMPILATION_STAGE",
+      "label": "Work_Process",
+      "text": "辑录阶段程序",
+      "properties": {
+        "steps": [
+          "7. 佚文查找（网罗一尽）",
+          "8. 佚文移录（格式统一，详注出处）",
+          "9. 初步厘定编排（性质分类）"
+        ]
+      }
+    },
+    {
+      "id": "T_JI_YI_SCHOOLS",
+      "label": "Methodology_Classification",
+      "text": "辑佚流派",
+      "properties": {
+        "categories": [
+          "1. 类辑派：限定类型范围（如袁钧辑郑氏、鲁迅辑古小说）",
+          "2. 专辑派：集中精力专辑一部（如朱右曾《汲冢纪年存真》）",
+          "3. 规模差异：从大规模丛书到单条/单字辑佚",
+          "4. 取材差异：仅据一书（陶栋） vs 博取群书"
+        ]
+      }
+    },
+    {
+      "id": "K_REQUIRED_KNOWLEDGE",
+      "label": "Academic_Requirement",
+      "text": "辑佚者知识储备",
+      "properties": {
+        "foundational_knowledge": [
+          "文字学",
+          "音韵学",
+          "版本学",
+          "目录学",
+          "辨伪学",
+          "考据学",
+          "史源学"
+        ],
+        "methodological_skills": [
+          "校勘学",
+          "注释学",
+          "编纂学"
+        ],
+        "macro_perspective": "对经史子集、类书、方志等古籍图书有整体宏观了解"
+      }
+    },
+    {
+      "id": "M_LOST_BOOK_DETERMINATION",
+      "label": "Methodology",
+      "text": "佚书判定两大法则",
+      "properties": {
+        "law_1": "前代文献称引，而后代书目不载（如汉引而《隋志》无）",
+        "law_2": "前代书目著录，而后代书目消失（如《隋志》有而《唐志》无）"
+      }
+    },
+    {
+      "id": "T_PARATEXTS",
+      "label": "Documentation_Component",
+      "text": "辑佚辅助文献",
+      "properties": {
+        "components": [
+          "1. 序跋（学术背景、动机、流传考）",
+          "2. 凡例（辑、校、注、考的基本通则）",
+          "3. 目录（佚书名录及结构）"
+        ]
+      }
+    },
+    {
+      "id": "M_JI_YI_PRINCIPLES",
+      "label": "Methodology",
+      "text": "辑佚三原则",
+      "properties": {
+        "principles": [
+          "1. 求完：力求搜罗详尽，不遗漏蛛丝马迹",
+          "2. 求佳：选择有学术价值的佚书，避免只言片语凑种数",
+          "3. 求捷：方法科学，避免盲目乱翻，实现事半功倍"
+        ]
+      }
+    },
+    {
+      "id": "M_SEARCH_CRITERIA",
+      "label": "Methodology",
+      "text": "佚文搜查四依据",
+      "properties": {
+        "criteria": [
+          "1. 时间依据：根据成书与亡佚年代确定征引时限",
+          "2. 类型依据：依据佚书学科性质（如经学、地理）定向查找",
+          "3. 资料来源依据：分析前人辑本的引书范围",
+          "4. 目录学依据：参考历代艺文志的著录轨迹"
+        ]
+      }
+    },
+    {
+      "id": "R_CORE_RESOURCES",
+      "label": "Resource_Category",
+      "text": "辑佚主要资源",
+      "properties": {
+        "class_1_类书": "唐宋间大部头类书（《北堂书钞》、《艺文类聚》、《太平御览》等）",
+        "class_2_古注": "汉唐经注、史注（《史记三家注》、《汉书注》等）",
+        "class_3_子史": "汉代及以后的子书、史书（《论衡》、《风俗通义》等）",
+        "significance": "这些图书因编纂体例（引经据典）决定了其保存佚文的密度最高"
+      }
+    },
+    {
+      "id": "R_LEI_SHU_UTILIZATION",
+      "label": "Resource_Methodology",
+      "text": "类书的利用",
+      "properties": {
+        "origin": "始于魏文帝命王象等编纂的《皇览》",
+        "current_status": "现存隋唐以来类书约200余种",
+        "value": "通过抄录诸书、注明出处，保存了大量已亡佚的经史子集内容",
+        "limitations": "久经传抄、讹误迭出、任情省节（书商谋利导致）"
+      }
+    },
+    {
+      "id": "R_HISTORICAL_RECORDS",
+      "label": "Resource_Category",
+      "text": "史志资源",
+      "properties": {
+        "representatives": [
+          "《史记》",
+          "《汉书》",
+          "《后汉书》",
+          "《三国志》",
+          "《晋书》"
+        ],
+        "preserved_content": "主要保存诏令、奏议、表文、书信及名篇（如《前出师表》、《隆中对》）",
+        "characteristic": "往往将整篇文章载入本传，是辑录个人文集的核心来源"
+      }
+    },
+    {
+      "id": "C_SANJIA_SHI",
+      "label": "Compilation",
+      "text": "三家诗",
+      "properties": {
+        "compilationTitle": "三家诗",
+        "compiler": "王应麟",
+        "editionInfo": "古书之亡而复存者实为首庸"
+      }
+    },
+    {
+      "id": "C_YUHAN_SHANFANG",
+      "label": "Compilation",
+      "text": "玉函山房丛书",
+      "properties": {
+        "compilationTitle": "玉函山房丛书",
+        "compiler": "马国翰",
+        "compilationStyle": "大型辑佚丛书"
+      }
+    },
+    {
+      "id": "A_WU_PAI",
+      "label": "Academic",
+      "text": "吴派",
+      "properties": {
+        "schoolName": "吴派",
+        "origin": "清初惠栋",
+        "methodCharacteristic": "汉学辑佚/汉学辑佚，认为“凡汉皆好”"
+      }
+    },
+    {
+      "id": "M_JI_YI_XUE",
+      "label": "Method",
+      "text": "辑佚学",
+      "properties": {
+        "methodName": "辑佚学",
+        "methodDescription": "研究辑佚活动基本规律、原则、方法的学科",
+        "methodEvaluation": "古籍文献整理的类型、方法之一"
+      }
+    },
+    {
+      "id": "R_LOCAL_GAZETTEERS",
+      "label": "Resource_Category",
+      "text": "方志资源",
+      "properties": {
+        "structure": "设有艺文、金石、古迹等类目",
+        "value": "保存大量当地人撰写的诗文、碑刻、民歌、谣谚",
+        "academicRole": "补正史之缺，存地方文献之真",
+        "representative_theory": "章学诚的‘三家之学’（志、掌故、文征）"
+      }
+    },
+    {
+      "id": "R_BUDDHIST_COMMENTARIES",
+      "label": "Resource_Category",
+      "text": "佛经旧注",
+      "properties": {
+        "representativeWork": "《大藏经》",
+        "value": "保存大量古代字书、音义及社会史料",
+        "case": "清人任大椿辑《小学钩沈》多取材于此"
+      }
+    },
+    {
+      "id": "R_MISCELLANEOUS_EXTRACTS",
+      "label": "Resource_Category",
+      "text": "杂抄（杂纂）",
+      "properties": {
+        "definition": "摘录古书资料，分类或随手编排，保留原书名并注出处",
+        "key_works": [
+          "《意林》",
+          "《群书治要》",
+          "《太平广记》",
+          "《类说》"
+        ],
+        "special_value": "《群书治要》保存了魏晋间大量政治、政术类亡佚文献"
+      }
+    },
+    {
+      "id": "M_IDENTITY_VERIFICATION",
+      "label": "Methodology",
+      "text": "身份特征验证法",
+      "properties": {
+        "elements": [
+          "1. 生卒年代：判定佚文所记之事是否在作者身后（如王隐《晋书》争议）",
+          "2. 籍贯与行迹：利用地方志搜寻题记、吟咏之作",
+          "3. 交游与师徒：从亲友、弟子的著作中寻找唱和、题记或先师遗文"
+        ]
+      }
+    },
+    {
+      "id": "T_STRUCTURE_RECONSTRUCTION",
+      "label": "Methodology",
+      "text": "佚书体例考究",
+      "properties": {
+        "objective": "恢复原书旧貌，避免散乱堆砌",
+        "sources": [
+          "前人专题研究论文",
+          "亡佚前亲见者的记述或书目解题",
+          "作者传记资料",
+          "同时代同类型图书的体例参考",
+          "根据佚文内容的内在逻辑推断"
+        ]
+      }
+    },
+    {
+      "id": "C_SI_KU_GUAN_CHEN",
+      "label": "Scholar_Group",
+      "text": "四库馆臣",
+      "properties": {
+        "critique": "被指出在辑佚过程中存在‘连缀失真’的问题，将遗文按人连缀而非按时间排比，有失原貌"
+      }
+    },
+    {
+      "id": "B_BAN_QIAO_NOTES",
+      "label": "Pseudo_Book",
+      "text": "板桥笔记小说",
+      "properties": {
+        "nature": "书商托名伪书",
+        "composition": "抄袭唐宋至民国笔记小说拼凑而成",
+        "purpose": "书商为求畅销而托名郑燮"
+      }
+    },
+    {
+      "id": "T_MUTUAL_SIGHTING",
+      "label": "Methodology",
+      "text": "文献互见（重叠）",
+      "properties": {
+        "definition": "同一篇佚文同时见于不同作者的集子中",
+        "resolution_1": "寻找第三方文献实证（如墓志铭、史传）",
+        "resolution_2": "考究版本源流（宋刊本权重高于明清刊本）",
+        "resolution_3": "文字风格与家学背景分析"
+      }
+    },
+    {
+      "id": "M_XIAO_KAN_FOUR_METHODS",
+      "label": "Methodology",
+      "text": "校勘四法",
+      "properties": {
+        "origin": "陈垣《校勘学释例》总结清人经验所得",
+        "methods": [
+          "1. 对校法：同书之祖本或别本对读（最简便）",
+          "2. 本校法：本篇前后文互证，发现自相矛盾之处",
+          "3. 他校法：取他书之引文或相关记载互证",
+          "4. 理校法：无本可据时，根据理数、语体、义例推断（最危险且考验功力）"
+        ]
+      }
+    },
+    {
+      "id": "T_TEXTUAL_ERRORS",
+      "label": "Error_Classification",
+      "text": "讹文形成原因",
+      "properties": {
+        "types": [
+          "形近而误",
+          "音近而误",
+          "分字而误",
+          "合字而误",
+          "脱半而误"
+        ],
+        "example": "‘晋师三豕涉河’实为‘己亥涉河’（形近之误典型）"
+      }
+    },
+    {
+      "id": "P_CONTENT_EXAMINATION",
+      "label": "Critical_Examination",
+      "text": "内容考证要点",
+      "properties": {
+        "focus_areas": [
+          "1. 数字：最易讹误，需严格核查",
+          "2. 时空：时间（年号、王年）与空间（政区、地名）的定位",
+          "3. 人名：处理同人异名、同名异人等复杂称谓",
+          "4. 官制：职官名称与制度演变",
+          "5. 典章制度：社会、经济、法律制度的准确性",
+          "6. 语汇：特定时代的语言特征与典故"
+        ]
+      }
+    },
+    {
+      "id": "R_SI_KU_SUB_SECTION_LIST",
+      "label": "Resource_Catalog",
+      "text": "子部与集部采辑目",
+      "properties": {
+        "sub_categories": [
+          "儒家：家训、读书法（如《袁氏世范》、《朱子读书法》）",
+          "农医：生产工具、方剂（如《农书》、《苏沈良方》）",
+          "术数：算法、占卜（如《海岛算经》、《五曹算经》）",
+          "别集：宋代文人集（如《后乐集》、《鹤林集》）"
+        ],
+        "key_scholars": [
+          "傅玄",
+          "晁说之",
+          "袁采",
+          "吕祖谦",
+          "苏轼",
+          "王桢",
+          "吴泳"
+        ],
+        "data_features": "包含类属、书名、卷数、作者、库本页码及详细备注（存、补、校）"
+      }
+    },
+    {
+      "id": "B_WANG_ZHEN_NONG_SHU",
+      "label": "Scientific_Work",
+      "text": "王桢《农书》",
+      "properties": {
+        "volume": "22卷",
+        "origin": "元代",
+        "status": "据《永乐大典》辑出并校改",
+        "significance": "中国古代四大农书之一，保存了大量农业机械图谱及耕作技术"
+      }
+    },
+    {
+      "id": "B_SU_SHEN_LIANG_FANG",
+      "label": "Medical_Work",
+      "text": "苏沈良方",
+      "properties": {
+        "authors": [
+          "苏轼",
+          "沈括"
+        ],
+        "status": "存于明刊本与旧抄本",
+        "significance": "结合了文豪与大科学家的医学心得，具有极高的临床与文献价值"
+      }
+    },
+    {
+      "id": "R_SI_KU_REMAINDER_LIST",
+      "label": "Resource_Catalog",
+      "text": "四库余目（经史部）",
+      "properties": {
+        "jing_section": "含《古洪范》、《周礼井田谱》、《蒙古译语》等，涉及经解与小学（语言）",
+        "shi_section": "含《艺祖受禅录》、《平叛录》、《三苏年表》等，侧重宋元政事与传记",
+        "features": "不仅包含宋元著作，还辑录了金、元、明初的罕见文献"
+      }
+    },
+    {
+      "id": "B_SONG_HUI_YAO",
+      "label": "Historical_Monument",
+      "text": "《宋会要辑稿》",
+      "properties": {
+        "volume": "500卷",
+        "author": "宋·官修",
+        "editor": "徐松辑",
+        "significance": "记宋代典章制度最为详备之书，是研究宋史的‘资料库’，规模冠绝辑佚史"
+      }
+    },
+    {
+      "id": "C_DUNHUANG_TANGREN_SHIJI",
+      "label": "Compilation",
+      "text": "敦煌唐人诗集残卷",
+      "properties": {
+        "compilationTitle": "敦煌唐人诗集残卷",
+        "compiler": "王重民",
+        "editionInfo": "存《全唐诗》未收之唐人诗72首"
+      }
+    },
+    {
+      "id": "C_SONG_HUI_YAO_JI_GAO",
+      "label": "Compilation",
+      "text": "宋会要辑稿",
+      "properties": {
+        "compilationTitle": "宋会要辑稿",
+        "compiler": "清代辑佚者/徐松",
+        "compilationStyle": "大型政书辑本",
+        "editionInfo": "从《永乐大典》中辑出，急待深层次整理",
+        "volumeCount": "500卷",
+        "description": "从《永乐大典》中辑出，保存了宋代十次会要约四分之一的内容，为研究宋史之宝库"
+      }
+    },
+    {
+      "id": "L_YONG_LE_DA_DIAN",
+      "label": "Leishu",
+      "text": "永乐大典",
+      "properties": {
+        "title": "永乐大典",
+        "contentType": "类书",
+        "compilationPeriod": "明代",
+        "version": "清代乾隆年间曾设馆从中索辑宋元佚书"
+      }
+    },
+    {
+      "id": "T_DANG_DAI",
+      "label": "Time",
+      "text": "现当代",
+      "properties": {
+        "periodName": "现当代",
+        "compilationFeature": "对旧辑本进行深层次整理与系统综合",
+        "academicAtmosphere": "利用敦煌等新出土文献开展辑佚"
+      }
+    },
+    {
+      "id": "M_JI_LU_YI_SHU_MU",
+      "label": "Method",
+      "text": "辑录佚书之目",
+      "properties": {
+        "methodName": "辑录佚书之目",
+        "methodDescription": "以亡佚之书或辑佚本为对象而编撰的书目",
+        "methodEvaluation": "可晓知文献流传过程与学术演进梗概"
+      }
+    },
+    {
+      "id": "R_JI_YI_TABLE_50",
+      "label": "Resource_Catalog",
+      "text": "经史子辑佚成果对照表（终）",
+      "properties": {
+        "scope": "涵盖史部（典礼、职官、掌故、时令、地理）及子部（儒家、杂家、典故、小说）",
+        "key_compilers": [
+          "王谟",
+          "马国翰",
+          "黄奭",
+          "王仁俊"
+        ],
+        "data_focus": "重点展示了汉魏晋时期的礼仪制度、官制以及早期笔记小说的辑录实态"
+      }
+    },
+    {
+      "id": "C_OFFICIAL_SYSTEM",
+      "label": "Subject_Category",
+      "text": "职官与典仪类",
+      "properties": {
+        "notable_works": [
+          "《汉官》",
+          "《汉官解诘》",
+          "《汉旧仪》",
+          "《晋百官名》"
+        ],
+        "value": "复原了秦汉至魏晋的政府架构、官职员额及朝廷礼仪",
+        "representative_scholar": "应劭（《汉旧仪》）、蔡质（《汉官仪》）"
+      }
+    },
+    {
+      "id": "C_GEOGRAPHY_CLASS",
+      "label": "Subject_Category",
+      "text": "地理类",
+      "properties": {
+        "works": [
+          "《地理书抄》（陆澄、任昉）",
+          "《帝王经界纪》（皇甫谧）"
+        ],
+        "feature": "《地理书抄》是早期地理文献的集大成辑本，保存了大量失传的东晋南朝地志"
+      }
+    },
+    {
+      "id": "C_FICTION_CLASS",
+      "label": "Subject_Category",
+      "text": "子部·小说类",
+      "properties": {
+        "notable_works": [
+          "《裴子语林》",
+          "《郭子》",
+          "《俗说》",
+          "《朝野佥载》（佚文）"
+        ],
+        "significance": "这些著作是《世说新语》之外重要的志人小说，反映了魏晋南北朝的社会风气与言谈"
+      }
+    },
+    {
+      "id": "R_HISTORY_SECTION_LIST",
+      "label": "Resource_Catalog",
+      "text": "史部佚书细目",
+      "properties": {
+        "categories": [
+          "帝王世纪类：涉及皇甫谧《帝王世纪》、《年历》等，构建远古至魏晋的帝王谱系",
+          "霸史类：14种，涉及十六国政权史（如《赵书》、《燕书》、《秦记》、《凉州记》等）",
+          "起居注类：25种，详列汉献帝至东晋各朝起居注，及南朝宋、齐、梁、陈起居注"
+        ],
+        "key_scholars": [
+          "皇甫谧",
+          "裴景仁",
+          "和苞",
+          "李轨",
+          "陆机"
+        ],
+        "value": "这些文献是研究‘魏晋南北朝割据政权’及‘宫廷实录’的原始碎片"
+      }
+    },
+    {
+      "id": "C_DISCIPLINE_STRUCTURE",
+      "label": "Methodology",
+      "text": "辑佚学学科体系",
+      "properties": {
+        "theoretical_base": "第五章：清代五大辑佚家（章宗源、王谟、严可均、马国翰、黄奭）",
+        "historical_evolution": "第六、七章：从乾隆间繁兴到晚清补辑，再到现代鲁迅、王国维等人的转型",
+        "modern_landmarks": [
+          "张国淦《中国古方志考》",
+          "王重民的敦煌辑佚",
+          "唐圭璋《全宋词》"
+        ]
+      }
+    },
+    {
+      "id": "B_DI_WANG_SHI_JI",
+      "label": "Key_Book",
+      "text": "《帝王世纪》",
+      "properties": {
+        "author": "晋·皇甫谧",
+        "significance": "系统的帝王代序史书，虽原书散佚，但为历代史家征引，是辑佚频率极高的核心古籍"
+      }
+    },
+    {
+      "id": "T_SHANG_DAI",
+      "label": "Time",
+      "text": "商代",
+      "properties": {
+        "periodName": "商代",
+        "compilationFeature": "成文历史之始",
+        "academicAtmosphere": "甲骨记事，谱牒文献出现"
+      }
+    },
+    {
+      "id": "T_ZHOU_DAI",
+      "label": "Time",
+      "text": "周代",
+      "properties": {
+        "periodName": "周代",
+        "compilationFeature": "私家著述渐多，百家争鸣",
+        "academicAtmosphere": "官书与私书并存，文献十分丰富"
+      }
+    },
+    {
+      "id": "M_FAN_SHU",
+      "label": "Method",
+      "text": "燔书",
+      "properties": {
+        "methodName": "燔书",
+        "methodDescription": "以政治/思想统一为动机焚毁敌对学派图书的行为",
+        "methodEvaluation": "导致先秦典籍大量亡佚的主要人为原因"
+      }
+    },
+    {
+      "id": "T_XI_HAN",
+      "label": "Time",
+      "text": "西汉",
+      "properties": {
+        "periodName": "西汉",
+        "compilationFeature": "大规模搜求遗书，首次系统整理官府藏书",
+        "academicAtmosphere": "汉武帝、成帝时期极重文献搜集"
+      }
+    },
+    {
+      "id": "T_DONG_HAN",
+      "label": "Time",
+      "text": "东汉",
+      "properties": {
+        "periodName": "东汉",
+        "compilationFeature": "图书文献数量增加但损毁严重",
+        "academicAtmosphere": "传注旧籍，撰著新书"
+      }
+    },
+    {
+      "id": "M_SHOU_TU",
+      "label": "Method",
+      "text": "收图/搜遗",
+      "properties": {
+        "methodName": "收图/搜遗",
+        "methodDescription": "在战争或朝代更替之际，由官方或私人对散佚文献进行抢救性收集",
+        "methodEvaluation": "萧何收秦图籍使汉得以知天下厄塞、户口多少，对后世辑佚有示范意义"
+      }
+    },
+    {
+      "id": "T_WEI_JIN_NAN_BEI_CHAO",
+      "label": "Time",
+      "text": "魏晋南北朝",
+      "properties": {
+        "periodName": "魏晋南北朝",
+        "compilationFeature": "纸墨普及，私家藏书盛行，但因战乱损毁极惨",
+        "academicAtmosphere": "南朝秘阁藏书规模递增，北朝后期开始追赶"
+      }
+    },
+    {
+      "id": "T_TANG_CHAO",
+      "label": "Time",
+      "text": "唐代",
+      "properties": {
+        "periodName": "唐代",
+        "compilationFeature": "开元鼎盛期聚书数十万卷，安史之乱后尺简不藏",
+        "academicAtmosphere": "建立完善的四库藏书与正副本制度"
+      }
+    },
+    {
+      "id": "M_SI_KU_ZHI_DU",
+      "label": "Method",
+      "text": "四库整理/副本制",
+      "properties": {
+        "methodName": "四库整理制度",
+        "methodDescription": "将图书分为经史子集四部，并设置正、副本分别储藏",
+        "methodEvaluation": "虽有利于保存，但在大规模兵燹中仍难以幸免"
+      }
+    },
+    {
+      "id": "T_BEI_SONG",
+      "label": "Time",
+      "text": "北宋",
+      "properties": {
+        "periodName": "北宋",
+        "compilationFeature": "刻书渐盛，但末期因党争禁书及靖康之难导致秘阁图书一空",
+        "academicAtmosphere": "前期聚书达7万余卷，后期文献受政治斗争损毁严重"
+      }
+    },
+    {
+      "id": "C_SANJIA_SHI_KAO",
+      "label": "Compilation",
+      "text": "三家诗考",
+      "properties": {
+        "compilationTitle": "三家诗考",
+        "compiler": "王应麟",
+        "compilationStyle": "辑采群书引用，开后世辑佚成法之先河"
+      }
+    },
+    {
+      "id": "C_ZHENG_SHI_ZHOU_YI_ZHU",
+      "label": "Compilation",
+      "text": "郑氏周易注",
+      "properties": {
+        "compilationTitle": "郑氏周易注",
+        "compiler": "王应麟",
+        "editionInfo": "采郑玄《易注》见于群书者集成"
+      }
+    },
+    {
+      "id": "S_WANG_YINGLIN",
+      "label": "Scholar",
+      "text": "王应麟",
+      "properties": {
+        "name": "王应麟",
+        "school": "宋代辑佚学者/南宋学者/宋代学者",
+        "academicLineage": "被章学诚等清代大学者尊为辑佚学的“首庸”（鼻祖）"
+      }
+    },
+    {
+      "id": "S_YAN_KEJUN",
+      "label": "Scholar",
+      "text": "严可均",
+      "properties": {
+        "name": "严可均",
+        "courtesy name": "铁桥",
+        "school": "清代辑佚家/金石学家",
+        "academicLineage": "毕生精力奉献于《全上古三代秦汉三国六朝文》，被誉为辑佚界的“孤臣”",
+        "contribution": "辑编《全上古三代秦汉三国六朝文》",
+        "issue": "在处理史书对话时，有时误将史家润色的口语（如赵朔之妻祈祷语）认定为个人作品"
+      }
+    },
+    {
+      "id": "S_CHEN_JINGYUAN",
+      "label": "Scholar",
+      "text": "陈景元",
+      "properties": {
+        "name": "陈景元",
+        "school": "北宋道士/学者",
+        "academicLineage": "号真靖，辑有《相鹤经》，被叶德辉尊为辑佚鼻祖"
+      }
+    },
+    {
+      "id": "S_YE_DEHUI",
+      "label": "Scholar",
+      "text": "叶德辉",
+      "properties": {
+        "name": "叶德辉",
+        "school": "清末民初藏书家",
+        "academicLineage": "著《书林清话》，提出辑佚起源“陈景元说”以挑战“王应麟说”"
+      }
+    },
+    {
+      "id": "S_MEI_ZE",
+      "label": "Scholar",
+      "text": "梅赜",
+      "properties": {
+        "name": "梅赜",
+        "school": "东晋豫章内史",
+        "academicLineage": "上奏《古文尚书》，后世辨伪证明其具有采缀辑佚性质"
+      }
+    },
+    {
+      "id": "S_YAN_RUOQU",
+      "label": "Scholar",
+      "text": "阎若璩",
+      "properties": {
+        "name": "阎若璩",
+        "school": "清代辨伪学家",
+        "academicLineage": "著《古文尚书疏证》，系统论证伪古文尚书的凑缀来源"
+      }
+    },
+    {
+      "id": "S_YU_ZHONGRONG",
+      "label": "Scholar",
+      "text": "庾仲容",
+      "properties": {
+        "name": "庾仲容",
+        "school": "南朝梁学者",
+        "academicLineage": "编纂《子钞》三十卷，为后世辑佚提供素材"
+      }
+    },
+    {
+      "id": "S_MA_ZONG",
+      "label": "Scholar",
+      "text": "马总",
+      "properties": {
+        "name": "马总",
+        "school": "唐代学者",
+        "academicLineage": "编纂《意林》，从《子钞》中辑出七十一家要语，具辑佚性质"
+      }
+    },
+    {
+      "id": "S_MA_RONG",
+      "label": "Scholar",
+      "text": "马融",
+      "properties": {
+        "name": "马融",
+        "school": "东汉经学家",
+        "academicLineage": "最早将辑佚作为一种学术研究方法，辨析《尚书·泰誓》"
+      }
+    },
+    {
+      "id": "S_ZHENG_QIAO",
+      "label": "Scholar",
+      "text": "郑樵",
+      "properties": {
+        "name": "郑樵",
+        "courtesy name": "渔仲",
+        "school": "南宋史学家/目录学家",
+        "academicLineage": "著有《通志》，最早对辑佚理论进行初步探讨的学者之一/著《通志》，其《校雠略》提出散亡之书可据称引辑录的思想",
+        "issue": "在《通志》中抄录书目时不复辨其有亡，被后人批评误导学人"
+      }
+    },
+    {
+      "id": "S_TAN_YU",
+      "label": "Scholar",
+      "text": "谭愈",
+      "properties": {
+        "name": "谭愈",
+        "school": "南宋学者",
+        "academicLineage": "好扬雄之文，因旧本亡佚，从诸篇籍中缀辑《扬子云集》"
+      }
+    },
+    {
+      "id": "S_YANG_XIONG",
+      "label": "Scholar",
+      "text": "扬雄",
+      "properties": {
+        "name": "扬雄",
+        "school": "西汉学者",
+        "academicLineage": "其文集历经东汉辑汇、唐末亡佚、南宋再辑的过程"
+      }
+    },
+    {
+      "id": "S_GAO_SISHUN",
+      "label": "Scholar",
+      "text": "高似孙",
+      "properties": {
+        "name": "高似孙",
+        "school": "南宋辑佚家",
+        "academicLineage": "辑有《古世本》，为王应麟以前的纯正辑佚书，现已不传"
+      }
+    },
+    {
+      "id": "S_TAO_ZONGYI",
+      "label": "Scholar",
+      "text": "陶宗仪",
+      "properties": {
+        "name": "陶宗仪",
+        "courtesy name": "九成",
+        "school": "元末明初学者",
+        "academicLineage": "字九成，号南村，辑有大型丛书《说郛》"
+      }
+    },
+    {
+      "id": "S_HU_YINGLIN",
+      "label": "Scholar",
+      "text": "胡应麟",
+      "properties": {
+        "name": "胡应麟",
+        "courtesy name": "元瑞",
+        "school": "明代文学家/目录学家/明代文献学家",
+        "academicLineage": "著有《少室山房笔丛》、《经籍会通》，在辑佚理论与实践上均有极高成就",
+        "contribution": "在《少室山房笔丛》中系统考辨洪迈所列佚书的存亡年代，指出隋唐时期文献灭失的真相/高度评价宋代三大类书（《太平御览》、《文苑英华》、《太平广记》）的辑佚价值",
+        "theory": "提出‘非类书，则古籍多乌有’的观点，并以此进行辨伪工作"
+      }
+    },
+    {
+      "id": "S_HONG_LIANGJI",
+      "label": "Scholar",
+      "text": "洪亮吉",
+      "properties": {
+        "name": "洪亮吉",
+        "school": "清代学者",
+        "academicLineage": "在《北江诗话》中将藏书家分为五类：考订、校讎、收藏、鉴赏、掠贩"
+      }
+    },
+    {
+      "id": "S_MEI_DINGZUO",
+      "label": "Scholar",
+      "text": "梅鼎祚",
+      "properties": {
+        "name": "梅鼎祚",
+        "courtesy name": "禹金",
+        "school": "明代文学家/辑佚家",
+        "academicLineage": "宣城人，以古学自任，编纂《历代文纪》等巨著"
+      }
+    },
+    {
+      "id": "S_WU_GUAN",
+      "label": "Scholar",
+      "text": "吴琯",
+      "properties": {
+        "name": "吴琯",
+        "school": "明代文献整理者",
+        "academicLineage": "隆庆五年进士，辑有《古今逸史》、《唐诗纪》"
+      }
+    },
+    {
+      "id": "S_ZHANG_PU",
+      "label": "Scholar",
+      "text": "张溥",
+      "properties": {
+        "name": "张溥",
+        "courtesy name": "天如",
+        "school": "明末复社领袖/明代辑佚者",
+        "academicLineage": "编成《汉魏六朝百三家集》，对集部文献进行大规模辑汇"
+      }
+    },
+    {
+      "id": "S_HUI_DONG",
+      "label": "Scholar",
+      "text": "惠栋",
+      "properties": {
+        "name": "惠栋",
+        "school": "清代吴派考据学创始人/清代吴派汉学",
+        "academicLineage": "首发清代辑佚之端，亲授弟子辑佚体例，辑有《易汉学》等"
+      }
+    },
+    {
+      "id": "S_YU_XIAOKE",
+      "label": "Scholar",
+      "text": "余萧客",
+      "properties": {
+        "name": "余萧客",
+        "courtesy name": "仲迈",
+        "school": "清代吴派学者/惠栋弟子",
+        "academicLineage": "受惠栋指授，承其师法，辑成《古经解钩沈》"
+      }
+    },
+    {
+      "id": "S_DAI_ZHEN",
+      "label": "Scholar",
+      "text": "戴震",
+      "properties": {
+        "name": "戴震",
+        "school": "清代乾嘉学派代表/四库馆臣",
+        "academicLineage": "任《四库全书》纂修官，负责从《永乐大典》中辑录佚书"
+      }
+    },
+    {
+      "id": "S_SHAO_JINHAN",
+      "label": "Scholar",
+      "text": "邵晋涵",
+      "properties": {
+        "name": "邵晋涵",
+        "school": "清代史学家/四库馆臣",
+        "academicLineage": "从《永乐大典》中辑出《旧五代史》等重要史籍"
+      }
+    },
+    {
+      "id": "S_SUN_XINGYAN",
+      "label": "Scholar",
+      "text": "孙星衍",
+      "properties": {
+        "name": "孙星衍",
+        "courtesy name": "渊如",
+        "school": "清代考据学家/藏书家",
+        "academicLineage": "汇聚前人辑佚稿本达七八百种，包括章宗源、祁承㸁等人的成果"
+      }
+    },
+    {
+      "id": "S_ZHANG_ZONGYUAN",
+      "label": "Scholar",
+      "text": "章宗源",
+      "properties": {
+        "name": "章宗源",
+        "courtesy name": "逢之",
+        "school": "清代辑佚家",
+        "academicLineage": "好辑佚书，欲考证《隋书经籍志》，遗稿多达十余策，后散佚"
+      }
+    },
+    {
+      "id": "S_WANG_MO",
+      "label": "Scholar",
+      "text": "王谟",
+      "properties": {
+        "name": "王谟",
+        "courtesy name": "仁圃",
+        "school": "清代辑佚家/目录学家",
+        "academicLineage": "辑有《汉魏遗书钞》，并增订《汉魏丛书》，在建昌府学任职期间产出极丰"
+      }
+    },
+    {
+      "id": "S_WANG_RENJUN",
+      "label": "Scholar",
+      "text": "王仁俊",
+      "properties": {
+        "name": "王仁俊",
+        "school": "清末辑佚家"
+      }
+    },
+    {
+      "id": "S_SUN_YIRANG",
+      "label": "Scholar",
+      "text": "孙诒让",
+      "properties": {
+        "name": "孙诒让",
+        "school": "清末学者"
+      }
+    },
+    {
+      "id": "S_MA_GUOHAN",
+      "label": "Scholar",
+      "text": "马国翰",
+      "properties": {
+        "name": "马国翰",
+        "courtesy name": "仲良",
+        "school": "清代辑佚大家/清代辑佚家",
+        "academicLineage": "自号“书痴”，历任县令，晚年居家专志辑佚，辑成《玉函山房辑佚书》"
+      }
+    },
+    {
+      "id": "S_HUANG_SHI",
+      "label": "Scholar",
+      "text": "黄奭",
+      "properties": {
+        "name": "黄奭",
+        "courtesy name": "子年",
+        "school": "清代辑佚家",
+        "academicLineage": "辑有《汉学堂丛书》，包括《黄氏逸书考》等，对郑玄佚注用力尤深"
+      }
+    },
+    {
+      "id": "S_BI_YUAN",
+      "label": "Scholar",
+      "text": "毕沅",
+      "properties": {
+        "name": "毕沅",
+        "courtesy name": "秋帆",
+        "school": "清代史学家/经学家",
+        "academicLineage": "乾隆状元，位高权重，利用幕府人才辑校古籍，如《墨子》、《山海经》等"
+      }
+    },
+    {
+      "id": "S_XU_SONG",
+      "label": "Scholar",
+      "text": "徐松",
+      "properties": {
+        "name": "徐松",
+        "courtesy name": "星伯",
+        "school": "清代地理学家/文献学家",
+        "academicLineage": "从《永乐大典》中辑出《宋会要辑稿》、《元河南志》等，功在史学",
+        "contribution": "从《永乐大典》中辑出《宋会要辑稿》500卷",
+        "other_works": "辑有《中兴礼书》、《大元马政记》等重大政典"
+      }
+    },
+    {
+      "id": "S_WANG_WENTAI",
+      "label": "Scholar",
+      "text": "汪文台",
+      "properties": {
+        "name": "汪文台",
+        "courtesy name": "南士",
+        "school": "清代道光间辑佚家",
+        "academicLineage": "足不出乡邑而博闻强记，与俞正燮齐名，辑有《七家后汉书》"
+      }
+    },
+    {
+      "id": "S_HONG_YISUN",
+      "label": "Scholar",
+      "text": "洪饴孙",
+      "properties": {
+        "name": "洪饴孙",
+        "school": "嘉道间学者",
+        "academicLineage": "辑有《世本辑补》，对上古世系研究有重要贡献"
+      }
+    },
+    {
+      "id": "S_TANG_ZHONG",
+      "label": "Scholar",
+      "text": "汤中",
+      "properties": {
+        "name": "汤中",
+        "courtesy name": "建中",
+        "school": "晚清地理学家/辑佚家",
+        "academicLineage": "湖南善化人，光绪二十四年刊成《麓山精舍丛书》，专重舆地与乡邦文献"
+      }
+    },
+    {
+      "id": "S_CUI_HONG",
+      "label": "Scholar",
+      "text": "崔鸿",
+      "properties": {
+        "name": "崔鸿",
+        "school": "北魏史学家",
+        "academicLineage": "著有《十六国春秋》，原书在北宋后散佚，晚清学者对其进行了大规模补辑"
+      }
+    },
+    {
+      "id": "S_SUN_XINGHUA",
+      "label": "Scholar",
+      "text": "孙星华",
+      "properties": {
+        "name": "孙星华",
+        "school": "晚清辑佚家",
+        "academicLineage": "致力于对前人辑佚丛书的增补，曾主持《玉函山房辑佚书》的递修与拾遗工作"
+      }
+    },
+    {
+      "id": "S_LU_XINYUAN",
+      "label": "Scholar",
+      "text": "陆心源",
+      "properties": {
+        "name": "陆心源",
+        "school": "晚清著名藏书家/皕宋楼主人",
+        "academicLineage": "辑有《宋史翼》等，其辑佚成果多被后人引为“拾遗”之源"
+      }
+    },
+    {
+      "id": "S_WANG_XIANQIAN",
+      "label": "Scholar",
+      "text": "王先谦",
+      "properties": {
+        "name": "王先谦",
+        "school": "晚清汉学集大成者",
+        "academicLineage": "著有《诗三家义集疏》，标志着三家诗辑佚的最终总结与整合"
+      }
+    },
+    {
+      "id": "S_CHEN_QIAOCONG",
+      "label": "Scholar",
+      "text": "陈乔枞",
+      "properties": {
+        "name": "陈乔枞",
+        "school": "清代经学家",
+        "academicLineage": "与其父陈寿祺合著《诗三家遗说考》，在今文经学辑佚领域地位极高"
+      }
+    },
+    {
+      "id": "S_WANG_GUOWEI",
+      "label": "Scholar",
+      "text": "王国维",
+      "properties": {
+        "name": "王国维",
+        "courtesy name": "静安",
+        "school": "新史学/清华国学院导师",
+        "academicLineage": "融汇东西方学术，利用出土文献（简牍、敦煌遗书）进行辑佚，代表作《魏书·宗室传》补辑等",
+        "contribution": "利用《疏证》方法证明今本《纪年》的辑佚性质",
+        "method": "将地下新材料与纸上遗文结合，达到极高学术水平"
+      }
+    },
+    {
+      "id": "S_LUO_ZHENYU",
+      "label": "Scholar",
+      "text": "罗振玉",
+      "properties": {
+        "name": "罗振玉",
+        "school": "金石学家/藏书家",
+        "academicLineage": "王国维之师友，大规模搜集、刊印新出土文献，为民国辑佚提供重要资源"
+      }
+    },
+    {
+      "id": "S_LU_XUN",
+      "label": "Scholar",
+      "text": "鲁迅",
+      "properties": {
+        "name": "周树人",
+        "pseudonym": "鲁迅",
+        "school": "文学家/思想家/古籍整理家",
+        "academicLineage": "早年即从事古籍搜辑，辑有《古小说钩沉》、《会稽郡故书杂集》等"
+      }
+    },
+    {
+      "id": "S_TAO_TINGYI",
+      "label": "Scholar",
+      "text": "陶廷诒",
+      "properties": {
+        "name": "陶廷诒",
+        "origin": "贵州贵筑人",
+        "period": "民国年间",
+        "academicEvaluation": "辑佚工作较为草率，质量远在清人之下"
+      }
+    },
+    {
+      "id": "S_TANG_GUIZHANG",
+      "label": "Scholar",
+      "text": "唐圭璋",
+      "properties": {
+        "name": "唐圭璋",
+        "school": "现代词学家/当代词学大师",
+        "academicLineage": "致力于宋金元词的全面搜采与编纂，代表作为《全宋词》",
+        "method": "利用类书（如《全芳备祖》）作为辑佚渊薮，大规模补遗残篇"
+      }
+    },
+    {
+      "id": "S_GUO_SHAOYU",
+      "label": "Scholar",
+      "text": "郭绍虞",
+      "properties": {
+        "name": "郭绍虞",
+        "school": "文学批评史学家",
+        "academicLineage": "将辑佚与文学批评史研究结合，辑有《宋诗话辑佚》",
+        "contribution": "开创了针对特定文学理论著作（诗话）的系统辑补范式"
+      }
+    },
+    {
+      "id": "S_XU_ZONGZE",
+      "label": "Scholar",
+      "text": "徐宗泽",
+      "properties": {
+        "name": "徐宗泽",
+        "contribution": "在张澍等七家辑本基础上重辑《帝王世纪》",
+        "method": "校正讹误，依原书卷数分作10卷，征引图书56种",
+        "academicEvaluation": "目前《帝王世纪》的最佳辑本"
+      }
+    },
+    {
+      "id": "S_HU_DAOJING",
+      "label": "Scholar",
+      "text": "胡道静",
+      "properties": {
+        "name": "胡道静",
+        "school": "科技史专家/文献学家",
+        "academicLineage": "致力于沈括佚著及古代农学文献的辑佚",
+        "representativeWork": "《梦溪笔谈校正》、《沈括佚著辑存》"
+      }
+    },
+    {
+      "id": "S_ZHU_MINGPAN",
+      "label": "Scholar",
+      "text": "朱铭盘",
+      "properties": {
+        "name": "朱铭盘",
+        "contribution": "开创以朝代为限的“尽辑一代之佚著”模式",
+        "representativeWork": "《有魏一代全辑》"
+      }
+    },
+    {
+      "id": "S_ZHU_YIZUN",
+      "label": "Scholar",
+      "text": "朱彝尊",
+      "properties": {
+        "name": "朱彝尊",
+        "school": "清初学者",
+        "academicLineage": "文学家兼学者"
+      }
+    },
+    {
+      "id": "S_FANG_SHIMING",
+      "label": "Scholar",
+      "text": "方诗铭/王修龄",
+      "properties": {
+        "name": "方诗铭、王修龄",
+        "representativeWork": "《古本竹书纪年辑证》",
+        "contribution": "综合朱右曾、王国维、范祥雍三家之长，实现辑、校、证的结合"
+      }
+    },
+    {
+      "id": "S_WU_SHUPING",
+      "label": "Scholar",
+      "text": "吴树平",
+      "properties": {
+        "name": "吴树平",
+        "representativeWork": "《东观汉记校注》",
+        "academicValue": "对东汉重要史籍进行了当代最高水平的整理与补遗",
+        "contribution": "其《东观汉记校注序》被视为当代学术性序言的典范"
+      }
+    },
+    {
+      "id": "S_GONG_JIANFENG",
+      "label": "Scholar",
+      "text": "龚剑峰",
+      "properties": {
+        "name": "龚剑峰",
+        "contribution": "在《文献》杂志发表《宋濂诗文拾遗》、《宋濂诗文掇拾》",
+        "method": "利用零散碑刻、手札进行“动态拾遗”"
+      }
+    },
+    {
+      "id": "S_HONG_MAI",
+      "label": "Scholar",
+      "text": "洪迈",
+      "properties": {
+        "name": "洪迈",
+        "courtesy name": "景卢",
+        "school": "南宋文学家",
+        "contribution": "在《容斋随笔》中列举30余种唐以前已佚子书，引发了关于“书亡”时间的学术争论"
+      }
+    },
+    {
+      "id": "S_LIANG_QICHAO",
+      "label": "Scholar",
+      "text": "梁启超",
+      "properties": {
+        "name": "梁启超",
+        "school": "近代学者",
+        "academicLineage": "著有《中国近三百年学术史》",
+        "contribution": "提出评价辑佚书质量的五条标准/在《中国近三百年学术史》中总结了辑佚凭借的四类重要资料",
+        "academicValue": "将‘搜辑之完备’与‘整理之科学（还其本来面目）’并重",
+        "status": "为现代辑佚资源学奠定了分类基础"
+      }
+    },
+    {
+      "id": "S_LIU_XIANXIN",
+      "label": "Scholar",
+      "text": "刘咸忻",
+      "properties": {
+        "name": "刘咸忻",
+        "school": "现代史学家/文献学家",
+        "representativeWork": "《目录学·存佚》/《辑佚书纠缠》",
+        "contribution": "深刻总结清人辑佚的‘四弊十事’（漏、滥、误、陋）/系统分析辑佚中的“不审体例”之弊",
+        "theory": "指出学者常误将注家按语或他书引文并入原书，导致辑本失真"
+      }
+    },
+    {
+      "id": "S_ZHAO_ZHENDUO",
+      "label": "Scholar",
+      "text": "赵振铎",
+      "properties": {
+        "name": "赵振铎",
+        "representativeWork": "《古代文献知识》",
+        "contribution": "专列“搜辑阙佚”一章，从图书流传与亡佚的角度系统论述辑佚"
+      }
+    },
+    {
+      "id": "S_WU_FENG",
+      "label": "Scholar",
+      "text": "吴枫",
+      "properties": {
+        "name": "吴枫",
+        "representativeWork": "《中国古典文献学》",
+        "contribution": "中国文献学的奠基人之一，确立了“辑佚书”在文献学中的独立地位"
+      }
+    },
+    {
+      "id": "S_LI_XIAOTI",
+      "label": "Scholar",
+      "text": "李肖聃",
+      "properties": {
+        "name": "李肖聃",
+        "contribution": "尝试解释“辑佚学”学科概念，重新审视“伪书”与辑佚的关系"
+      }
+    },
+    {
+      "id": "S_DAI_NANHAI",
+      "label": "Scholar",
+      "text": "戴南海",
+      "properties": {
+        "name": "戴南海",
+        "representativeWork": "《校勘学概论》（1985）",
+        "theory": "指出辑佚与校勘的必然联系，并细化了方志在辑佚中的双重作用（存佚文、存亡本）"
+      }
+    },
+    {
+      "id": "S_WANG_JIQING",
+      "label": "Scholar",
+      "text": "王冀青",
+      "properties": {
+        "name": "王冀青",
+        "representativeWork": "《辑佚学稿》",
+        "contribution": "撰写了第一部系统的辑佚学专著",
+        "significance": "现代辑佚学学科形成的重要标志，实现了从实践到理性的飞跃"
+      }
+    },
+    {
+      "id": "S_ZHAO_LISheng",
+      "label": "Scholar",
+      "text": "赵俪生",
+      "properties": {
+        "name": "赵俪生",
+        "contribution": "发表《张澍的生平及其著作》，对清代辑佚家进行深入的个案研究"
+      }
+    },
+    {
+      "id": "S_ZHANG_SHENG",
+      "label": "Scholar",
+      "text": "张升",
+      "properties": {
+        "name": "张升",
+        "contribution": "90年代发表《清代辑佚研究》系列论文",
+        "researchFocus": "分析清代辑佚学兴盛的原因及其历史地位",
+        "status": "推动辑佚研究走向更深层次的当代学者"
+      }
+    },
+    {
+      "id": "S_ZHU_ZUYUAN",
+      "label": "Scholar",
+      "text": "朱祖延",
+      "properties": {
+        "name": "朱祖延",
+        "representativeWork": "《北魏佚书考》",
+        "contribution": "体现了辑佚工作的极致化，个别条目（如刘郦《周易注》）虽仅一字亦列为一种"
+      }
+    },
+    {
+      "id": "S_WANG_SHUWU",
+      "label": "Scholar",
+      "text": "王叔武",
+      "properties": {
+        "name": "王叔武",
+        "representativeWork": "《云南古佚书钞》",
+        "contribution": "在大型辑佚丛书中采用“总序”与“书序”结合的双层架构"
+      }
+    },
+    {
+      "id": "S_PI_XIRUI",
+      "label": "Scholar",
+      "text": "皮锡瑞",
+      "properties": {
+        "name": "皮锡瑞",
+        "school": "清末经学家",
+        "academicLineage": "著有《经学历史》"
+      }
+    },
+    {
+      "id": "S_WANG_YIN",
+      "label": "Scholar",
+      "text": "王隐",
+      "properties": {
+        "name": "王隐",
+        "case_study": "《太平御览》引‘王隐《晋书》’常混入后人补续内容，需通过生卒年考证剔除伪文"
+      }
+    },
+    {
+      "id": "S_BIAN_XIAOXUAN",
+      "label": "Scholar",
+      "text": "卞孝萱",
+      "properties": {
+        "name": "卞孝萱",
+        "representativeWork": "《郑板桥集外词》",
+        "methodology": "考据据书真伪而辨识佚文之伪",
+        "case_study": "发现《板桥笔记小说》实为书商拼凑之伪书，故拒绝将其中的《贺新凉》定为郑氏作品"
+      }
+    },
+    {
+      "id": "S_ZENG_ZAOZHUANG",
+      "label": "Scholar",
+      "text": "曾枣庄",
+      "properties": {
+        "name": "曾枣庄",
+        "representativeWork": "《三苏文校理札记》",
+        "contribution": "处理‘苏集’与‘黄集’、‘苏过集’之间的文献重叠与真伪考辨",
+        "theory": "提出在无确凿证据时，应优先信任宋刊本而非明末扩充本"
+      }
+    },
+    {
+      "id": "S_CHEN_YUAN",
+      "label": "Scholar",
+      "text": "陈垣",
+      "properties": {
+        "name": "陈垣",
+        "representativeWork": "《校勘学释例》",
+        "contribution": "系统归纳了校勘四法，为辑佚后的文字处理提供标准工具"
+      }
+    },
+    {
+      "id": "S_WEN_TING_SHI",
+      "label": "Scholar",
+      "text": "文廷式",
+      "properties": {
+        "name": "文廷式",
+        "contribution": "辑录大量元代官制、海运、地志文献（如《大元官制杂记》、《大元全库记》）",
+        "publication": "多见于《广仓学窘丛书》"
+      }
+    },
+    {
+      "id": "S_WANG_ZHONGMIN",
+      "label": "Scholar",
+      "text": "王重民",
+      "properties": {
+        "name": "王重民",
+        "school": "当代文献学家",
+        "academicLineage": "曾利用敦煌文献进行辑佚"
+      }
+    },
+    {
+      "id": "S_SHANG_YANG",
+      "label": "Scholar",
+      "text": "商鞅",
+      "properties": {
+        "name": "商鞅",
+        "school": "法家",
+        "academicLineage": "推行变法，主张燔《诗》《书》"
+      }
+    },
+    {
+      "id": "S_MO_ZI",
+      "label": "Scholar",
+      "text": "墨子",
+      "properties": {
+        "name": "墨子",
+        "school": "墨家",
+        "academicLineage": "曾述及周公朝读百篇，见证周代书多"
+      }
+    },
+    {
+      "id": "S_XIAO_HE",
+      "label": "Scholar",
+      "text": "萧何",
+      "properties": {
+        "name": "萧何",
+        "school": "西汉政治家/文献整理者",
+        "academicLineage": "收秦丞相府图籍文书，奠定汉室文献基础"
+      }
+    },
+    {
+      "id": "S_FU_SHENG",
+      "label": "Scholar",
+      "text": "伏生",
+      "properties": {
+        "name": "伏生",
+        "school": "秦代博士",
+        "academicLineage": "壁藏《尚书》，后汉定求书，亡数十篇"
+      }
+    },
+    {
+      "id": "S_ZHANG_LIANG",
+      "label": "Scholar",
+      "text": "张良",
+      "properties": {
+        "name": "张良",
+        "school": "西汉整理者",
+        "academicLineage": "与韩信序次兵法"
+      }
+    },
+    {
+      "id": "S_XIE_LINGYUN",
+      "label": "Scholar",
+      "text": "谢灵运",
+      "properties": {
+        "name": "谢灵运",
+        "school": "南朝宋文献整理者",
+        "academicLineage": "受宋文帝命整理秘阁书，造《四部目录》"
+      }
+    },
+    {
+      "id": "S_RUAN_XIAOXU",
+      "label": "Scholar",
+      "text": "阮孝绪",
+      "properties": {
+        "name": "阮孝绪",
+        "school": "南朝梁目录学家",
+        "academicLineage": "私撰《七录》，记载梁朝藏书达44526卷"
+      }
+    },
+    {
+      "id": "S_WEI_ZHENG",
+      "label": "Scholar",
+      "text": "魏征",
+      "properties": {
+        "name": "魏征",
+        "school": "唐初整理者",
+        "academicLineage": "主修《隋书·经籍志》，总结历代文献存佚"
+      }
+    },
+    {
+      "id": "S_WANG_ANSHI",
+      "label": "Scholar",
+      "text": "王安石",
+      "properties": {
+        "name": "王安石",
+        "school": "北宋新学/政治家",
+        "academicLineage": "其“熙宁新法”后引发党争，导致反对派著作被禁毁"
+      }
+    },
+    {
+      "id": "S_SHEN_KUA",
+      "label": "Scholar",
+      "text": "沈括",
+      "properties": {
+        "name": "沈括",
+        "school": "北宋科学家/学者",
+        "academicLineage": "其著作多失传，与北宋末期禁毁“元祐党人”著作有关"
+      }
+    },
+    {
+      "id": "S_ZHANG_XUECHENG",
+      "label": "Scholar",
+      "text": "章学诚",
+      "properties": {
+        "name": "章学诚",
+        "school": "清代史学家",
+        "academicLineage": "著《校雠通义》，论定辑佚起源于王应麟"
+      }
+    }
+  ],
+  "object_properties": [
+    {
+      "id": "OP_001",
+      "type": "representsperiod",
+      "source": "S_YAN_KEJUN",
+      "target": "T_QING",
+      "description": "严可均是清代乾嘉时期的代表性辑佚学者"
+    },
+    {
+      "id": "OP_002",
+      "type": "targetsText",
+      "source": "C_QUAN_SONG_WEN",
+      "target": "L_YONG_LE_DA_DIAN",
+      "description": "《全宋文》的部分散佚文献来源于《永乐大典》等类书"
+    },
+    {
+      "id": "OP_003",
+      "type": "relatedToSchool",
+      "source": "S_YAN_KEJUN",
+      "target": "A_WU_PAI",
+      "description": "清代前期辑佚活动与吴派汉学家密切相关"
+    },
+    {
+      "id": "OP_004",
+      "type": "hasRepresentativeWork",
+      "source": "S_WANG_YINGLIN",
+      "target": "C_YU_HAI",
+      "description": "王应麟编纂了《玉海》等具有辑佚性质的著作"
+    },
+    {
+      "id": "OP_005",
+      "type": "employsMethod",
+      "source": "S_YAN_KEJUN",
+      "target": "M_JIAO_KAN",
+      "description": "严可均等清代学者在辑佚中广泛使用校勘方法"
+    },
+    {
+      "id": "OP_006",
+      "type": "influencesSchool",
+      "source": "S_YE_DEHUI",
+      "target": "S_CHEN_JINGYUAN",
+      "description": "叶德辉在《书林清话》中通过考证，断言陈景元辑《相鹤经》为辑佚之鼻祖"
+    },
+    {
+      "id": "OP_007",
+      "type": "hasRepresentativeWork",
+      "source": "S_CHEN_JINGYUAN",
+      "target": "C_XIANG_HE_JING",
+      "description": "陈景元辑写的《相鹤经》比王应麟辑本早170余年"
+    },
+    {
+      "id": "OP_008",
+      "type": "employsMethod",
+      "source": "S_YAN_RUOQU",
+      "target": "M_BIAN_WEI",
+      "description": "阎若璩利用辨伪方法分析梅本《古文尚书》，揭示其采缀真书、凑缀成篇的本质"
+    },
+    {
+      "id": "OP_009",
+      "type": "relatedToSchool",
+      "source": "S_MEI_ZE",
+      "target": "C_GU_WEN_SHANG_SHU",
+      "description": "梅赜上奏的《古文尚书》被现代辑佚学视作一种早期未署名的“辑佚性质”作品"
+    },
+    {
+      "id": "OP_010",
+      "type": "hasRepresentativeWork",
+      "source": "S_MA_ZONG",
+      "target": "C_YI_LIN",
+      "description": "马总的《意林》被认为含有唐代的辑佚成果，因其引文多来自已佚或残缺之书"
+    },
+    {
+      "id": "OP_011",
+      "type": "influencesSchool",
+      "source": "S_ZHENG_QIAO",
+      "target": "S_WANG_YINGLIN",
+      "description": "郑樵提出的辑录思想为王应麟等后世辑佚家确立了理论与方法论基础"
+    },
+    {
+      "id": "OP_012",
+      "type": "employsMethod",
+      "source": "S_MA_RONG",
+      "target": "M_XUE_SHU_YAN_JIU_FA",
+      "description": "东汉马融最早运用辑佚思维进行经学辨伪，是辑佚作为方法的早期典型"
+    },
+    {
+      "id": "OP_013",
+      "type": "relatedToSchool",
+      "source": "C_GU_WEN_YUAN",
+      "target": "L_YI_WEN_LEI_JU",
+      "description": "《古文苑》中汉魏诗文多从《艺文类聚》等类书删节本中辑录"
+    },
+    {
+      "id": "OP_014",
+      "type": "hasRepresentativeWork",
+      "source": "S_TAN_YU",
+      "target": "C_Y_ZI_YUN_JI",
+      "description": "谭愈因患扬雄文散在诸篇离而不属，特予缀辑成集"
+    },
+    {
+      "id": "OP_015",
+      "type": "targetsText",
+      "source": "C_Y_ZI_YUN_JI",
+      "target": "C_GU_WEN_YUAN",
+      "description": "南宋谭愈辑《扬子云集》的主要来源之一是《古文苑》"
+    },
+    {
+      "id": "OP_016",
+      "type": "representsperiod",
+      "source": "S_GAO_SISHUN",
+      "target": "T_BEI_SONG",
+      "description": "高似孙与陈景元一样，是王应麟成法确立前的南宋早期辑佚代表"
+    },
+    {
+      "id": "OP_017",
+      "type": "employsMethod",
+      "source": "S_WANG_YINGLIN",
+      "target": "M_JI_YI_XUE",
+      "description": "至王应麟时期，辑佚的“成法”已经基本形成，标志着该学科走向成熟的起点"
+    },
+    {
+      "id": "OP_018",
+      "type": "hasRepresentativeWork",
+      "source": "S_TAO_ZONGYI",
+      "target": "C_SHUO_FU",
+      "description": "陶宗仪利用博学专长，在元末动乱中辑成《说郛》，保存了大量古佚书"
+    },
+    {
+      "id": "OP_019",
+      "type": "representsperiod",
+      "source": "S_TAO_ZONGYI",
+      "target": "T_MING_DAI",
+      "description": "陶宗仪跨越元明两代，其工作是元明间少数具有规模的辑佚贡献"
+    },
+    {
+      "id": "OP_020",
+      "type": "relatedToSchool",
+      "source": "T_MING_DAI",
+      "target": "A_SHI_MIN_WEN_HUA",
+      "description": "明代辑佚受城市经济影响，呈现出服务于农工商贩、痴呆女妇的平民化特征"
+    },
+    {
+      "id": "OP_021",
+      "type": "hasRepresentativeWork",
+      "source": "S_HU_YINGLIN",
+      "target": "C_BAI_JIA_YI_YUAN",
+      "description": "胡应麟幼时即从类书中辑录古佚小说，名曰《百家异苑》，虽不传但具开创性"
+    },
+    {
+      "id": "OP_022",
+      "type": "relatedToSchool",
+      "source": "S_HU_YINGLIN",
+      "target": "M_SI_JIA_CANG_SHU",
+      "description": "胡应麟本身是明代杰出的藏书家与目录学家，他敏锐察觉到藏书界“务多得而伪者乘”的现象"
+    },
+    {
+      "id": "OP_023",
+      "type": "influencesSchool",
+      "source": "S_HONG_LIANGJI",
+      "target": "M_SI_JIA_CANG_SHU",
+      "description": "洪亮吉对藏书家的五类划分，深刻揭示了明清藏书活动的不同学术导向"
+    },
+    {
+      "id": "OP_024",
+      "type": "targetsText",
+      "source": "C_BAI_JIA_YI_YUAN",
+      "target": "L_TAI_PING_YU_LAN",
+      "description": "胡应麟辑录小说主要依赖《太平御览》与《太平广记》等类书资源"
+    },
+    {
+      "id": "OP_025",
+      "type": "hasRepresentativeWork",
+      "source": "S_MEI_DINGZUO",
+      "target": "C_LI_DAI_WEN_JI",
+      "description": "梅鼎祚编纂203卷《历代文纪》，是明代对唐以前散佚文献最大规模的系统辑汇"
+    },
+    {
+      "id": "OP_026",
+      "type": "employsMethod",
+      "source": "S_HU_YINGLIN",
+      "target": "M_JI_YI_XUE",
+      "description": "胡应麟在辨伪、考据学研究中能自觉运用辑佚之法，并探讨了辑佚与类书的依赖关系"
+    },
+    {
+      "id": "OP_027",
+      "type": "targetsText",
+      "source": "C_TANG_SHI_JI",
+      "target": "C_GU_SHI_JI",
+      "description": "吴琯因冯惟纳《古诗纪》止于隋，遂续辑《唐诗纪》以衔接"
+    },
+    {
+      "id": "OP_028",
+      "type": "hasRepresentativeWork",
+      "source": "S_ZHANG_PU",
+      "target": "C_HAN_WEI_LIU_CHAO_BAI_SAN_JIA_JI",
+      "description": "张溥在明末以复古为宗旨，辑成百三家集，是集部辑佚的里程碑"
+    },
+    {
+      "id": "OP_029",
+      "type": "influencesSchool",
+      "source": "M_SI_KU_GUAN_JI_YI",
+      "target": "S_HUI_DONG",
+      "description": "虽然四库辑佚在后，但惠栋开启的汉学考据风气为四库馆臣提供了学术支撑"
+    },
+    {
+      "id": "OP_030",
+      "type": "representsperiod",
+      "source": "S_HUI_DONG",
+      "target": "T_QING_DAI_FOUR_STAGES",
+      "description": "惠栋被视为清代第一阶段辑佚工作的开创性人物"
+    },
+    {
+      "id": "OP_031",
+      "type": "hasTeacher",
+      "source": "S_YU_XIAOKE",
+      "target": "S_HUI_DONG",
+      "description": "余萧客22岁时以《注雅别钞》向惠栋请益，执赞受业，确立了吴派辑佚的规范"
+    },
+    {
+      "id": "OP_032",
+      "type": "employsMethod",
+      "source": "S_DAI_ZHEN",
+      "target": "M_GUAN_JIA_JI_YI",
+      "description": "戴震作为四库馆臣，是直接参与利用《永乐大典》进行国家级辑佚工作的核心学者"
+    },
+    {
+      "id": "OP_033",
+      "type": "targetsText",
+      "source": "C_GU_JING_JIE_GOU_CHEN",
+      "target": "C_YONG_LE_DA_DIAN",
+      "description": "余萧客等学者的辑佚成果最终被汇聚并与《永乐大典》辑出本共同构成了《四库全书》的辑佚部分"
+    },
+    {
+      "id": "OP_034",
+      "type": "hasRepresentativeWork",
+      "source": "S_SHAO_JINHAN",
+      "target": "C_JIU_WU_DAI_SHI",
+      "description": "邵晋涵利用馆臣身份，系统复原了这部失传的断代史"
+    },
+    {
+      "id": "OP_035",
+      "type": "influencesSchool",
+      "source": "S_SUN_XINGYAN",
+      "target": "S_ZHANG_ZONGYUAN",
+      "description": "孙星衍试图购求章宗源的辑佚遗稿，虽仅得十之一二，但对保存章氏成果有功"
+    },
+    {
+      "id": "OP_036",
+      "type": "recordsStatus",
+      "source": "C_JIN_BI_GU_SHI",
+      "target": "T_QING_DAI",
+      "description": "反映了清代辑佚工作中即便进入四库馆，仍有部分文献因各种原因再次亡佚的现象"
+    },
+    {
+      "id": "OP_037",
+      "type": "hasRepresentativeWork",
+      "source": "S_WANG_MO",
+      "target": "C_HAN_WEI_YI_SHU_CHAO",
+      "description": "王谟在建昌府任职期间，利用府学藏书辑成此巨著"
+    },
+    {
+      "id": "OP_038",
+      "type": "hasRepresentativeWork",
+      "source": "S_YAN_KEJUN",
+      "target": "C_QUAN_SHANG_GU_WEN",
+      "description": "该书是集部辑佚的最高峰，收录了上古至隋代的全部散见诗文"
+    },
+    {
+      "id": "OP_039",
+      "type": "collaboratesWith",
+      "source": "S_YAN_KEJUN",
+      "target": "S_SUN_XINGYAN",
+      "description": "严可均在编撰过程中，得到了孙星衍等学者的协助与资料支持"
+    },
+    {
+      "id": "OP_040",
+      "type": "employsMethod",
+      "source": "S_YAN_KEJUN",
+      "target": "M_WANG_LUO_ZONG_LU",
+      "description": "严氏不仅注重纸本文献，更将金石拓本引入辑佚范围，极大地拓宽了资料来源"
+    },
+    {
+      "id": "OP_041",
+      "type": "hasRepresentativeWork",
+      "source": "S_WANG_RENJUN",
+      "target": "C_JINJI_YIWEN",
+      "description": "王仁俊辑有《史记佚文》、《汉书佚文》等，皆收录于《经籍佚文》中 [cite: 8]"
+    },
+    {
+      "id": "OP_042",
+      "type": "hasRepresentativeWork",
+      "source": "S_ZHANG_PU",
+      "target": "C_HAN_WEI_LIU_CHAO_BAI_SAN_JIA_JI",
+      "description": "明人张溥据《文选》、《艺文类聚》等辑成魏武帝、魏文帝集，收于《汉魏六朝百三家集》中 [cite: 8]"
+    },
+    {
+      "id": "OP_043",
+      "type": "hasRepresentativeWork",
+      "source": "S_WANG_YINGLIN",
+      "target": "C_ZHUANGZI_YIPIAN",
+      "description": "王应麟对《庄子》19篇佚文进行辑佚，收入《困学纪闻》中 [cite: 8]"
+    },
+    {
+      "id": "OP_044",
+      "type": "targetsText",
+      "source": "C_JINJI_YIWEN",
+      "target": "L_TAI_PING_YU_LAN",
+      "description": "王仁俊等辑佚者通过比勘《太平御览》引文来搜集《史记》、《战国策》等书的脱佚之文 [cite: 8]"
+    },
+    {
+      "id": "OP_045",
+      "type": "representsperiod",
+      "source": "S_MA_GUOHAN",
+      "target": "T_QING",
+      "description": "马国翰是清代辑集亡佚之书的代表性学者 [cite: 8]"
+    },
+    {
+      "id": "OP_046",
+      "type": "employsMethod",
+      "source": "S_SUN_YIRANG",
+      "target": "M_JI_XIAO_TUO_YI",
+      "description": "孙诒让等学者通过搜集他书所引语来辑补如《墨子》等传本残缺的古籍 [cite: 8]"
+    },
+    {
+      "id": "OP_047",
+      "type": "hasRepresentativeWork",
+      "source": "S_MA_GUOHAN",
+      "target": "C_YU_HAN_SHAN_FANG_JI_YI_SHU",
+      "description": "马国翰罢官居家后，将平生搜采所得系统整理，成此巨著"
+    },
+    {
+      "id": "OP_048",
+      "type": "hasRepresentativeWork",
+      "source": "S_HUANG_SHI",
+      "target": "C_HUANG_SHI_YI_SHU_KAO",
+      "description": "黄奭以《尔雅古义》和郑玄佚注为核心，构建了庞大的辑佚丛书体系"
+    },
+    {
+      "id": "OP_049",
+      "type": "critiques",
+      "source": "S_HUANG_SHI",
+      "target": "C_HUANG_SHI_YI_SHU_KAO",
+      "description": "文献指出黄氏虽规范，但有“盗名欺世之嫌”，因其照录前人辑本而不出他人之名"
+    },
+    {
+      "id": "OP_050",
+      "type": "belongsToPeriod",
+      "source": "S_BI_YUAN",
+      "target": "T_QIAN_DAO_STAGE",
+      "description": "毕沅作为乾隆、道光年间“各具特色”的诸家代表，体现了官僚学者对学术的推动"
+    },
+    {
+      "id": "OP_051",
+      "type": "hasRepresentativeWork",
+      "source": "S_MA_GUOHAN",
+      "target": "C_YU_HAN_SHAN_FANG_JI_YI_SHU",
+      "description": "马国翰罢官居家后，将平生搜采所得系统整理，成此巨著"
+    },
+    {
+      "id": "OP_052",
+      "type": "hasRepresentativeWork",
+      "source": "S_HUANG_SHI",
+      "target": "C_HUANG_SHI_YI_SHU_KAO",
+      "description": "黄奭以《尔雅古义》和郑玄佚注为核心，构建了庞大的辑佚丛书体系"
+    },
+    {
+      "id": "OP_053",
+      "type": "critiques",
+      "source": "S_HUANG_SHI",
+      "target": "C_HUANG_SHI_YI_SHU_KAO",
+      "description": "文献指出黄氏虽规范，但有“盗名欺世之嫌”，因其照录前人辑本而不出他人之名"
+    },
+    {
+      "id": "OP_054",
+      "type": "belongsToPeriod",
+      "source": "S_BI_YUAN",
+      "target": "T_QIAN_DAO_STAGE",
+      "description": "毕沅作为乾隆、道光年间“各具特色”的诸家代表，体现了官僚学者对学术的推动"
+    },
+    {
+      "id": "OP_055",
+      "type": "hasRepresentativeWork",
+      "source": "S_XU_SONG",
+      "target": "C_SONG_HUI_YAO_JI_GAO",
+      "description": "徐松利用在四库馆的工作便利，抢救性地复原了因明代《大典》分隶而散乱的宋代官修史书"
+    },
+    {
+      "id": "OP_056",
+      "type": "hasRepresentativeWork",
+      "source": "S_WANG_WENTAI",
+      "target": "C_QI_JIA_HOU_HAN_SHU",
+      "description": "汪文台通过此书，使东汉时期被范书掩盖的其他七家史传佚文重现"
+    },
+    {
+      "id": "OP_057",
+      "type": "relatedTo",
+      "source": "S_WANG_WENTAI",
+      "target": "S_YU_ZHENGXIE",
+      "description": "汪文台与俞正燮同县齐名，俞氏之博览虽众，但精深则推崇文台"
+    },
+    {
+      "id": "OP_058",
+      "type": "hasRepresentativeWork",
+      "source": "S_TANG_ZHONG",
+      "target": "C_LU_SHAN_JING_SHE_CONG_SHU",
+      "description": "汤中毕生致力于湖南文献的搜辑，将其成果汇集成此大型丛书"
+    },
+    {
+      "id": "OP_059",
+      "type": "targetsText",
+      "source": "C_SHI_LIU_GUO_CHUN_QIU_JI_BU",
+      "target": "S_CUI_HONG",
+      "description": "该辑本试图通过汇集《赵书》、《燕书》等分体记述，重构崔鸿已散佚的史学巨著"
+    },
+    {
+      "id": "OP_060",
+      "type": "focusesOnField",
+      "source": "S_TANG_ZHONG",
+      "target": "M_XIANG_BANG_WEN_XIAN_JI_YI",
+      "description": "汤中的研究重心从经学考据转向了更具实用价值的地理学与地方文献学"
+    },
+    {
+      "id": "OP_061",
+      "type": "extendsWork",
+      "source": "S_SUN_XINGHUA",
+      "target": "S_MA_GUOHAN",
+      "description": "孙星华通过增补《拾遗》23种，扩展了马国翰《玉函山房辑佚书》的规模"
+    },
+    {
+      "id": "OP_062",
+      "type": "collaboratesWith",
+      "source": "S_SUN_XINGHUA",
+      "target": "S_LAO_GE",
+      "description": "孙星华在辑录过程中，参考了劳格（字季言）所辑录的目录并进行录文加工"
+    },
+    {
+      "id": "OP_063",
+      "type": "includesWorkOf",
+      "source": "C_YU_HAN_SHAN_FANG_JI_YI_SHU_XU_BIAN",
+      "target": "S_LU_XINYUAN",
+      "description": "增刊本中包含了陆心源对《敬斋古今黈》等书的辑佚成果"
+    },
+    {
+      "id": "OP_064",
+      "type": "summarizesField",
+      "source": "S_WANG_XIANQIAN",
+      "target": "C_SHI_SAN_JIA_YI_JI_SHU",
+      "description": "王先谦的书籍晚出而集大成，标志着该领域辑佚工作的完备"
+    },
+    {
+      "id": "OP_065",
+      "type": "critiques",
+      "source": "M_JI_YI_SHI_KAO",
+      "target": "S_ZHANG_SHU",
+      "description": "文中批评张澍辑本存在“辑佚失考”的硬伤，误录他书内容"
+    },
+    {
+      "id": "OP_066",
+      "type": "academicValue",
+      "source": "C_SHI_SAN_JIA_YI_JI_SHU",
+      "target": "T_JING_XUE_HISTORY",
+      "description": "经部辑佚不仅有利于文献整理，更对中国思想史、文化史研究具有重大意义"
+    },
+    {
+      "id": "OP_067",
+      "type": "critiques",
+      "source": "M_JI_YI_SHI_XU",
+      "target": "C_SONG_HUI_YAO_JI_GAO_REVISION",
+      "description": "文献指出刘富曾对徐松辑稿的整理存在“杂乱无考”的问题，未能恢复《宋会要》旧貌"
+    },
+    {
+      "id": "OP_068",
+      "type": "collaboratesWith",
+      "source": "S_WANG_GUOWEI",
+      "target": "S_LUO_ZHENYU",
+      "description": "王国维在罗振玉的资助和启发下，开启了对流沙坠简等新材料的辑录与研究"
+    },
+    {
+      "id": "OP_069",
+      "type": "representsPeriod",
+      "source": "S_WANG_GUOWEI",
+      "target": "T_REPUBLIC_OF_CHINA",
+      "description": "王国维是民国时期辑佚余风中最具代表性的“大师”级人物"
+    },
+    {
+      "id": "OP_070",
+      "type": "hasRepresentativeWork",
+      "source": "S_LU_XUN",
+      "target": "C_GU_XIAO_SHUO_GOU_CHEN",
+      "description": "鲁迅通过广泛搜求类书、笔记，系统复原了魏晋南北朝的志怪与志人小说"
+    },
+    {
+      "id": "OP_071",
+      "type": "critiques",
+      "source": "S_TAO_TINGYI",
+      "target": "C_JI_YI_CONG_KAN",
+      "description": "文中批评陶氏仅据《文选注》等少数书籍辑录，且不辨异物志之区别，实无多大价值"
+    },
+    {
+      "id": "OP_072",
+      "type": "researchFocus",
+      "source": "S_WANG_GUOWEI_2",
+      "target": "C_ZHU_SHU_JI_NIAN",
+      "description": "王氏对《竹书纪年》的辑证工作，将其与先秦史研究深度结合"
+    },
+    {
+      "id": "OP_073",
+      "type": "evolvesFrom",
+      "source": "C_QUAN_SONG_CI",
+      "target": "T_TRADITIONAL_COLLECTIONS",
+      "description": "唐圭璋在明清词选基础上，通过《事文类聚》等类书大幅增加了辑佚成果"
+    },
+    {
+      "id": "OP_074",
+      "type": "researchMethod",
+      "source": "S_GUO_SHAOYU",
+      "target": "M_CRITICAL_STUDY",
+      "description": "郭绍虞的辑佚工作始于对《中国文学批评史》材料的搜集，体现了学术驱动的特征"
+    },
+    {
+      "id": "OP_075",
+      "type": "utilizesSource",
+      "source": "S_TANG_GUIZHANG",
+      "target": "C_LEI_SHU",
+      "description": "唐氏明确指出《全芳备祖》、《翰墨大全》等类书是辑佚的“渊薮”"
+    },
+    {
+      "id": "OP_076",
+      "type": "improvesUpon",
+      "source": "S_XU_ZONGZE",
+      "target": "S_ZHANG_SHU",
+      "description": "徐宗泽纠正了张澍辑本中审定不精、编次不理的问题"
+    },
+    {
+      "id": "OP_077",
+      "type": "specializesIn",
+      "source": "S_HU_DAOJING",
+      "target": "T_ANCIENT_SCIENCE_HISTORY",
+      "description": "胡道静通过辑佚工作，复原了沈括在天文、历法、农学方面的科学贡献"
+    },
+    {
+      "id": "OP_078",
+      "type": "pioneersConcept",
+      "source": "S_ZHU_MINGPAN",
+      "target": "M_DYNASTIC_COLLECTION",
+      "description": "朱氏认为清儒辑佚多有遗漏，主张网罗掇拾有魏一代佚文，资后学参证"
+    },
+    {
+      "id": "OP_079",
+      "type": "hasRepresentativeWork",
+      "source": "S_SUN_YIRANG",
+      "target": "C_MOZI_YIWEN",
+      "description": "孙诒让据诸家所引辑成《墨子佚文》"
+    },
+    {
+      "id": "OP_080",
+      "type": "hasRepresentativeWork",
+      "source": "S_WANG_YINGLIN",
+      "target": "C_ZHUANGZI_YIPIAN",
+      "description": "王应麟对《庄子》19篇佚文做过辑佚，题名《庄子逸篇》"
+    },
+    {
+      "id": "OP_081",
+      "type": "targetsText",
+      "source": "C_QUAN_TANG_SHI_BUYI",
+      "target": "L_YONG_LE_DA_DIAN",
+      "description": "许多学者从《永乐大典》中索辑宋元古佚书 [cite: 14]"
+    },
+    {
+      "id": "OP_082",
+      "type": "employsMethod",
+      "source": "S_ZHU_YIZUN",
+      "target": "M_JI_SHI_LOU_YI",
+      "description": "后人如冯登府等辑拾朱彝尊《曝书亭集》弃佚之作"
+    },
+    {
+      "id": "OP_083",
+      "type": "representsperiod",
+      "source": "S_ZHU_YIZUN",
+      "target": "T_QING",
+      "description": "朱彝尊是清代前期的著名学者"
+    },
+    {
+      "id": "OP_084",
+      "type": "integratesWorks",
+      "source": "C_GU_BEN_ZHU_SHU_JI_NIAN_JI_ZHENG",
+      "target": "S_WANG_GUOWEI",
+      "description": "方、王二人的辑证工作吸收并精化了王国维《古本竹书纪年辑校》的成果"
+    },
+    {
+      "id": "OP_085",
+      "type": "formatTransformation",
+      "source": "S_GONG_JIANFENG",
+      "target": "J_WEN_XIAN",
+      "description": "当代的辑佚工作从“大部头丛书”转向了更灵活、及时的“期刊论文”发表模式"
+    },
+    {
+      "id": "OP_086",
+      "type": "fillsGaps",
+      "source": "S_WU_SHUPING",
+      "target": "T_HAN_DYNASTY_HISTORY",
+      "description": "通过对《东观汉记》的深度辑注，填补了东汉官修史书散佚后的史料真空"
+    },
+    {
+      "id": "OP_087",
+      "type": "critiques",
+      "source": "S_HU_YINGLIN_2",
+      "target": "S_HONG_MAI",
+      "description": "胡应麟批评洪迈认为这些书到宋代才亡的观点是“殊失考”，证明其在隋朝已湮没"
+    },
+    {
+      "id": "OP_088",
+      "type": "refinesTheory",
+      "source": "S_HU_YINGLIN_2",
+      "target": "S_ZHENG_QIAO",
+      "description": "胡氏指出郑樵盲目抄录《隋志》目而不辨存亡是大误后学"
+    },
+    {
+      "id": "OP_089",
+      "type": "identifiesSource",
+      "source": "S_HONG_MAI",
+      "target": "C_YI_LIN",
+      "description": "洪迈指出马总《意林》是了解唐以前散佚子书的重要辑录来源"
+    },
+    {
+      "id": "OP_090",
+      "type": "influences",
+      "source": "S_HU_YINGLIN_3",
+      "target": "C_SI_KU_QUAN_SHU_ZONG_MU",
+      "description": "《四库全书总目》中关于类书辑佚价值的论述明显受到胡应麟思想的影响"
+    },
+    {
+      "id": "OP_091",
+      "type": "evaluates",
+      "source": "S_LIANG_QICHAO",
+      "target": "S_SHAO_JINHAN",
+      "description": "梁启超以五标准衡量，认为邵晋涵辑《旧五代史》为最优，因其‘功等新编’"
+    },
+    {
+      "id": "OP_092",
+      "type": "critiques",
+      "source": "S_LIU_XIANXIN",
+      "target": "S_MA_GUOHAN",
+      "description": "刘咸忻批评马国翰辑佚存在‘漏’（如漏录《庭诰》长篇）与‘滥’（误收他书）等弊端"
+    },
+    {
+      "id": "OP_093",
+      "type": "identifiesMethodologicalError",
+      "source": "S_LIU_XIAN_XIN_2",
+      "target": "S_MA_GUOHAN",
+      "description": "刘氏批评马国翰不辨《史记索隐》中的司马贞按语，误将其录入《鲁连子》"
+    },
+    {
+      "id": "OP_094",
+      "type": "definesDiscipline",
+      "source": "S_WU_FENG",
+      "target": "T_CLASSICAL_PHILOLOGY",
+      "description": "吴枫通过教材编写，将辑佚提升到与校勘、版本平等的学科高度"
+    },
+    {
+      "id": "OP_095",
+      "type": "reinterpretsHistory",
+      "source": "S_LI_XIAOTI",
+      "target": "S_WANG_YINGLIN",
+      "description": "李氏追溯宋代高似孙、王应麟为辑佚学的理论源头"
+    },
+    {
+      "id": "OP_096",
+      "type": "definesRelationship",
+      "source": "S_DAI_NANHAI",
+      "target": "M_LOCAL_GAZETTEERS",
+      "description": "戴氏认为方志不仅保存从未刊行的诗文，还保存了已亡佚书籍的引文"
+    },
+    {
+      "id": "OP_097",
+      "type": "advancesDiscipline",
+      "source": "S_WANG_JIQING",
+      "target": "T_JI_YI_XUE",
+      "description": "王冀青的作品超越了前人碎片化的论述，构建了辑佚学的完整学科框架"
+    },
+    {
+      "id": "OP_098",
+      "type": "conductsCaseStudy",
+      "source": "S_ZHAO_LISheng",
+      "target": "S_ZHANG_SHU",
+      "description": "赵氏对张澍的评价比王重民时期更为深入详实"
+    },
+    {
+      "id": "OP_099",
+      "type": "belongsTo",
+      "source": "T_METHODOLOGY",
+      "target": "T_CLASSICAL_PHILOLOGY",
+      "description": "方法论确立了辑佚学作为中国古典文献学分支学科的地位"
+    },
+    {
+      "id": "OP_100",
+      "type": "logicalRequirement",
+      "source": "P_PREPARATION_STAGE",
+      "target": "M_SCIENTIFIC_RESEARCH",
+      "description": "前期调查是确保辑佚工作不走弯路、吸收前人成果的必要前提"
+    },
+    {
+      "id": "OP_101",
+      "type": "ensuresConsistency",
+      "source": "P_PREPARATION_STAGE",
+      "target": "P_COMPILATION_STAGE",
+      "description": "通过拟定统一方案，保证后续大规模辑录过程中体例的严整统一"
+    },
+    {
+      "id": "OP_102",
+      "type": "correlatesWith",
+      "source": "K_REQUIRED_KNOWLEDGE",
+      "target": "C_QUALITY_OF_WORK",
+      "description": "辑佚学者的学术造诣与辑佚成果的质量、水平成正比"
+    },
+    {
+      "id": "OP_103",
+      "type": "evolvesFrom",
+      "source": "S_WANG_RENJUN",
+      "target": "S_MA_GUOHAN",
+      "description": "王仁俊的工作是在马国翰《玉函山房辑佚书》基础上的续编与补编"
+    },
+    {
+      "id": "OP_104",
+      "type": "specializes",
+      "source": "S_LU_XUN",
+      "target": "T_JI_YI_SCHOOLS",
+      "description": "鲁迅通过《古小说钩沈》展现了类辑派在特定文学领域（小说）的深度"
+    },
+    {
+      "id": "OP_105",
+      "type": "providesStandard",
+      "source": "T_PARATEXTS",
+      "target": "C_JI_YI_SHU",
+      "description": "序跋和凡例是衡量辑佚书是否具有现代学术规范的关键标识"
+    },
+    {
+      "id": "OP_106",
+      "type": "usesHistoricalComparison",
+      "source": "M_LOST_BOOK_DETERMINATION",
+      "target": "C_DYNASTIC_BIBLIOGRAPHIES",
+      "description": "通过历代艺文志、经籍志的对比，确定古籍亡佚的时间坐标"
+    },
+    {
+      "id": "OP_107",
+      "type": "demonstratesRefinement",
+      "source": "S_WANG_SHUWU",
+      "target": "T_PARATEXTS",
+      "description": "王氏的14种书各有叙例，体现了对不同地域、性质佚书的针对性处理"
+    },
+    {
+      "id": "OP_108",
+      "type": "guidesExecution",
+      "source": "M_JI_YI_PRINCIPLES",
+      "target": "P_COMPILATION_PROCESS",
+      "description": "原则指导实践，防止辑佚工作进入‘费力不讨好’或‘质量低劣’的误区"
+    },
+    {
+      "id": "OP_109",
+      "type": "identifiesSource",
+      "source": "R_CORE_RESOURCES",
+      "target": "T_ENCYCLOPEDIA",
+      "description": "类书被视为辑佚的‘总资料库’，特别是《太平御览》保存了大量六朝以前的佚籍"
+    },
+    {
+      "id": "OP_110",
+      "type": "optimizesEfficiency",
+      "source": "M_SEARCH_CRITERIA",
+      "target": "T_RESEARCH_PATH",
+      "description": "通过时间与类型过滤，可以从数万卷古籍中精准锁定查阅范围"
+    },
+    {
+      "id": "OP_111",
+      "type": "preservationRelation",
+      "source": "R_LEI_SHU_UTILIZATION",
+      "target": "C_LOST_BOOKS",
+      "description": "通过《北堂书钞》、《艺文类聚》、《初学记》、《太平御览》可得古籍之十三四"
+    },
+    {
+      "id": "OP_112",
+      "type": "cautionsAgainst",
+      "source": "T_METHODOLOGY",
+      "target": "M_HISTORICAL_POLISHING",
+      "description": "史书征引古语常经史家润色，并非完全原文，辑佚者需辨别其书面化倾向"
+    },
+    {
+      "id": "OP_113",
+      "type": "derivesFrom",
+      "source": "C_ZHU_GE_LIANG_JI",
+      "target": "R_HISTORICAL_RECORDS",
+      "description": "现传《诸葛亮集》中的核心名篇多辑自《三国志·蜀书》本传"
+    },
+    {
+      "id": "OP_114",
+      "type": "representsperiod",
+      "source": "S_HUI_DONG",
+      "target": "T_QING",
+      "description": "惠栋及其《九经古义》是清初辑佚兴起的代表"
+    },
+    {
+      "id": "OP_115",
+      "type": "relatedToSchool",
+      "source": "S_HUI_DONG",
+      "target": "A_WU_PAI",
+      "description": "惠栋是吴派汉学家的核心人物"
+    },
+    {
+      "id": "OP_116",
+      "type": "influencesSchool",
+      "source": "S_PI_XIRUI",
+      "target": "M_JI_YI_XUE",
+      "description": "皮锡瑞在《经学历史》中首次将“辑佚”称之为“学”"
+    },
+    {
+      "id": "OP_117",
+      "type": "hasRepresentativeWork",
+      "source": "S_WANG_YINGLIN",
+      "target": "C_SANJIA_SHI",
+      "description": "王应麟辑《三家诗》，被视为古书亡而复存的首功"
+    },
+    {
+      "id": "OP_118",
+      "type": "targetsText",
+      "source": "C_YUHAN_SHANFANG",
+      "target": "L_YONG_LE_DA_DIAN",
+      "description": "清代学者如朱筠等主张从《永乐大典》中辑出宋元佚书"
+    },
+    {
+      "id": "OP_119",
+      "type": "definesStandard",
+      "source": "S_ZHANG_XUECHENG",
+      "target": "R_LOCAL_GAZETTEERS",
+      "description": "章学诚提出方志应效仿正史，立‘文征’以经记一方文献"
+    },
+    {
+      "id": "OP_120",
+      "type": "preservesLostText",
+      "source": "R_MISCELLANEOUS_EXTRACTS",
+      "target": "C_JIN_SHU",
+      "description": "《群书治要》中保存的2卷《晋书》与现传本多有不同，且含大量亡佚内容"
+    },
+    {
+      "id": "OP_121",
+      "type": "supportsPhilology",
+      "source": "R_BUDDHIST_COMMENTARIES",
+      "target": "T_XIAO_XUE",
+      "description": "佛经注疏中的字书资源是清代小学辑佚（如《小学钩沈》）的核心来源"
+    },
+    {
+      "id": "OP_122",
+      "type": "definesStandard",
+      "source": "S_ZHANG_XUECHENG",
+      "target": "R_LOCAL_GAZETTEERS",
+      "description": "章学诚提出方志应效仿正史，立‘文征’以经记一方文献"
+    },
+    {
+      "id": "OP_123",
+      "type": "preservesLostText",
+      "source": "R_MISCELLANEOUS_EXTRACTS",
+      "target": "C_JIN_SHU",
+      "description": "《群书治要》中保存的2卷《晋书》与现传本多有不同，且含大量亡佚内容"
+    },
+    {
+      "id": "OP_124",
+      "type": "supportsPhilology",
+      "source": "R_BUDDHIST_COMMENTARIES",
+      "target": "T_XIAO_XUE",
+      "description": "佛经注疏中的字书资源是清代小学辑佚（如《小学钩沈》）的核心来源"
+    },
+    {
+      "id": "OP_125",
+      "type": "filtersAuthenticity",
+      "source": "M_IDENTITY_VERIFICATION",
+      "target": "C_LOST_TEXT",
+      "description": "通过考证作者生平，剔除由于传抄、传注导致的后人混入之文"
+    },
+    {
+      "id": "OP_126",
+      "type": "guidesReconstruction",
+      "source": "T_STRUCTURE_RECONSTRUCTION",
+      "target": "C_JI_YI_SHU",
+      "description": "体例考究决定了辑佚书是从‘碎片汇集’提升为‘模拟原书’的关键步骤"
+    },
+    {
+      "id": "OP_127",
+      "type": "identifiesMethodologicalFlaw",
+      "source": "S_WANG_YIN",
+      "target": "R_TAI_PING_YU_LAN",
+      "description": "利用王隐的仕历验证《御览》引文的准确性，是辨析‘注正混淆’的典型案例"
+    },
+    {
+      "id": "OP_128",
+      "type": "identifiesPseudoAuthor",
+      "source": "S_BIAN_XIAOXUAN",
+      "target": "B_BAN_QIAO_NOTES",
+      "description": "卞氏通过分析该书内容构成，断定其为民国书商的伪作"
+    },
+    {
+      "id": "OP_129",
+      "type": "resolvesConflict",
+      "source": "S_ZENG_ZAOZHUANG",
+      "target": "T_MUTUAL_SIGHTING",
+      "description": "曾氏通过《苏叔党墓志铭》证明了本属于苏过的赋被误入其父苏轼之集"
+    },
+    {
+      "id": "OP_130",
+      "type": "prioritizesEvidence",
+      "source": "T_MUTUAL_SIGHTING",
+      "target": "M_SONG_EDITION",
+      "description": "在《苏集》与《山谷集》互见冲突中，因山谷集源自宋刊本，其可靠性被认为更高"
+    },
+    {
+      "id": "OP_131",
+      "type": "standardizesProcess",
+      "source": "M_XIAO_KAN_FOUR_METHODS",
+      "target": "C_JI_YI_WORK",
+      "description": "校勘法确保了辑佚所得文字的准确性，防止误将讹文当佚文"
+    },
+    {
+      "id": "OP_132",
+      "type": "definesCriticalPath",
+      "source": "P_CONTENT_EXAMINATION",
+      "target": "T_RESEARCH_ACCURACY",
+      "description": "通过对时空、数字、人名的考证，提升佚文作为历史证据的可信度"
+    },
+    {
+      "id": "OP_133",
+      "type": "illustratesError",
+      "source": "T_TEXTUAL_ERRORS",
+      "target": "C_LV_SHI_CHUN_QIU",
+      "description": "《吕氏春秋》记录的‘三豕涉河’案例是研究文献传抄误差的经典教材"
+    },
+    {
+      "id": "OP_134",
+      "type": "preservesTechnology",
+      "source": "R_SI_KU_SUB_SECTION_LIST",
+      "target": "T_ANCIENT_SCIENCE",
+      "description": "通过辑录农、医、天算类图书，确保了中国古代实用科学知识链条的完整"
+    },
+    {
+      "id": "OP_135",
+      "type": "crossValidates",
+      "source": "B_SU_SHEN_LIANG_FANG",
+      "target": "S_SHEN_KUO",
+      "description": "该书作为沈括科学成就的一部分，与《梦溪笔谈》相互支撑"
+    },
+    {
+      "id": "OP_136",
+      "type": "recoversLiterature",
+      "source": "R_SI_KU_SUB_SECTION_LIST",
+      "target": "C_SONG_DYNASTY_POETRY",
+      "description": "别集部分辑录了大量南宋中后期文人的诗文，弥补了《宋史·艺文志》著录而原书亡佚的缺憾"
+    },
+    {
+      "id": "OP_137",
+      "type": "completesSystem",
+      "source": "R_SI_KU_REMAINDER_LIST",
+      "target": "C_SI_KU_DATABASE",
+      "description": "补全了前两章未详列的经史小类，呈现了官修辑佚的完整版图"
+    },
+    {
+      "id": "OP_138",
+      "type": "specializesInYuanHistory",
+      "source": "S_WEN_TING_SHI",
+      "target": "C_YUAN_DYNASTY",
+      "description": "文氏通过对《大典》的深度挖掘，重建了元代经济与行政管理的文献基础"
+    },
+    {
+      "id": "OP_139",
+      "type": "representsPrivatePeak",
+      "source": "S_XU_SONG",
+      "target": "B_SONG_HUI_YAO",
+      "description": "徐松的工作标志着私人利用《永乐大典》进行大规模专题辑佚的最高水平"
+    },
+    {
+      "id": "OP_140",
+      "type": "completesSystem",
+      "source": "R_SI_KU_REMAINDER_LIST",
+      "target": "C_SI_KU_DATABASE",
+      "description": "补全了前两章未详列的经史小类，呈现了官修辑佚的完整版图"
+    },
+    {
+      "id": "OP_141",
+      "type": "specializesInYuanHistory",
+      "source": "S_WEN_TING_SHI",
+      "target": "C_YUAN_DYNASTY",
+      "description": "文氏通过对《大典》的深度挖掘，重建了元代经济与行政管理的文献基础"
+    },
+    {
+      "id": "OP_142",
+      "type": "representsPrivatePeak",
+      "source": "S_XU_SONG",
+      "target": "B_SONG_HUI_YAO",
+      "description": "徐松的工作标志着私人利用《永乐大典》进行大规模专题辑佚的最高水平"
+    },
+    {
+      "id": "OP_143",
+      "type": "completesSystem",
+      "source": "R_SI_KU_REMAINDER_LIST",
+      "target": "C_SI_KU_DATABASE",
+      "description": "补全了前两章未详列的经史小类，呈现了官修辑佚的完整版图"
+    },
+    {
+      "id": "OP_144",
+      "type": "specializesInYuanHistory",
+      "source": "S_WEN_TING_SHI",
+      "target": "C_YUAN_DYNASTY",
+      "description": "文氏通过对《大典》的深度挖掘，重建了元代经济与行政管理的文献基础"
+    },
+    {
+      "id": "OP_145",
+      "type": "representsPrivatePeak",
+      "source": "S_XU_SONG",
+      "target": "B_SONG_HUI_YAO",
+      "description": "徐松的工作标志着私人利用《永乐大典》进行大规模专题辑佚的最高水平"
+    },
+    {
+      "id": "OP_146",
+      "type": "hasRepresentativeWork",
+      "source": "S_TANG_GUIZHANG",
+      "target": "C_QUAN_SONG_CI",
+      "description": "唐圭璋重新辑编的《全宋词》是当代集部文献综合整理的典范 [cite: 5]"
+    },
+    {
+      "id": "OP_147",
+      "type": "hasRepresentativeWork",
+      "source": "S_WANG_ZHONGMIN",
+      "target": "C_DUNHUANG_TANGREN_SHIJI",
+      "description": "王重民利用敦煌文献辑拾《全唐诗》漏佚之篇，成《敦煌唐人诗集残卷》 [cite: 3]"
+    },
+    {
+      "id": "OP_148",
+      "type": "targetsText",
+      "source": "C_SONG_HUI_YAO_JI_GAO",
+      "target": "L_YONG_LE_DA_DIAN",
+      "description": "《宋会要辑稿》赖辑佚者从《永乐大典》中辑出得以保存流传"
+    },
+    {
+      "id": "OP_149",
+      "type": "employsMethod",
+      "source": "S_WANG_ZHONGMIN",
+      "target": "M_JI_LU_YI_SHU_MU",
+      "description": "王重民进行过关于辑佚的个案研究与总结 [cite: 1]"
+    },
+    {
+      "id": "OP_150",
+      "type": "representsperiod",
+      "source": "S_TANG_GUIZHANG",
+      "target": "T_DANG_DAI",
+      "description": "唐圭璋是当代辑佚成果极其丰硕的代表学者 [cite: 5]"
+    },
+    {
+      "id": "OP_151",
+      "type": "reconstructsPoliticalStructure",
+      "source": "C_OFFICIAL_SYSTEM",
+      "target": "C_ANCIENT_GOVERNMENT",
+      "description": "通过对《汉官》系列佚文的辑录，清代学者得以勾勒出汉代中央与地方官制的细节"
+    },
+    {
+      "id": "OP_152",
+      "type": "preservesSocietalNarratives",
+      "source": "C_FICTION_CLASS",
+      "target": "C_WEI_JIN_CULTURE",
+      "description": "笔记小说的辑佚为研究魏晋玄学、士人生活提供了史书之外的生动素材"
+    },
+    {
+      "id": "OP_153",
+      "type": "demonstratesIncrementalScholarship",
+      "source": "S_WANG_RENJUN",
+      "target": "R_JI_YI_TABLE_50",
+      "description": "王仁俊在对照表中多表现为“补”或“续”，体现了在马、黄基础上的精细化增补"
+    },
+    {
+      "id": "OP_154",
+      "type": "reconstructsFragmentedHistory",
+      "source": "R_HISTORY_SECTION_LIST",
+      "target": "C_SIXTEEN_KINGDOMS",
+      "description": "通过对《燕书》、《凉记》等霸史的辑录，拼凑出十六国时期动荡政权的制度与兴亡"
+    },
+    {
+      "id": "OP_155",
+      "type": "linksTheoryToPractice",
+      "source": "C_DISCIPLINE_STRUCTURE",
+      "target": "S_JI_YI_MASTERS",
+      "description": "目录展示了从清代名家到现代学者的传承，明确了辑佚学从‘补经’向‘史料建设’的转型"
+    },
+    {
+      "id": "OP_156",
+      "type": "definesPrimarySources",
+      "source": "R_HISTORY_SECTION_LIST",
+      "target": "C_QI_JU_ZHU",
+      "description": "起居注类25种文献的列举，为研究古代宫廷实录的编纂逻辑提供了数据源"
+    },
+    {
+      "id": "OP_157",
+      "type": "representsperiod",
+      "source": "S_SHANG_YANG",
+      "target": "T_ZHOU_DAI",
+      "description": "商鞅在战国中期推行变法，是该时期法家思想的代表"
+    },
+    {
+      "id": "OP_158",
+      "type": "influencesSchool",
+      "source": "S_SHANG_YANG",
+      "target": "M_FAN_SHU",
+      "description": "商鞅教秦孝公燔《诗》《书》而明法令，开启了大规模人为损毁文献的先例"
+    },
+    {
+      "id": "OP_159",
+      "type": "relatedToSchool",
+      "source": "S_MO_ZI",
+      "target": "T_ZHOU_DAI",
+      "description": "墨子通过其著作见证了西周至战国时期图书文献从匮乏到“不可胜载”的过程"
+    },
+    {
+      "id": "OP_160",
+      "type": "representsperiod",
+      "source": "S_XIAO_HE",
+      "target": "T_XI_HAN",
+      "description": "萧何在汉初入咸阳时尽收秦图籍，是西汉文献事业的开创者"
+    },
+    {
+      "id": "OP_161",
+      "type": "hasTeacher",
+      "source": "S_ZHANG_LIANG",
+      "target": "S_XIAO_HE",
+      "description": "张良、韩信在萧何收储基础上进行兵法整理"
+    },
+    {
+      "id": "OP_162",
+      "type": "employsMethod",
+      "source": "S_FU_SHENG",
+      "target": "M_SHOU_TU",
+      "description": "伏生通过“壁藏”方式保存《尚书》，是应对“焚书”的私人搜救行为"
+    },
+    {
+      "id": "OP_163",
+      "type": "representsperiod",
+      "source": "S_RUAN_XIAOXU",
+      "target": "T_WEI_JIN_NAN_BEI_CHAO",
+      "description": "阮孝绪通过《七录》详尽记录了南朝梁代的藏书盛况"
+    },
+    {
+      "id": "OP_164",
+      "type": "representsperiod",
+      "source": "S_WEI_ZHENG",
+      "target": "T_TANG_CHAO",
+      "description": "魏征主持整理五代史，其《隋书·经籍志》是辑佚最重要的目录依据"
+    },
+    {
+      "id": "OP_165",
+      "type": "employsMethod",
+      "source": "S_XIE_LINGYUN",
+      "target": "M_SI_KU_ZHI_DU",
+      "description": "谢灵运在整理南朝宋秘阁图书时已采用四部分类法"
+    },
+    {
+      "id": "OP_166",
+      "type": "representsperiod",
+      "source": "S_WANG_YINGLIN",
+      "target": "T_BEI_SONG",
+      "description": "王应麟在宋元之际的辑佚成就，被认为是对此前文献大灭失后的学术救赎"
+    },
+    {
+      "id": "OP_167",
+      "type": "hasRepresentativeWork",
+      "source": "S_WANG_YINGLIN",
+      "target": "C_SANJIA_SHI_KAO",
+      "description": "王应麟搜罗略遍，辍辑逸文，成《三家诗考》，为后世好古之士踵其成法"
+    },
+    {
+      "id": "OP_168",
+      "type": "influencesSchool",
+      "source": "S_ZHANG_XUECHENG",
+      "target": "S_WANG_YINGLIN",
+      "description": "章学诚在《校雠通义》中明确推崇王应麟为辑佚法的开创者"
+    },
+    {
+      "id": "OP_169",
+      "type": "relatedToSchool",
+      "source": "S_WANG_ANSHI",
+      "target": "T_BEI_SONG",
+      "description": "蔡京以崇奉王安石新法为名，通过“元祐党人碑”禁毁苏轼、黄庭坚、沈括等人的著作"
+    }
+  ]
+}

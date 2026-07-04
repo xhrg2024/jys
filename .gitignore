@@ -1,0 +1,10 @@
+models/
+lora_checkpoints/
+embeddings/
+*.bin
+*.safetensors
+*.pth
+__pycache__/
+*.pyc
+.env
+.venv/
