@@ -1,6 +1,3 @@
-models/
-lora_checkpoints/
-embeddings/
 *.bin
 *.safetensors
 *.pth
