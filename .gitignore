@@ -1,6 +1,7 @@
 *.bin
 *.safetensors
 *.pth
+*.sql
 __pycache__/
 *.pyc
 .env
