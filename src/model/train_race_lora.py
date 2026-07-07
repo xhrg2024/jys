@@ -75,8 +75,8 @@ def main():
     model.print_trainable_parameters()
 
     # 加载数据
-    train_data = [{"text": t} for t in load_json("race_train.json")]
-    val_data = [{"text": t} for t in load_json("race_val.json")]
+    train_data = [{"text": t} for t in load_json("race600_train.json")]
+    val_data = [{"text": t} for t in load_json("race600_val.json")]
     print(f"训练集: {len(train_data)} 条, 验证集: {len(val_data)} 条")
 
     train_ds = Dataset.from_list(train_data)
@@ -118,7 +118,7 @@ def main():
 
     # 简单验证
     print("\n--- 验证推理 ---")
-    test_data = load_json("race_test.json")
+    test_data = load_json("race600_test.json")
     from peft import PeftModel
     for item in test_data[:2]:
         text = item if isinstance(item, str) else item["text"]

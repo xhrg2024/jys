@@ -7,7 +7,7 @@ import os
 from neo4j import GraphDatabase
 
 URI = "bolt://localhost:7687"
-AUTH = ("neo4j", "52LiWenJing")
+AUTH = ("neo4j", "jys123456")
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
 
@@ -89,7 +89,7 @@ def export_entity_dict(session, output_path):
 def main():
     data = load_data(os.path.join(DATA_DIR, "data.json"))
     entities = data["entities"]
-    relationships = data["object_properties"]
+    relationships = data["relations"]  # 新数据字段名
     entity_ids = {e["id"] for e in entities}
 
     # 检查无效关系
