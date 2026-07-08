@@ -130,6 +130,16 @@ API	8000	tmux attach -t jys-api
 前端	5173	tmux attach -t jys-frontend
 
 
+前后端同步启动
+bash start.sh
+
+查看状态
+bash status.sh
+
+停止服务
+
+bash stop.sh
+
 # SSH 隧道一行连所有：
 ssh -L 5173:localhost:5173 -L 8000:localhost:8000 -L 7474:localhost:7474 wj@162.105.19.120
 

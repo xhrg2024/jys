@@ -240,7 +240,14 @@ class Planner:
         text = text.replace('##', '')
         # 2. 去中文字间随机空格
         text = re.sub(r'([一-鿿])\s+([一-鿿])', r'\1\2', text)
-        # 3. 修被空格打断的实体名
+        # 3. 修正"魏源"幻觉 - 移除所有包含魏源的来源标注
+        # 匹配各种格式: (魏源："xxx") (魏源: "xxx") （魏源："xxx"） (魏源:"xxx")
+        text = re.sub(r'[（(]\s*魏源\s*[：:]\s*[""「」]?[^)）]*?[""」]?\s*[)）]', '', text)
+        # 匹配没有引号的格式: (魏源：xxx)
+        text = re.sub(r'[（(]\s*魏源\s*[：:]\s*[^)）]+[)）]', '', text)
+        # 匹配只有魏源的格式
+        text = re.sub(r'[（(]\s*魏源\s*[)）]', '', text)
+        # 4. 修被空格打断的实体名
         entities = cls._load_entities()
         for name in entities:
             if len(name) < 3 or name in text:
