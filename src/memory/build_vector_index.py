@@ -11,7 +11,7 @@ import os
 from neo4j import GraphDatabase
 from sentence_transformers import SentenceTransformer
 
-URI = "bolt://localhost:7687"
+URI = "bolt://localhost:7688"
 AUTH = ("neo4j", "jys123456")
 
 def main():

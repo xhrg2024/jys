@@ -7,3 +7,5 @@ __pycache__/
 .env
 .venv/
 neo4j-community-5.26.0/
+models/Qwen2.5-7B-Instruct/
+embeddings/bge-large-zh-v1.5/

@@ -3,7 +3,7 @@
 """
 from neo4j import GraphDatabase
 
-URI = "bolt://localhost:7687"
+URI = "bolt://localhost:7688"
 AUTH = ("neo4j", "jys123456")
 
 _driver = None

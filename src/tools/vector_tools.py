@@ -9,7 +9,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 from neo4j import GraphDatabase
 from sentence_transformers import SentenceTransformer
 
-URI = "bolt://localhost:7687"
+URI = "bolt://localhost:7688"
 AUTH = ("neo4j", "jys123456")
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "embeddings", "bge-large-zh-v1.5")
 
