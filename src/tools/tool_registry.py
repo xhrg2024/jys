@@ -3,7 +3,7 @@
 """
 import json
 
-from . import graph_tools, vector_tools
+from . import graph_tools, vector_tools, sql_tools
 
 TOOL_SCHEMAS = [
     {
@@ -77,6 +77,63 @@ TOOL_SCHEMAS = [
                 "required": ["query"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "sql_find_document",
+            "description": "在 MySQL 类书数据库中按标题模糊搜索文献信息。适用于查询类书、辑本的元数据。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "文献标题关键词，如“永乐大典”、“玉函山房”"}
+                },
+                "required": ["title"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "sql_find_author",
+            "description": "在 MySQL 类书数据库中按姓名搜索作者/编纂者信息。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "作者姓名关键词"}
+                },
+                "required": ["name"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "sql_document_detail",
+            "description": "查询文献的详细信息，包括作者、编纂者角色等。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "文献标题关键词"}
+                },
+                "required": ["title"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "sql_search_text",
+            "description": "在类书全文内容中搜索关键词，返回匹配的文本片段及出处。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "keyword": {"type": "string", "description": "要搜索的关键词"},
+                    "limit": {"type": "integer", "description": "返回结果数量，默认10"}
+                },
+                "required": ["keyword"]
+            }
+        }
     }
 ]
 
@@ -87,6 +144,10 @@ DISPATCH = {
     "kg_find_relation_between": lambda args: graph_tools.query_relation_between(args["entity_a"], args["entity_b"]),
     "kg_list_by_type": lambda args: graph_tools.query_by_label(args["label"]),
     "vector_search": lambda args: vector_tools.vector_search(args.get("query", ""), args.get("k", 5)),
+    "sql_find_document": lambda args: sql_tools.query_document_by_title(args["title"]),
+    "sql_find_author": lambda args: sql_tools.query_author_by_name(args["name"]),
+    "sql_document_detail": lambda args: sql_tools.query_document_with_authors(args["title"]),
+    "sql_search_text": lambda args: sql_tools.query_full_text_by_keyword(args["keyword"], args.get("limit", 10)),
 }
 
 

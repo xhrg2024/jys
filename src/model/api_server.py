@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from model.generator import Generator
-from tools import graph_tools, vector_tools
+from tools import graph_tools, vector_tools, sql_tools
 
 app = FastAPI(title="辑佚史智能体")
 
@@ -40,13 +40,14 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     answer: str
+    plan_log: Optional[dict] = None
 
 
 @app.post("/chat")
 def chat(req: ChatRequest):
     try:
-        answer = generator.answer(req.question)
-        return ChatResponse(answer=answer)
+        answer, plan_log = generator.answer(req.question)
+        return ChatResponse(answer=answer, plan_log=plan_log)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"推理失败: {str(e)}")
 
@@ -267,6 +268,58 @@ def get_graph(name: Optional[str] = None, depth: int = 1, limit: int = 50):
                 })
 
         return {"nodes": nodes, "edges": edges}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ========== SQL 查询接口 ==========
+
+@app.get("/sql/document")
+def sql_search_document(title: str):
+    """按标题搜索文献"""
+    try:
+        result = sql_tools.query_document_by_title(title)
+        return {"query": title, "result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/sql/author")
+def sql_search_author(name: str):
+    """按姓名搜索作者"""
+    try:
+        result = sql_tools.query_author_by_name(name)
+        return {"query": name, "result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/sql/document_detail")
+def sql_document_detail(title: str):
+    """查询文献详情（含作者）"""
+    try:
+        result = sql_tools.query_document_with_authors(title)
+        return {"query": title, "result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/sql/text_search")
+def sql_text_search(keyword: str, limit: int = 10):
+    """全文关键词搜索"""
+    try:
+        result = sql_tools.query_full_text_by_keyword(keyword, limit=limit)
+        return {"query": keyword, "result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/sql/stats")
+def sql_stats():
+    """获取 MySQL 数据库统计信息"""
+    try:
+        stats = sql_tools.get_stats()
+        return stats
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

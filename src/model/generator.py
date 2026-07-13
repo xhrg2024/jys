@@ -82,7 +82,7 @@ class Generator:
         return "FACTUAL"
 
     def answer(self, question, verbose=False):
-        """主入口：给定用户问题，返回答案"""
+        """主入口：给定用户问题，返回 (answer, plan_log)"""
         self._ensure_model()
 
         intent = self._classify_intent(question)
@@ -98,7 +98,7 @@ class Generator:
 
         messages = self._build_messages(question, plan["context"])
         response = self._call_model(messages)
-        return self.planner.postprocess(response)
+        return self.planner.postprocess(response), plan.get("plan_log", {})
 
 
 def main():
@@ -119,7 +119,7 @@ def main():
             break
         if not q or q.lower() == "quit":
             break
-        answer = gen.answer(q, verbose=verbose)
+        answer, _ = gen.answer(q, verbose=verbose)
         print(f"\n{answer}")
 
 

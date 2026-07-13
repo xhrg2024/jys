@@ -26,3 +26,6 @@ pandas>=2.2.0
 # 通用
 numpy>=1.26.0
 tqdm>=4.66.0
+
+# SQL 数据库
+pymysql>=1.1.0

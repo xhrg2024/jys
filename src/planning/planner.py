@@ -4,7 +4,7 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from perception.question_parser import QuestionParser
-from tools import graph_tools, vector_tools
+from tools import graph_tools, vector_tools, sql_tools
 
 # ── RACE 固定模板（与训练数据一致）──
 RACE_SYSTEM = """【R-角色】你是一位专精于辑佚学与中国古典文献学的AI助教。你的知识体系涵盖：唐宋类书辑佚、清代辑佚学史、辑佚方法论（校勘、辨伪、考证）、辑佚流派与学术传承。
@@ -22,10 +22,60 @@ RACE_SYSTEM = """【R-角色】你是一位专精于辑佚学与中国古典文�
 
 MAX_CHARS_REF = 600  # C 段参考信息最大字数（中文约 1 token/字）
 
+# 数据库 dynasty 列存的是单字，需要做映射
+DYNASTY_TO_DB = {
+    "清代": "清", "明代": "明", "宋代": "宋", "唐代": "唐", "元代": "元",
+    "漢代": "汉", "汉代": "汉", "秦代": "秦", "晋代": "晋",
+    "隋代": "隋", "先秦": "先秦", "三国": "三国", "南北朝": "南北朝",
+    "五代十国": "五代十国", "民国": "民国", "近现代": "近现代", "当代": "当代",
+    # 单字直接映射到自身
+    "清": "清", "明": "明", "宋": "宋", "唐": "唐", "元": "元",
+    "汉": "汉", "秦": "秦", "晋": "晋", "隋": "隋",
+}
+# 问句中要剔除的疑问词
+QUESTION_NOISE = ["是什么", "有哪些", "经历了", "哪几个", "怎么样", "如何",
+                   "怎样", "为什么", "什么", "多少", "哪", "吗", "呢", "？", "?"]
+
 
 class Planner:
     def __init__(self):
         self.parser = QuestionParser()
+
+    # ── 关键词清洗 ──
+    @staticmethod
+    def _clean_topic(raw):
+        """从正则提取的粗糙 topic 中剔除疑问词，得到干净的搜索词"""
+        import re
+        text = raw.strip()
+        # 去掉常见疑问词碎片
+        for noise in QUESTION_NOISE:
+            text = text.replace(noise, "")
+        # 去掉末尾虚词和数量词尾缀 如"辑佚的三"→"辑佚"
+        text = re.sub(r'(的[一二三四五六七八九十]个?[种类]?)$', '', text)
+        # 去掉末尾的"的之了着过"
+        text = text.rstrip("的之了着过")
+        # 如果 topic 仍然很长（>8字），可能混入了无关文字，取前段
+        if len(text) > 8:
+            for sep in ["经历", "发展", "包括", "涉及", "哪"]:
+                idx = text.find(sep)
+                if 2 <= idx <= 8:
+                    text = text[:idx]
+                    break
+        return text.strip()
+
+    @staticmethod
+    def _search_dynasty(dynasty_name):
+        """尝试用映射后的朝代值查询数据库"""
+        db_value = DYNASTY_TO_DB.get(dynasty_name, dynasty_name)
+        res = sql_tools.query_document_by_dynasty(db_value)
+        if "未找到" not in res:
+            return res
+        # 如果映射值查不到，尝试原始值（处理单字已在映射中的情况）
+        if db_value != dynasty_name:
+            res = sql_tools.query_document_by_dynasty(dynasty_name)
+            if "未找到" not in res:
+                return res
+        return None
 
     def plan(self, question, intent_override=None):
         """主入口：给定用户问题，返回完整 RACE Prompt 和检索摘要。"""
@@ -37,31 +87,57 @@ class Planner:
         # 检索策略选择 (5.1)
         graph_results = []
         vector_results = []
+        sql_results = []
 
         if intent == "FACTUAL":
             graph_results = self._factual_search(entities, parsed["parsed"])
-            if not graph_results:
+            sql_results = self._sql_factual_search(question, parsed["parsed"])
+            if not graph_results and not sql_results:
                 vector_results = [vector_tools.vector_search(question, k=5)]
 
         elif intent == "RELATION":
             graph_results = self._relation_search(entities, parsed["parsed"])
-            if not graph_results:
+            sql_results = self._sql_relation_search(question, parsed["parsed"])
+            if not graph_results and not sql_results:
                 vector_results = [vector_tools.vector_search(question, k=5)]
 
         elif intent == "CHAIN":
             graph_results = self._chain_search(entities, parsed["parsed"])
+            sql_results = self._sql_chain_search(question, parsed["parsed"])
             vector_results = [vector_tools.vector_search(question, k=5)]
 
         elif intent == "METHOD":
             graph_results = self._method_search(parsed["parsed"])
+            sql_results = self._sql_method_search(question, parsed["parsed"])
             vector_results = [vector_tools.vector_search(question, k=5)]
 
         elif intent == "COMPARE":
             graph_results = self._compare_search(entities, parsed["parsed"])
+            sql_results = self._sql_compare_search(question, parsed["parsed"])
             vector_results = [vector_tools.vector_search(question, k=5)]
 
+        # 工具调用日志
+        graph_count = len([r for r in graph_results if r])
+        sql_count = len([r for r in sql_results if r])
+        vector_count = len([r for r in vector_results if r])
+        sql_detail = [r[:300] for r in sql_results if r]
+        graph_detail = [r[:150] for r in graph_results if r]
+
+        print(f"\n{'─'*50}")
+        print(f"[Planner] 意图: {intent} | 问题: {question[:60]}")
+        print(f"[工具调用] 图查询: {graph_count}条 | "
+              f"SQL查询: {sql_count}条 | "
+              f"向量检索: {vector_count}条")
+        for r in sql_results:
+            if r:
+                print(f"  🗄️ {r[:200]}")
+        for r in graph_results:
+            if r:
+                print(f"  🔗 {r[:150]}")
+        print(f"{'─'*50}")
+
         # 结果融合 (5.3)
-        context = self._merge(graph_results, vector_results)
+        context = self._merge(graph_results, vector_results, sql_results)
 
         # RACE Prompt 构建 (5.4)
         prompt = self._build_race_prompt(question, context)
@@ -71,6 +147,17 @@ class Planner:
             "context": context,
             "prompt": prompt,
             "intent": intent,
+            # 评估用日志
+            "plan_log": {
+                "intent": intent,
+                "graph_count": graph_count,
+                "sql_count": sql_count,
+                "vector_count": vector_count,
+                "sql_details": sql_detail,
+                "graph_details": graph_detail,
+                "entities_matched": [(e["name"], e["label"]) for e in entities[:5]],
+                "question": question,
+            }
         }
 
     # ── 多跳查询 (5.2) ──
@@ -160,11 +247,116 @@ class Planner:
             results.append(graph_tools.query_relation_between(a, b))
         return results
 
+    # ── SQL 检索方法 ──
+
+    def _sql_factual_search(self, question, parsed):
+        """从问句中提取关键词，在 MySQL 中查文献/作者"""
+        results = []
+        primary = parsed.get("primary_entity", "")
+        if primary:
+            clean = self._clean_topic(primary)
+            doc_res = sql_tools.query_document_by_title(clean, limit=5)
+            if "未找到" not in doc_res:
+                results.append(f"[SQL 文献查询] {doc_res}")
+            author_res = sql_tools.query_author_by_name(clean)
+            if "未找到" not in author_res:
+                results.append(f"[SQL 作者查询] {author_res}")
+        # 检测问句中的朝代关键词
+        for name in DYNASTY_TO_DB:
+            if name in question:
+                res = self._search_dynasty(name)
+                if res:
+                    results.append(f"[SQL {name}文献] {res}")
+                break  # 只匹配第一个朝代
+        return results
+
+    def _sql_chain_search(self, question, parsed):
+        """按朝代查文献发展脉络"""
+        results = []
+        topic = parsed.get("topic", "")
+        if topic:
+            clean = self._clean_topic(topic)
+            if clean:
+                doc_res = sql_tools.query_document_by_title(clean, limit=5)
+                if "未找到" not in doc_res:
+                    results.append(f"[SQL 文献查询] {doc_res}")
+        time_range = parsed.get("time_range", [])
+        for t in time_range:
+            res = self._search_dynasty(t)
+            if res:
+                results.append(f"[SQL {t}文献] {res}")
+        return results
+
+    def _sql_relation_search(self, question, parsed):
+        """关系类问题：对涉及的实体分别查文献/作者/全文"""
+        results = []
+        entities_to_search = []
+        a = parsed.get("entity_a", "")
+        b = parsed.get("entity_b", "")
+        if a:
+            entities_to_search.append(a)
+        if b:
+            entities_to_search.append(b)
+        for name in entities_to_search:
+            doc_res = sql_tools.query_document_by_title(name, limit=3)
+            if "未找到" not in doc_res:
+                results.append(f"[SQL 文献查询:{name}] {doc_res}")
+            author_res = sql_tools.query_author_by_name(name)
+            if "未找到" not in author_res:
+                results.append(f"[SQL 作者查询:{name}] {author_res}")
+            text_res = sql_tools.query_full_text_by_keyword(name, limit=5)
+            if "未找到" not in text_res:
+                results.append(f"[SQL 全文搜索:{name}] {text_res}")
+        return results
+
+    def _sql_method_search(self, question, parsed):
+        """方法类问题：全文搜索方法关键词"""
+        results = []
+        topic = parsed.get("topic", "")
+        if topic:
+            clean = self._clean_topic(topic)
+            if clean:
+                # 全文搜索
+                text_res = sql_tools.query_full_text_by_keyword(clean, limit=10)
+                if "未找到" not in text_res:
+                    results.append(f"[SQL 全文搜索:{clean}] {text_res}")
+                # 也查文献标题
+                doc_res = sql_tools.query_document_by_title(clean, limit=5)
+                if "未找到" not in doc_res:
+                    results.append(f"[SQL 文献查询:{clean}] {doc_res}")
+        # 额外：从问题中提取核心词做全文搜索（类书语境词）
+        keywords = ["类书", "永乐", "辑佚", "校勘", "辨伪", "考证", "版本", "目录", "训诂"]
+        for kw in keywords:
+            if kw in question and kw != topic:
+                text_res = sql_tools.query_full_text_by_keyword(kw, limit=5)
+                if "未找到" not in text_res:
+                    results.append(f"[SQL 全文搜索:{kw}] {text_res}")
+        return results
+
+    def _sql_compare_search(self, question, parsed):
+        """比较类问题：对两个实体分别查文献/作者/全文"""
+        results = []
+        a = parsed.get("entity_a", "")
+        b = parsed.get("entity_b", "")
+        for name in [a, b]:
+            if not name:
+                continue
+            doc_res = sql_tools.query_document_by_title(name, limit=3)
+            if "未找到" not in doc_res:
+                results.append(f"[SQL 文献查询:{name}] {doc_res}")
+            author_res = sql_tools.query_author_by_name(name)
+            if "未找到" not in author_res:
+                results.append(f"[SQL 作者查询:{name}] {author_res}")
+            text_res = sql_tools.query_full_text_by_keyword(name, limit=5)
+            if "未找到" not in text_res:
+                results.append(f"[SQL 全文搜索:{name}] {text_res}")
+        return results
+
     # ── 结果融合 (5.3) ──
 
-    def _merge(self, graph_results, vector_results):
+    def _merge(self, graph_results, vector_results, sql_results=None):
         """去重、排序、截断、格式化为 C 段文本。
-        排序策略：直接关系/路径优先 → 实体属性 → 邻域扩展 → 向量兜底
+        排序策略：直接关系/路径优先 → 实体属性 → SQL 结构化结果 → 邻域扩展 → 向量兜底
         """
         parts = []
         seen = set()
@@ -179,6 +371,11 @@ class Planner:
                     priority = 2
                 parts.append((priority, r))
                 seen.add(r)
+        if sql_results:
+            for r in sql_results:
+                if r and r not in seen:
+                    parts.append((1.5, r))
+                    seen.add(r)
         for r in vector_results:
             if r and r not in seen:
                 parts.append((3, r))
