@@ -12,8 +12,15 @@ import os
 import requests
 import time
 from datetime import datetime
+from pathlib import Path
+from dotenv import load_dotenv
 
-API_URL = "http://localhost:8000/chat"
+# 加载 .env 文件（从项目根目录）
+dotenv_path = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(dotenv_path)
+
+API_PORT = int(os.environ.get("API_PORT", 8000))
+API_URL = f"http://localhost:{API_PORT}/chat"
 
 # ══════════════════════════════════════════════
 # 测试集：30 题，覆盖五种意图 + SQL/图/向量检索

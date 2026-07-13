@@ -1,10 +1,18 @@
 """
 4.1 图查询工具：Cypher 查询 Neo4j，结果转为自然语言。
 """
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# 加载 .env 文件（从项目根目录）
+dotenv_path = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(dotenv_path)
+
 from neo4j import GraphDatabase
 
-URI = "bolt://localhost:7688"
-AUTH = ("neo4j", "jys123456")
+URI = os.environ.get("NEO4J_URI", "bolt://localhost:7688")
+AUTH = (os.environ.get("NEO4J_USER", "neo4j"), os.environ.get("NEO4J_PASSWORD", "jys123456"))
 
 _driver = None
 

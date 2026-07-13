@@ -8,11 +8,18 @@ _orig_load = torch.load
 torch.load = lambda *a, **kw: _orig_load(*a, **{**kw, "weights_only": False})
 
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# 加载 .env 文件（从项目根目录）
+dotenv_path = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(dotenv_path)
+
 from neo4j import GraphDatabase
 from sentence_transformers import SentenceTransformer
 
-URI = "bolt://localhost:7688"
-AUTH = ("neo4j", "jys123456")
+URI = os.environ.get("NEO4J_URI", "bolt://localhost:7688")
+AUTH = (os.environ.get("NEO4J_USER", "neo4j"), os.environ.get("NEO4J_PASSWORD", "jys123456"))
 
 def main():
     # 1. 连接 Neo4j
