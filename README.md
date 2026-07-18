@@ -157,7 +157,39 @@ ssh -L 15173:localhost:15173 wj@162.105.19.120
 
 deepseek生成问答对
 事实问答：约 500 条（覆盖所有实体）
-关系问答：200 条
-脉络问答：约 20 条
-方法问答：约 30 条
-总计约 750 条
+
+
+mysql数据库配置
+
+本地 ssh隧穿
+```
+mysql -u root -p < "250905.sql"
+
+mysql -u root -p
+
+CREATE USER 'jys_agent'@'localhost' IDENTIFIED BY 'jys123456';
+GRANT SELECT ON leishu_yongle.* TO 'jys_agent'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+
+```
+ssh隧道
+ssh -R 3307:localhost:3306 wj@162.105.19.120
+保持隧道开启
+
+服务器sql_tools.py配置
+```
+DB_HOST = "localhost"
+DB_PORT = 3307
+DB_USER = "jys_agent"
+DB_PASSWORD = "jys123456"
+DB_NAME = "leishu_yongle"
+
+```
+bash start.sh
+
+
+
+ssh -L 15173:localhost:15173 -L 8000:localhost:8000 wj@162.105.19.120
+
+http://localhost:15173
