@@ -27,19 +27,31 @@ _conn = None
 
 
 def _get_conn():
-    """获取单例连接"""
+    """获取单例连接，带重连机制"""
     global _conn
-    if _conn is None or not _conn.open:
-        _conn = pymysql.connect(**SQL_CONFIG)
+    try:
+        if _conn is None or not _conn.open:
+            _conn = pymysql.connect(**SQL_CONFIG, connect_timeout=10)
+        else:
+            # 测试连接是否有效
+            _conn.ping(reconnect=True)
+    except Exception:
+        _conn = pymysql.connect(**SQL_CONFIG, connect_timeout=10)
     return _conn
 
 
 def _fetchall(sql, params=None):
     """执行查询并返回所有结果（列表[字典]）"""
-    conn = _get_conn()
-    with conn.cursor(cursor=DictCursor) as cur:
-        cur.execute(sql, params or ())
-        return cur.fetchall()
+    try:
+        conn = _get_conn()
+        with conn.cursor(cursor=DictCursor) as cur:
+            cur.execute(sql, params or ())
+            return cur.fetchall()
+    except Exception as e:
+        print(f"[SQL] 查询失败: {e}")
+        global _conn
+        _conn = None  # 重置连接
+        return []
 
 
 def _fetchone(sql, params=None):

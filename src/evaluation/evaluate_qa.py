@@ -398,6 +398,9 @@ def main():
         answer, plan_log, elapsed = call_api(case["question"])
         total_time += elapsed
 
+        # 每个请求间隔1秒，避免资源累积
+        time.sleep(1)
+
         if not answer.startswith("ERROR"):
             api_ok += 1
             score = evaluate_answer(answer, case["keywords"])

@@ -39,23 +39,27 @@ def _get_driver():
 
 def vector_search(query, k=5):
     """语义搜索 top-k 相似实体"""
-    model = _get_model()
-    vec = model.encode([query], normalize_embeddings=True)[0].tolist()
+    try:
+        model = _get_model()
+        vec = model.encode([query], normalize_embeddings=True)[0].tolist()
 
-    with _get_driver().session() as session:
-        results = session.run(
-            "CALL db.index.vector.queryNodes('entity_vector_index', $k, $vec) "
-            "YIELD node, score RETURN node.name, score "
-            "ORDER BY score DESC",
-            k=k, vec=vec
-        )
-        hits = []
-        for r in results:
-            hits.append(f"{r['node.name']}（相似度: {r['score']:.2f}）")
+        with _get_driver().session() as session:
+            results = session.run(
+                "CALL db.index.vector.queryNodes('entity_vector_index', $k, $vec) "
+                "YIELD node, score RETURN node.name, score "
+                "ORDER BY score DESC",
+                k=k, vec=vec
+            )
+            hits = []
+            for r in results:
+                hits.append(f"{r['node.name']}（相似度: {r['score']:.2f}）")
 
-    if not hits:
-        return "未找到语义相关实体。"
-    return "语义匹配结果：\n" + "；\n".join(hits)
+        if not hits:
+            return "未找到语义相关实体。"
+        return "语义匹配结果：\n" + "；\n".join(hits)
+    except Exception as e:
+        print(f"[Vector] 向量搜索失败: {e}")
+        return "向量搜索失败"
 
 
 def close():
