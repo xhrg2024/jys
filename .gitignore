@@ -5,6 +5,7 @@
 __pycache__/
 *.pyc
 .env
+server.env
 .venv/
 neo4j-community-5.26.0/
 models/Qwen2.5-7B-Instruct/*
