@@ -5,6 +5,10 @@ FastAPI 服务：把 generator 包装成 HTTP API。
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
