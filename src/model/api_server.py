@@ -3,18 +3,26 @@ FastAPI 服务：把 generator 包装成 HTTP API。
 启动：python src/model/api_server.py
 """
 import sys, os
+# Windows GBK 控制台 UTF-8 兼容
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=True)
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional
+import json
 
-from model.generator import Generator
+from model.generator import Generator, list_providers
 from tools import graph_tools, vector_tools, sql_tools
 
 app = FastAPI(title="辑佚史智能体")
@@ -40,20 +48,48 @@ generator = Generator()
 
 class ChatRequest(BaseModel):
     question: str
+    use_api: Optional[bool] = None   # None=默认, True=API, False=本地
+    model: Optional[str] = None      # 指定 API 模型，如 "deepseek-chat", "glm-4-plus"
 
 
 class ChatResponse(BaseModel):
     answer: str
     plan_log: Optional[dict] = None
+    mode: str = "default"  # "api" | "local" | "default"
+    model: Optional[str] = None     # 实际使用的模型 ID
+    thinking: Optional[str] = None  # CoT 前置分析（两段式推理的第一轮输出）
+
+
+@app.get("/models")
+def get_models():
+    """返回供应商+模型层级列表（供前端两级下拉菜单）"""
+    return {"providers": list_providers()}
 
 
 @app.post("/chat")
 def chat(req: ChatRequest):
     try:
-        answer, plan_log = generator.answer(req.question)
-        return ChatResponse(answer=answer, plan_log=plan_log)
+        answer, plan_log = generator.answer(
+            req.question, use_api=req.use_api, model_id=req.model
+        )
+        effective = generator.use_api if req.use_api is None else req.use_api
+        mode = "api" if effective else "local"
+        thinking = getattr(generator, 'last_thinking', None)
+        return ChatResponse(
+            answer=answer, plan_log=plan_log, mode=mode,
+            model=generator.model_id, thinking=thinking,
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"推理失败: {str(e)}")
+
+
+@app.post("/chat/stream")
+def chat_stream(req: ChatRequest):
+    """SSE 流式问答接口：逐 token 推送思考过程和回答"""
+    def event_stream():
+        for event in generator.answer_stream(req.question, model_id=req.model):
+            yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
 # ========== 实体接口 ==========

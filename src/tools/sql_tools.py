@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 # 加载 .env 文件（从项目根目录）
 dotenv_path = Path(__file__).resolve().parents[2] / ".env"
-load_dotenv(dotenv_path)
+load_dotenv(dotenv_path, override=True)
 
 import pymysql
 from pymysql.cursors import DictCursor
@@ -27,16 +27,24 @@ _conn = None
 
 
 def _get_conn():
-    """获取单例连接，带重连机制"""
+    """获取单例连接，带重连机制。连接失败时抛出异常让调用方感知。"""
     global _conn
-    try:
-        if _conn is None or not _conn.open:
+    if _conn is None or not _conn.open:
+        try:
             _conn = pymysql.connect(**SQL_CONFIG, connect_timeout=10)
-        else:
-            # 测试连接是否有效
+        except Exception as e:
+            print(f"[SQL] 连接失败: {e}")
+            print(f"[SQL] 请检查: 1) MySQL 服务是否启动 2) .env 中 MYSQL_* 配置是否正确")
+            raise
+    else:
+        try:
             _conn.ping(reconnect=True)
-    except Exception:
-        _conn = pymysql.connect(**SQL_CONFIG, connect_timeout=10)
+        except Exception:
+            try:
+                _conn = pymysql.connect(**SQL_CONFIG, connect_timeout=10)
+            except Exception as e:
+                print(f"[SQL] 重连失败: {e}")
+                raise
     return _conn
 
 
@@ -47,10 +55,11 @@ def _fetchall(sql, params=None):
         with conn.cursor(cursor=DictCursor) as cur:
             cur.execute(sql, params or ())
             return cur.fetchall()
+    except pymysql.err.OperationalError as e:
+        print(f"[SQL] 数据库不可用: {e}")
+        return []
     except Exception as e:
-        print(f"[SQL] 查询失败: {e}")
-        global _conn
-        _conn = None  # 重置连接
+        print(f"[SQL] 查询异常: {e}")
         return []
 
 

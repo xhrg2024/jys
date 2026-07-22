@@ -7,7 +7,39 @@ function ResearchSection({ navigate }) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);   // [{role, content}]
   const [loading, setLoading] = useState(false);
+  const [useApi, setUseApi] = useState(true);     // 模型切换：true=API, false=本地Qwen
+  const [providers, setProviders] = useState([]);  // [{id, label, configured, models:[{id,label}]}]
+  const [selectedProvider, setSelectedProvider] = useState("deepseek");
+  const [selectedModel, setSelectedModel] = useState("deepseek-chat");
+  const [expandedThink, setExpandedThink] = useState({});
+  const composingRef = useRef(false);
   const chatEndRef = useRef(null);
+  const streamRef = useRef({ thinking: "", content: "" });  // 避免 StrictMode 双重调用
+
+  // 加载供应商+模型列表；供应商切换时自动选该供应商第一个模型
+  useEffect(() => {
+    fetch("/models").then(r => r.json()).then(data => {
+      const list = data.providers || [];
+      setProviders(list);
+      // 自动选第一个已配置的供应商
+      const first = list.find(p => p.configured);
+      if (first && first.models.length > 0) {
+        setSelectedProvider(first.id);
+        setSelectedModel(first.models[0].id);
+      }
+    }).catch(() => {});
+  }, []);
+
+  const currentProvider = providers.find(p => p.id === selectedProvider);
+  const providerModels = currentProvider ? currentProvider.models : [];
+
+  const handleProviderChange = (provId) => {
+    if (provId === "local") { setUseApi(false); return; }
+    setUseApi(true);
+    setSelectedProvider(provId);
+    const p = providers.find(x => x.id === provId);
+    if (p && p.models.length > 0) setSelectedModel(p.models[0].id);
+  };
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -19,22 +51,68 @@ function ResearchSection({ navigate }) {
     setChatState("chat");
     setInput("");
 
-    const userMsg = { role: "user", content: q };
-    setMessages(prev => [...prev, userMsg]);
+    const msgIdx = Date.now();
+    streamRef.current = { thinking: "", content: "" };
+    setMessages(prev => [...prev, { role: "user", content: q }]);
+    setMessages(prev => [...prev, { _id: msgIdx, role: "assistant", content: "", thinking: "", _streaming: true }]);
     setLoading(true);
+    const thinkKey = messages.length;
+    setExpandedThink(prev => ({ ...prev, [thinkKey]: true }));
+
+    const updateMsg = (patch) => {
+      setMessages(prev => {
+        const updated = [...prev];
+        const last = updated[updated.length - 1];
+        if (!last || last._id !== msgIdx) return updated;
+        Object.assign(last, patch);
+        return updated;
+      });
+    };
 
     try {
-      const res = await fetch("/chat", {
+      const res = await fetch("/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q }),
+        body: JSON.stringify({ question: q, use_api: useApi, model: useApi ? selectedModel : null }),
       });
-      const data = await res.json();
-      setMessages(prev => [...prev, { role: "assistant", content: data.answer }]);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() || "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const evt = JSON.parse(line.slice(6));
+            if (evt.type === "thinking") {
+              streamRef.current.thinking += evt.content;
+              updateMsg({ thinking: streamRef.current.thinking });
+            } else if (evt.type === "answer") {
+              streamRef.current.content += evt.content;
+              updateMsg({ content: streamRef.current.content });
+            } else if (evt.type === "done") {
+              updateMsg({ _streaming: false });
+            } else if (evt.type === "error") {
+              updateMsg({ content: "请求失败：" + evt.message, _streaming: false });
+            }
+          } catch {}
+        }
+      }
     } catch (e) {
-      setMessages(prev => [...prev, { role: "assistant", content: "请求失败：" + e.message }]);
+      updateMsg({ content: "请求失败：" + e.message, _streaming: false });
     }
     setLoading(false);
+  };
+
+  const selectStyle = {
+    padding: "4px 8px", borderRadius: 6, border: `1px solid ${C.border}`,
+    background: C.bg, fontSize: 12, color: C.text, fontFamily: "inherit",
+    cursor: "pointer", outline: "none",
   };
 
   const suggestQuestions = [
@@ -104,20 +182,57 @@ function ResearchSection({ navigate }) {
           <div style={{ flex: 1, overflow: "auto", padding: "20px 28px" }}>
             {messages.map((msg, i) => (
               <div key={i} style={{
-                display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
+                display: "flex", flexDirection: "column",
+                alignItems: msg.role === "user" ? "flex-end" : "flex-start",
                 marginBottom: 16,
               }}>
-                <div style={{
-                  maxWidth: "75%", padding: "12px 18px", borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                  background: msg.role === "user" ? C.bg : C.white,
-                  border: `1px solid ${C.border}`,
-                  fontSize: 14, color: C.text, lineHeight: 1.7, whiteSpace: "pre-wrap",
-                }}>
-                  {msg.content}
-                </div>
+                {/* 思考过程（assistant + 有 thinking 内容或正在流式传输时显示） */}
+                {msg.role === "assistant" && (msg.thinking || msg._streaming) ? (
+                  <div style={{
+                    maxWidth: "75%", marginBottom: 8,
+                    border: `1px solid ${C.border}`, borderRadius: 10,
+                    background: "#fafaf5", overflow: "hidden",
+                  }}>
+                    <div onClick={() => setExpandedThink(prev => ({ ...prev, [i]: !prev[i] }))}
+                      style={{
+                        padding: "8px 14px", cursor: "pointer",
+                        display: "flex", alignItems: "center", gap: 8,
+                        fontSize: 12, color: C.textM, userSelect: "none",
+                        borderBottom: expandedThink[i] ? `1px solid ${C.border}` : "none",
+                      }}>
+                      <span style={{ transform: expandedThink[i] ? "rotate(90deg)" : "rotate(0deg)", transition: "transform .15s", fontFamily: "monospace" }}>▶</span>
+                      <span>思考过程（RACE 前置分析）{msg._streaming && " ···"}</span>
+                    </div>
+                    {(expandedThink[i] || msg._streaming) && (
+                      <div ref={msg._streaming ? el => { if (el) el.scrollTop = el.scrollHeight; } : null} style={{
+                        padding: "10px 14px", fontSize: 12.5, color: "#888",
+                        lineHeight: 1.65, whiteSpace: "pre-wrap",
+                        height: msg._streaming ? 280 : undefined,
+                        maxHeight: 360, overflow: "auto",
+                        fontFamily: "'Noto Sans SC', sans-serif",
+                      }}>
+                        {msg.thinking}
+                        {msg._streaming && <span className="stream-cursor">|</span>}
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+                {/* 正文 */}
+                {(msg.role !== "assistant" || msg.content || msg._streaming) ? (
+                  <div style={{
+                    maxWidth: "75%", padding: "12px 18px",
+                    borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                    background: msg.role === "user" ? C.bg : C.white,
+                    border: `1px solid ${C.border}`,
+                    fontSize: 14, color: C.text, lineHeight: 1.7, whiteSpace: "pre-wrap",
+                  }}>
+                    {msg.content}
+                    {msg._streaming && <span className="stream-cursor">|</span>}
+                  </div>
+                ) : null}
               </div>
             ))}
-            {loading && (
+            {loading && !messages.some(m => m._streaming) && (
               <div style={{ color: C.textM, fontSize: 13, padding: "8px 18px" }}>思考中...</div>
             )}
             <div ref={chatEndRef} />
@@ -126,15 +241,43 @@ function ResearchSection({ navigate }) {
 
         {/* Input */}
         <div style={{ borderTop: `1px solid ${C.border}`, padding: "16px 24px", background: C.white }}>
+          {/* 模型选择：供应商 → 具体模型 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 12, color: C.textM }}>引擎:</span>
+            <select
+              value={useApi ? selectedProvider : "local"}
+              onChange={e => handleProviderChange(e.target.value)}
+              style={selectStyle}>
+              <option value="local">本地 Qwen</option>
+              <option disabled>── 云 API ──</option>
+              {providers.map(p => (
+                <option key={p.id} value={p.id} disabled={!p.configured}>
+                  {p.label}{p.configured ? "" : "（未配置）"}
+                </option>
+              ))}
+            </select>
+            {useApi && providerModels.length > 0 && (
+              <select
+                value={selectedModel}
+                onChange={e => setSelectedModel(e.target.value)}
+                style={selectStyle}>
+                {providerModels.map(m => (
+                  <option key={m.id} value={m.id}>{m.label}</option>
+                ))}
+              </select>
+            )}
+          </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ flex: 1, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
               <input
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleSend()}
+                onCompositionStart={() => { composingRef.current = true; }}
+                onCompositionEnd={e => { composingRef.current = false; setInput(e.target.value); }}
+                onKeyDown={e => { if (e.key === "Enter" && !composingRef.current) handleSend(); }}
                 placeholder="输入问题..."
                 disabled={loading}
-                style={{ flex: 1, border: "none", outline: "none", fontSize: 14, background: "transparent", fontFamily: "inherit" }}
+                style={{ flex: 1, border: "none", outline: "none", fontSize: 14, background: "transparent", fontFamily: "inherit", color: C.text }}
               />
               <button onClick={() => handleSend()} disabled={loading}
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>

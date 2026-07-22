@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 # 加载 .env 文件（从项目根目录）
 dotenv_path = Path(__file__).resolve().parents[2] / ".env"
-load_dotenv(dotenv_path)
+load_dotenv(dotenv_path, override=True)
 
 from neo4j import GraphDatabase
 

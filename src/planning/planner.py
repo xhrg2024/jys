@@ -46,10 +46,12 @@ RACE_SYSTEM = """【R-角色】你是一位专精于辑佚学（中国古典文�
    · 段落之间以空行分隔，保持清晰的信息层级
 
 2. 来源标注规范
-   · 每条关键信息后以"（0）"格式标注出处
-   · 标注必须源自参考信息中的原始表述，不得自行添加未出现的来源名
+   · 参考信息全部来自知识图谱和数据库检索，其中并无"魏源""《四库全书》""《清史稿》"等外部来源名
+   · 标注出处时，使用参考信息中实际出现的实体名称，格式为"（据{实体名}）"，例如"（据马国翰）""（据玉函山房辑佚书）"
+   · 当无法对应到具体实体时，统一使用"（据参考信息）"，绝对禁止编造任何参考信息中未出现的来源名称
    · 引用参考信息中的直接数据（卷数、年代、数量等）必须紧附来源标注
-   · 多源信息交叉印证时，标注格式为"（来源：{来源A}；{来源B}）"
+   · 多源信息交叉印证时，标注格式为"（据{实体A}；据{实体B}）"
+   · 【严禁】使用"魏源""魏源记载""据魏源"等任何包含"魏源"的来源标注 — 参考信息中从未出现此来源
 
 3. 学术用语层级
    · 确凿无疑的信息：使用"据记载"、"据考证"、"由{文献名}可知"
@@ -71,6 +73,8 @@ RACE_SYSTEM = """【R-角色】你是一位专精于辑佚学（中国古典文�
    · 必须且只能使用参考信息中出现的实体名称原文，绝对禁止编造、改写、增减任何字
    · 示例：参考信息写"马国翰"时，必须用"马国翰"，不得写成"马国磐"、"马国槃"、"马国翰（清代）"等任何变体
    · 实体名中不得插入空格、括号、标点等无关字符
+   · 书名尤其容易出错：参考信息写"玉函山房辑佚书"，必须照抄，不得写成"玉函山房辑佚书书"（多字）或"玉函山房辑书"（少字）
+   · 参考信息写"玉函山房辑佚书续编"，不得写成"玉函山房辑佚书书续编"（多一"书"字）
 
 7. 【严格禁止】数字信息精确性
    · 所有数字信息（卷数：如"579条"；年代：如"约1840年代"；数量：如"三部"等）必须与参考信息严格一致
@@ -496,7 +500,7 @@ class Planner:
 
     @classmethod
     def _clean_answer(cls, text):
-        """清理 Qwen 7B 常见输出问题"""
+        """清理模型输出：只做安全的格式修正，不碰实体名内容。"""
         import re
         # 0. 繁转简
         try:
@@ -510,38 +514,30 @@ class Planner:
         text = text.replace('##', '')
         # 2. 去中文字间随机空格
         text = re.sub(r'([一-鿿])\s+([一-鿿])', r'\1\2', text)
-        # 3. 修正"魏源"幻觉 - 移除所有包含魏源的来源标注
-        # 匹配各种格式: (魏源："xxx") (魏源: "xxx") （魏源："xxx"） (魏源:"xxx")
+        # 3. 修正"魏源"幻觉（参考信息中无"魏源"，纯属模型编造）
         text = re.sub(r'[（(]\s*魏源\s*[：:]\s*[""「」]?[^)）]*?[""」]?\s*[)）]', '', text)
-        # 匹配没有引号的格式: (魏源：xxx)
         text = re.sub(r'[（(]\s*魏源\s*[：:]\s*[^)）]+[)）]', '', text)
-        # 匹配只有魏源的格式
         text = re.sub(r'[（(]\s*魏源\s*[)）]', '', text)
-        # 4. 修被空格打断的实体名
-        entities = cls._load_entities()
-        for name in entities:
-            if len(name) < 3 or name in text:
-                continue
-            for i in range(1, len(name)):
-                bad = name[:i] + ' ' + name[i:]
-                if bad in text:
-                    text = text.replace(bad, name)
-        # 4. 修正幻觉的实体名（编辑距离≤1的替换为标准名）
-        try:
-            import Levenshtein
-            # 提取文本中所有2-6字的中文词
-            candidates = set(re.findall(r'[\u4e00-\u9fff]{2,6}', text))
-            for cand in candidates:
-                if cand in entities:
-                    continue
-                for name in entities:
-                    if len(name) >= 2 and Levenshtein.distance(cand, name) <= 1:
-                        text = text.replace(cand, name)
-                        break
-        except ImportError:
-            pass
-        # 5. 去中文文本前的英文前缀
-        text = re.sub(r'\b[A-Za-z]+([一-鿿]{2,})', r'\1', text)
+        text = re.sub(r'魏源\s*[：:]\s*[^\s，。；、\n）)]+', '', text)
+        text = re.sub(r'[,，]\s*魏源', '', text)
+        text = re.sub(r'魏源\s*[,，]', '', text)
+        text = re.sub(r'[（(]\s*魏源\s*', '（', text)
+        text = re.sub(r'魏源', '', text)
+        # 4. 修正已知的特定幻觉模式（仅限频繁出现且验证过的）
+        FIX_TITLES = {
+            '玉函山房辑佚书书续编': '玉函山房辑佚书续编',
+            '玉函山房辑佚书书补编': '玉函山房辑佚书补编',
+            '玉函山房辑佚书书': '玉函山房辑佚书',
+            '玉函山房辑书': '玉函山房辑佚书',
+            '玉函山房辑佚续编': '玉函山房辑佚书续编',
+            '玉函山房辑佚补编': '玉函山房辑佚书补编',
+        }
+        for wrong, correct in FIX_TITLES.items():
+            if wrong in text:
+                text = text.replace(wrong, correct)
+        # 5. 修正残留的空括号
+        text = re.sub(r'[（(]\s*[)）]', '', text)
+        text = re.sub(r'[（(]\s*[,，;；:\s]*\s*[)）]', '', text)
         return text.strip()
 
     @classmethod
@@ -549,7 +545,4 @@ class Planner:
         if not answer or len(answer.strip()) < 5:
             return "抱歉，根据现有参考信息无法回答该问题。"
         answer = cls._clean_answer(answer)
-        has_source = "来源" in answer or "据记" in answer or "据考" in answer
-        if not has_source:
-            answer += "\n（提示：以上信息来源于知识图谱检索结果，具体出处未能标注，建议核实。）"
         return answer

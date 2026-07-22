@@ -15,6 +15,8 @@ export default defineConfig(({ mode }) => {
       port: parseInt(env.FRONTEND_PORT || '15173', 10),
       proxy: {
         '/chat': { target: apiTarget, changeOrigin: true },
+        '/chat/stream': { target: apiTarget, changeOrigin: true },
+        '/models': { target: apiTarget, changeOrigin: true },
         '/stats': { target: apiTarget, changeOrigin: true },
         '/entities': { target: apiTarget, changeOrigin: true },
         '/entity': { target: apiTarget, changeOrigin: true },

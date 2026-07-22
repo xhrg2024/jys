@@ -56,6 +56,8 @@ export default function App() {
         ::-webkit-scrollbar-thumb { background: #c4b8a8; border-radius: 3px; }
         button { font-family: inherit; }
         input { font-family: inherit; }
+        .stream-cursor { animation: blink 0.8s infinite; }
+        @keyframes blink { 0%,50% { opacity:1; } 51%,100% { opacity:0; } }
       `}</style>
 
       <TopNav page={page} navigate={navigate} />
