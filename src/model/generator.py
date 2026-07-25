@@ -33,8 +33,9 @@ PROVIDERS = [
         "prefix": "DEEPSEEK",
         "base_url": os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
         "models": [
-            {"id": "deepseek-chat",        "label": "DeepSeek-V3 (→V4)"},
-            {"id": "deepseek-reasoner",    "label": "DeepSeek-R1"},
+            {"id": "deepseek-v4-pro",   "label": "DeepSeek V4 Pro"},
+            {"id": "deepseek-v4-flash", "label": "DeepSeek V4 Flash (高速)"},
+            {"id": "deepseek-reasoner", "label": "DeepSeek-R1"},
         ],
     },
     {
@@ -109,6 +110,24 @@ PROVIDERS = [
         ],
     },
     {
+        "id": "st-gpt",
+        "label": "SurplusToken GPT",
+        "prefix": "ST_GPT",
+        "base_url": os.environ.get("ST_GPT_BASE_URL", "https://surplustoken.com/v1"),
+        "models": [
+            {"id": "gpt-5.6-sol", "label": "GPT-5.6 Sol", "temperature": 0.7, "max_tokens": 8192, "timeout": 180},
+        ],
+    },
+    {
+        "id": "st-gemini",
+        "label": "SurplusToken Gemini",
+        "prefix": "ST_GEMINI",
+        "base_url": os.environ.get("ST_GEMINI_BASE_URL", "https://surplustoken.com/v1"),
+        "models": [
+            {"id": "gemini-3.6-flash", "label": "Gemini 3.6 Flash", "temperature": 0.7, "max_tokens": 8192, "timeout": 120},
+        ],
+    },
+    {
         "id": "spark",
         "label": "讯飞星火",
         "prefix": "SPARK",
@@ -130,7 +149,7 @@ def _build_model_lookup():
             lookup[m["id"]] = {"provider": p, "model": m}
     return lookup
 
-DEFAULT_MODEL = "deepseek-chat"
+DEFAULT_MODEL = "deepseek-v4-pro"
 
 
 def get_model_config(model_id):

@@ -40,7 +40,10 @@ class QuestionParser:
         elif intent == "CHAIN":
             m = re.search(r"(\S+?)的?(?:发展|历程|演变|脉络|阶段|源流)", question)
             if m:
-                result["topic"] = m.group(1).strip()
+                raw_topic = m.group(1).strip()
+                raw_topic = re.sub(r'的[一二三四五六七八九十两几][种类个项条]?$', '', raw_topic)
+                raw_topic = raw_topic.rstrip("的之了着过")
+                result["topic"] = raw_topic
             # 尝试抽取时间范围
             time_m = re.findall(r"(清代|明代|宋代|元代|唐代|汉代|先秦|民国|清初|乾嘉|南宋|北宋|晚清)", question)
             if time_m:
@@ -58,7 +61,11 @@ class QuestionParser:
         elif intent == "METHOD":
             m = re.search(r"(\S+?)的?(?:方法|原则|步骤|程序)|如何(.*)|怎样(.*)", question)
             if m:
-                result["topic"] = next((g.strip() for g in m.groups() if g), "")
+                raw_topic = next((g.strip() for g in m.groups() if g), "")
+                # 基础清洗：去掉末尾的数量修饰残余（如"辑佚的三"→"辑佚"）
+                raw_topic = re.sub(r'的[一二三四五六七八九十两几][种类个项条]?$', '', raw_topic)
+                raw_topic = raw_topic.rstrip("的之了着过")
+                result["topic"] = raw_topic
 
         elif intent == "FACTUAL":
             if entities:

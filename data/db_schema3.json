@@ -1,0 +1,238 @@
+{
+  "indexes": {
+    "PRIMARY": [
+      {
+        "col": "full_text_id",
+        "type": "BTREE"
+      }
+    ],
+    "title_id": [
+      {
+        "col": "title_id",
+        "type": "BTREE"
+      }
+    ],
+    "doc_id": [
+      {
+        "col": "doc_id",
+        "type": "BTREE"
+      }
+    ],
+    "ngram_idx_full_text": [
+      {
+        "col": "full_text",
+        "type": "FULLTEXT"
+      }
+    ]
+  },
+  "has_fulltext": true,
+  "docs_with_fulltext": [
+    {
+      "id": 21124,
+      "title": "《古今圖書集成》",
+      "count": 1781598
+    },
+    {
+      "id": 12730,
+      "title": "《淵鑒類函》",
+      "count": 216576
+    },
+    {
+      "id": 565,
+      "title": "《太平御覽》",
+      "count": 110018
+    },
+    {
+      "id": 12728,
+      "title": "《三才圖會》",
+      "count": 101045
+    },
+    {
+      "id": 570,
+      "title": "《藝文類聚》",
+      "count": 28069
+    },
+    {
+      "id": 12729,
+      "title": "《太平廣記》",
+      "count": 19996
+    },
+    {
+      "id": 569,
+      "title": "《初學記》",
+      "count": 14564
+    },
+    {
+      "id": 1,
+      "title": "《永乐大典》",
+      "count": 4727
+    }
+  ],
+  "jiyi_fulltext_hits": [],
+  "jiyi_title_hits": [],
+  "rich_documents": [
+    {
+      "title": "《永乐大典》",
+      "category": "综合性类书",
+      "style": "事文一体",
+      "dynasty": "明",
+      "comp_time": "永乐年间 (1403-1408)",
+      "completeness": "残本",
+      "authors": "解縉(总纂), 姚廣孝(主编), 王景(编修), 胡廣(编修), 金幼孜(编修)"
+    },
+    {
+      "title": "《敬齋古今黈》",
+      "category": null,
+      "style": null,
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "authors": null
+    },
+    {
+      "title": "《甕牖閑評》",
+      "category": null,
+      "style": null,
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "authors": null
+    },
+    {
+      "title": "《芥隱筆記》",
+      "category": null,
+      "style": null,
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "authors": null
+    },
+    {
+      "title": "《謝上蔡語録》",
+      "category": null,
+      "style": null,
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "authors": null
+    },
+    {
+      "title": "《詩文發源》",
+      "category": null,
+      "style": null,
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "authors": null
+    },
+    {
+      "title": "《鶴林玉露》",
+      "category": null,
+      "style": null,
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "authors": null
+    },
+    {
+      "title": "《耆舊續聞》",
+      "category": null,
+      "style": null,
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "authors": null
+    },
+    {
+      "title": "《太平御覽》",
+      "category": "综合性类书",
+      "style": "类事",
+      "dynasty": "宋",
+      "comp_time": "宋太平兴国八年（983年）",
+      "completeness": "全本",
+      "authors": "李昉(总纂官), 扈蒙(总纂官), 李穆(主编), 徐鉉(主编), 宋白(主编), 吳淑(主编), 舒雅(主编)"
+    },
+    {
+      "title": "《冊府元龜》",
+      "category": "专书性类书",
+      "style": "类事",
+      "dynasty": "宋",
+      "comp_time": null,
+      "completeness": null,
+      "authors": null
+    },
+    {
+      "title": "《全芳備祖集》",
+      "category": "专书性类书",
+      "style": "事文一体",
+      "dynasty": "宋",
+      "comp_time": null,
+      "completeness": null,
+      "authors": null
+    },
+    {
+      "title": "《駢志》",
+      "category": "专书性类书",
+      "style": "类事",
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "authors": null
+    },
+    {
+      "title": "《初學記》",
+      "category": "综合性类书",
+      "style": "事文一体",
+      "dynasty": "唐",
+      "comp_time": "唐开元十五年(727)",
+      "completeness": "全本",
+      "authors": "徐坚(主编), 張說(主编), 韋述(作者), 余欽(作者), 施敬本(作者), 張烜(作者), 李銳(作者), 孫季良(作者)"
+    },
+    {
+      "title": "《藝文類聚》",
+      "category": "综合性类书",
+      "style": "事文一体",
+      "dynasty": "唐",
+      "comp_time": "唐武德七年（624年）",
+      "completeness": "全本",
+      "authors": "歐陽詢(主编), 令狐德棻(主编), 陳叔達(主编), 裴矩(主编), 唐高祖(敕令者)"
+    },
+    {
+      "title": "《三才圖會》",
+      "category": "综合性类书",
+      "style": "类事",
+      "dynasty": "明",
+      "comp_time": "明萬歷年（1607年）",
+      "completeness": "全本",
+      "authors": "王圻(總纂), 王思義(總纂)"
+    },
+    {
+      "title": "《太平廣記》",
+      "category": "综合性类书",
+      "style": "类文",
+      "dynasty": "宋",
+      "comp_time": "北宋太平興國二年至三年（977-978年）",
+      "completeness": "全本",
+      "authors": "李昉(奉敕監修), 扈蒙(同修), 李穆(同修), 湯悅(同修), 徐鉉(同修), 宋白(同修), 王克貞(同修), 張洎(同修), 董淳(同修), 趙鄰幾(同修), 陳鄂(同修), 呂文仲(同修), 吳淑(同修)"
+    },
+    {
+      "title": "《淵鑒類函》",
+      "category": "综合性类书",
+      "style": "事文一体",
+      "dynasty": "清",
+      "comp_time": "康熙四十年（1701年）前後",
+      "completeness": "全本",
+      "authors": "張英(總纂官), 王士禛(總纂官), 王掞(總纂官)"
+    }
+  ],
+  "keyword_counts": {
+    "辑佚": 0,
+    "校勘": 403,
+    "辨伪": 11,
+    "考证": 242,
+    "版本": 17,
+    "目录": 458,
+    "训诂": 433,
+    "类书": 181
+  }
+}

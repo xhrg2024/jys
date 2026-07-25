@@ -109,6 +109,20 @@ DYNASTY_TO_DB = {
     "清": "清", "明": "明", "宋": "宋", "唐": "唐", "元": "元",
     "汉": "汉", "秦": "秦", "晋": "晋", "隋": "隋",
 }
+
+# 现代辑佚学术语 → 古籍原文中实际出现的同义/相关词
+# 数据库 full_text_1 中"辑佚"命中 0 条，需用古文献用语替代
+CLASSICAL_SYNONYMS = {
+    "辑佚": ["校勘", "考证", "训诂", "辨伪", "佚文", "散佚", "遗书", "逸书"],
+    "辑佚学": ["校勘", "考证", "训诂", "辨伪", "目录"],
+    "辑佚方法": ["校勘", "考证", "辨伪", "版本", "目录"],
+    "辑佚三原则": ["校勘", "考证", "辨伪", "训诂"],
+    "类书": ["类书", "类事", "类文", "事文"],
+    "校勘": ["校勘", "校对", "校订", "校雠"],
+    "辨伪": ["辨伪", "真伪", "伪书", "托名"],
+    "考证": ["考证", "考据", "考订", "考辨"],
+}
+
 # 问句中要剔除的疑问词
 QUESTION_NOISE = ["是什么", "有哪些", "经历了", "哪几个", "怎么样", "如何",
                    "怎样", "为什么", "什么", "多少", "哪", "吗", "呢", "？", "?"]
@@ -121,14 +135,17 @@ class Planner:
     # ── 关键词清洗 ──
     @staticmethod
     def _clean_topic(raw):
-        """从正则提取的粗糙 topic 中剔除疑问词，得到干净的搜索词"""
+        """从正则提取的粗糙 topic 中剔除疑问词和数量修饰，得到干净的搜索词"""
         import re
         text = raw.strip()
         # 去掉常见疑问词碎片
         for noise in QUESTION_NOISE:
             text = text.replace(noise, "")
-        # 去掉末尾虚词和数量词尾缀 如"辑佚的三"→"辑佚"
-        text = re.sub(r'(的[一二三四五六七八九十]个?[种类]?)$', '', text)
+        # 去掉"的三"、"的二"等数量修饰残余（如"辑佚的三"→"辑佚"）
+        text = re.sub(r'的[一二三四五六七八九十两几][种类个项条]?$', '', text)
+        # 去掉"有几"、"有哪些"等
+        text = re.sub(r'有几$', '', text)
+        text = re.sub(r'有哪些$', '', text)
         # 去掉末尾的"的之了着过"
         text = text.rstrip("的之了着过")
         # 如果 topic 仍然很长（>8字），可能混入了无关文字，取前段
@@ -153,6 +170,31 @@ class Planner:
             if "未找到" not in res:
                 return res
         return None
+
+    @staticmethod
+    def _extract_sql_keywords(question, topic=""):
+        """从问句中提取古籍原文中可能出现的搜索词。
+        优先用 CLASSICAL_SYNONYMS 映射，其次用 topic 本身，再兜底用预设学术词。
+        """
+        keywords = set()
+        # 1. 从同义词表查找
+        for modern, classical_list in CLASSICAL_SYNONYMS.items():
+            if modern in question:
+                keywords.update(classical_list)
+        # 2. 添加清洗后的 topic
+        if topic:
+            clean = Planner._clean_topic(topic)
+            if clean and len(clean) >= 2:
+                keywords.add(clean)
+        # 3. 兜底：问句中出现的已知高频学术词
+        FALLBACK_TERMS = ["校勘", "训诂", "考证", "辨伪", "版本", "目录", "类书",
+                          "永乐", "太平", "艺文", "初学", "古今", "集成"]
+        for term in FALLBACK_TERMS:
+            if term in question:
+                keywords.add(term)
+        # 4. 最多取 5 个，按词长降序（长词更精确）
+        sorted_kw = sorted(keywords, key=lambda x: -len(x))[:5]
+        return sorted_kw if sorted_kw else [topic] if topic else []
 
     def plan(self, question, intent_override=None):
         """主入口：给定用户问题，返回完整 RACE Prompt 和检索摘要。"""
@@ -197,20 +239,24 @@ class Planner:
         graph_count = len([r for r in graph_results if r])
         sql_count = len([r for r in sql_results if r])
         vector_count = len([r for r in vector_results if r])
-        sql_detail = [r[:300] for r in sql_results if r]
-        graph_detail = [r[:150] for r in graph_results if r]
+        sql_detail = [r[:800] for r in sql_results if r]
+        graph_detail = [r[:400] for r in graph_results if r]
+        vector_detail = [r[:300] for r in vector_results if r]
 
         print(f"\n{'─'*50}")
         print(f"[Planner] 意图: {intent} | 问题: {question[:60]}")
         print(f"[工具调用] 图查询: {graph_count}条 | "
               f"SQL查询: {sql_count}条 | "
               f"向量检索: {vector_count}条")
-        for r in sql_results:
-            if r:
-                print(f"  🗄️ {r[:200]}")
         for r in graph_results:
             if r:
-                print(f"  🔗 {r[:150]}")
+                print(f"  🔗 {r[:300]}")
+        for r in sql_results:
+            if r:
+                print(f"  🗄️ {r[:600]}")
+        for r in vector_results:
+            if r:
+                print(f"  🔍 {r[:200]}")
         print(f"{'─'*50}")
 
         # 结果融合 (5.3)
@@ -232,6 +278,7 @@ class Planner:
                 "vector_count": vector_count,
                 "sql_details": sql_detail,
                 "graph_details": graph_detail,
+                "vector_details": vector_detail,
                 "entities_matched": [(e["name"], e["label"]) for e in entities[:5]],
                 "question": question,
             }
@@ -259,8 +306,8 @@ class Planner:
                 if entity_text and entity_text not in all_results:
                     all_results.append(entity_text)
 
-                # 查一跳关系（自然语言，供 C 段显示）
-                rel_text = graph_tools.query_entity_relations(eid)
+                # 查一跳关系（自然语言，供 C 段显示，限制数量）
+                rel_text = graph_tools.query_entity_relations(eid, limit=10)
                 if rel_text and rel_text not in all_results:
                     all_results.append(rel_text)
 
@@ -298,26 +345,44 @@ class Planner:
         time_entities = [e for e in entities if e["label"] == "Time"]
         if time_entities:
             results.extend(self._multi_hop(time_entities, max_hops=2))
-        # 也查主题实体
+        # 也查主题实体（先清洗 topic，避免"辑佚的三"这类残留）
         topic = parsed.get("topic", "")
         if topic:
-            results.append(graph_tools.query_entity_by_name(topic))
+            clean = self._clean_topic(topic)
+            if clean:
+                results.append(graph_tools.query_entity_by_name(clean))
         return results
 
     def _method_search(self, parsed):
         results = []
-        # 查所有 Method 类型实体
-        results.append(graph_tools.query_by_label("Method"))
+        # 优先用清洗后的 topic 精准查实体，不要直接列所有 Method
         topic = parsed.get("topic", "")
-        if topic:
-            results.append(graph_tools.query_entity_by_name(topic))
+        clean_topic = self._clean_topic(topic) if topic else ""
+        if clean_topic:
+            entity_res = graph_tools.query_entity_by_name(clean_topic)
+            if "未在知识图谱中找到" not in entity_res:
+                results.append(entity_res)
+                # 同时查该实体的关联关系，获取方法论细节（限制数量避免撑满上下文）
+                id_recs = graph_tools._run(
+                    "MATCH (e {name: $name}) RETURN e.id AS id", name=clean_topic
+                )
+                for rec in id_recs:
+                    rel_res = graph_tools.query_entity_relations(rec["id"], limit=10)
+                    if rel_res and "无关联关系" not in rel_res:
+                        results.append(rel_res)
+            else:
+                # topic 实体没找到，降级列出 Method 类型（限制数量）
+                results.append(graph_tools.query_by_label("Method", limit=30))
+        else:
+            # 无 topic，列出 Method 类型（限制数量）
+            results.append(graph_tools.query_by_label("Method", limit=30))
         return results
 
     def _compare_search(self, entities, parsed):
         results = []
         for e in entities[:2]:
             results.append(graph_tools.query_entity_by_name(e["name"]))
-            results.append(graph_tools.query_entity_relations(e["id"]))
+            results.append(graph_tools.query_entity_relations(e["id"], limit=10))
         a = parsed.get("entity_a")
         b = parsed.get("entity_b")
         if a and b:
@@ -325,127 +390,210 @@ class Planner:
         return results
 
     # ── SQL 检索方法 ──
+    # 数据库关键约束：仅 8 部类书有全文，"辑佚"命中 0 条
+    # 策略：用 _extract_sql_keywords 将现代术语映射为古籍中真实出现的词汇
 
     def _sql_factual_search(self, question, parsed):
-        """从问句中提取关键词，在 MySQL 中查文献/作者"""
+        """事实类：查文献元数据 + 正文内容 + 作者信息"""
         results = []
         primary = parsed.get("primary_entity", "")
         if primary:
             clean = self._clean_topic(primary)
-            doc_res = sql_tools.query_document_by_title(clean, limit=5)
-            if "未找到" not in doc_res:
-                results.append(f"[SQL 文献查询] {doc_res}")
-            author_res = sql_tools.query_author_by_name(clean)
-            if "未找到" not in author_res:
-                results.append(f"[SQL 作者查询] {author_res}")
-        # 检测问句中的朝代关键词
+            if clean:
+                doc_res = sql_tools.search_document(clean)
+                if "未找到" not in doc_res:
+                    results.append(f"[SQL 文献详情] {doc_res}")
+                author_res = sql_tools.query_author_by_name(clean)
+                if "未找到" not in author_res:
+                    results.append(f"[SQL 作者查询] {author_res}")
+        # 如果实体链路没找到文献，用关键词兜底
+        if not results:
+            results.extend(self._sql_keyword_fallback(question))
+        # 朝代文献浏览
         for name in DYNASTY_TO_DB:
             if name in question:
                 res = self._search_dynasty(name)
                 if res:
                     results.append(f"[SQL {name}文献] {res}")
-                break  # 只匹配第一个朝代
+                break
         return results
 
     def _sql_chain_search(self, question, parsed):
-        """按朝代查文献发展脉络"""
+        """脉络类：按朝代浏览文献 + 标题层级搜索 + 文献正文"""
         results = []
         topic = parsed.get("topic", "")
+        # 先直接用 topic 搜文献
         if topic:
             clean = self._clean_topic(topic)
             if clean:
-                doc_res = sql_tools.query_document_by_title(clean, limit=5)
+                doc_res = sql_tools.search_document(clean)
                 if "未找到" not in doc_res:
-                    results.append(f"[SQL 文献查询] {doc_res}")
+                    results.append(f"[SQL 文献详情] {doc_res}")
+        # 用映射后的关键词做全文搜索
+        keywords = self._extract_sql_keywords(question, topic)
+        for kw in keywords[:3]:
+            text_res = sql_tools.search_full_text(kw, limit=8)
+            if "未找到" not in text_res:
+                results.append(f"[SQL 全文搜索:{kw}] {text_res}")
+                break  # 一个有效关键词就够
+        # 朝代维度
         time_range = parsed.get("time_range", [])
         for t in time_range:
             res = self._search_dynasty(t)
             if res:
                 results.append(f"[SQL {t}文献] {res}")
-        return results
-
-    def _sql_relation_search(self, question, parsed):
-        """关系类问题：对涉及的实体分别查文献/作者/全文"""
-        results = []
-        entities_to_search = []
-        a = parsed.get("entity_a", "")
-        b = parsed.get("entity_b", "")
-        if a:
-            entities_to_search.append(a)
-        if b:
-            entities_to_search.append(b)
-        for name in entities_to_search:
-            doc_res = sql_tools.query_document_by_title(name, limit=3)
-            if "未找到" not in doc_res:
-                results.append(f"[SQL 文献查询:{name}] {doc_res}")
-            author_res = sql_tools.query_author_by_name(name)
-            if "未找到" not in author_res:
-                results.append(f"[SQL 作者查询:{name}] {author_res}")
-            text_res = sql_tools.query_full_text_by_keyword(name, limit=5)
-            if "未找到" not in text_res:
-                results.append(f"[SQL 全文搜索:{name}] {text_res}")
-        return results
-
-    def _sql_method_search(self, question, parsed):
-        """方法类问题：全文搜索方法关键词"""
-        results = []
-        topic = parsed.get("topic", "")
+        # 标题层级浏览
         if topic:
             clean = self._clean_topic(topic)
             if clean:
-                # 全文搜索
-                text_res = sql_tools.query_full_text_by_keyword(clean, limit=10)
-                if "未找到" not in text_res:
-                    results.append(f"[SQL 全文搜索:{clean}] {text_res}")
-                # 也查文献标题
-                doc_res = sql_tools.query_document_by_title(clean, limit=5)
-                if "未找到" not in doc_res:
-                    results.append(f"[SQL 文献查询:{clean}] {doc_res}")
-        # 额外：从问题中提取核心词做全文搜索（类书语境词）
-        keywords = ["类书", "永乐", "辑佚", "校勘", "辨伪", "考证", "版本", "目录", "训诂"]
-        for kw in keywords:
-            if kw in question and kw != topic:
-                text_res = sql_tools.query_full_text_by_keyword(kw, limit=5)
-                if "未找到" not in text_res:
-                    results.append(f"[SQL 全文搜索:{kw}] {text_res}")
+                title_res = sql_tools.search_titles(clean, limit=10)
+                if "未找到" not in title_res:
+                    results.append(f"[SQL 标题搜索] {title_res}")
+        if not results:
+            results.extend(self._sql_keyword_fallback(question))
         return results
 
-    def _sql_compare_search(self, question, parsed):
-        """比较类问题：对两个实体分别查文献/作者/全文"""
+    def _sql_relation_search(self, question, parsed):
+        """关系类：对涉及的实体分别查文献详情+正文"""
         results = []
         a = parsed.get("entity_a", "")
         b = parsed.get("entity_b", "")
         for name in [a, b]:
             if not name:
                 continue
-            doc_res = sql_tools.query_document_by_title(name, limit=3)
+            doc_res = sql_tools.search_document(name)
             if "未找到" not in doc_res:
-                results.append(f"[SQL 文献查询:{name}] {doc_res}")
+                results.append(f"[SQL 文献详情:{name}] {doc_res}")
             author_res = sql_tools.query_author_by_name(name)
             if "未找到" not in author_res:
                 results.append(f"[SQL 作者查询:{name}] {author_res}")
-            text_res = sql_tools.query_full_text_by_keyword(name, limit=5)
+        if not results:
+            results.extend(self._sql_keyword_fallback(question))
+        # 用关键词做全文搜索找交集
+        keywords = self._extract_sql_keywords(question)
+        for kw in keywords[:2]:
+            text_res = sql_tools.search_full_text(kw, limit=5)
             if "未找到" not in text_res:
-                results.append(f"[SQL 全文搜索:{name}] {text_res}")
+                results.append(f"[SQL 全文搜索:{kw}] {text_res}")
+                break
+        return results
+
+    def _sql_method_search(self, question, parsed):
+        """方法类：用映射后的古籍术语做全文搜索。
+
+        关键改进：不再搜索"辑佚"（命中0条），而是用 CLASSICAL_SYNONYMS
+        映射到古文献中实际出现的词（校勘、考证、训诂、辨伪等）。
+        """
+        results = []
+        topic = parsed.get("topic", "")
+        # 先尝试用 topic 直接搜文献
+        if topic:
+            clean = self._clean_topic(topic)
+            if clean:
+                doc_res = sql_tools.search_document(clean)
+                if "未找到" not in doc_res:
+                    results.append(f"[SQL 文献详情] {doc_res}")
+        # 提取古籍中真实存在的搜索词
+        keywords = self._extract_sql_keywords(question, topic)
+        if keywords:
+            # 用布尔模式提高精度
+            kw_str = " ".join(keywords[:3])
+            text_res = sql_tools.search_full_text(kw_str, limit=10, mode="BOOLEAN")
+            if "未找到" in text_res:
+                # 布尔模式太严格，降级为自然语言模式逐个尝试
+                for kw in keywords[:3]:
+                    text_res = sql_tools.search_full_text(kw, limit=8)
+                    if "未找到" not in text_res:
+                        break
+            if "未找到" not in text_res:
+                results.append(f"[SQL 全文搜索] {text_res}")
+        # 也查标题层级
+        if topic:
+            clean = self._clean_topic(topic)
+            if clean:
+                title_res = sql_tools.search_titles(clean, limit=10)
+                if "未找到" not in title_res:
+                    results.append(f"[SQL 标题搜索] {title_res}")
+        # 查文献元数据中是否有方法相关文献
+        for cat in ["综合性类书", "专书性类书"]:
+            if cat in question:
+                doc_res = sql_tools.browse_documents(category=cat, limit=10)
+                if "未找到" not in doc_res:
+                    results.append(f"[SQL 类别浏览] {doc_res}")
+        if not results:
+            results.extend(self._sql_keyword_fallback(question))
+        return results
+
+    def _sql_compare_search(self, question, parsed):
+        """比较类：查两个实体的文献详情+正文 + 同义词全文搜索"""
+        results = []
+        a = parsed.get("entity_a", "")
+        b = parsed.get("entity_b", "")
+        for name in [a, b]:
+            if not name:
+                continue
+            doc_res = sql_tools.search_document(name)
+            if "未找到" not in doc_res:
+                results.append(f"[SQL 文献详情:{name}] {doc_res}")
+            author_res = sql_tools.query_author_by_name(name)
+            if "未找到" not in author_res:
+                results.append(f"[SQL 作者查询:{name}] {author_res}")
+        if not results:
+            results.extend(self._sql_keyword_fallback(question))
+        # 用关键词做全文搜索
+        keywords = self._extract_sql_keywords(question)
+        for kw in keywords[:2]:
+            text_res = sql_tools.search_full_text(kw, limit=5)
+            if "未找到" not in text_res:
+                results.append(f"[SQL 全文搜索:{kw}] {text_res}")
+                break
+        return results
+
+    # ── 关键词兜底检索 ──
+
+    def _sql_keyword_fallback(self, question):
+        """当实体链路未触发 SQL 检索时，从问句中提取关键词直接搜文献。
+        解决"永乐"等部分书名无法触发 SQL 的问题。
+        """
+        results = []
+        try:
+            import jieba
+            words = jieba.lcut(question)
+        except ImportError:
+            words = []
+
+        # 词长 >= 2 且有意义的词（过滤纯数字、纯标点、单字）
+        candidates = [w for w in words if len(w) >= 2 and not w.isdigit()
+                      and w not in ['是', '的', '了', '吗', '呢', '什么', '哪', '怎么', '如何']]
+
+        seen_titles = set()
+        for w in candidates[:5]:  # 最多试 5 个候选词
+            doc_res = sql_tools.search_document(w)
+            if doc_res and "未找到" not in doc_res:
+                # 避免重复
+                first_line = doc_res.split('\n')[0] if doc_res else ''
+                if first_line not in seen_titles:
+                    seen_titles.add(first_line)
+                    results.append(f"[SQL 关键词匹配:{w}] {doc_res}")
+
         return results
 
     # ── 结果融合 (5.3) ──
 
     def _merge(self, graph_results, vector_results, sql_results=None):
         """去重、排序、截断、格式化为 C 段文本。
-        排序策略：直接关系/路径优先 → 实体属性 → SQL 结构化结果 → 邻域扩展 → 向量兜底
+        排序策略：路径关系 → 实体属性/向量(含属性) → SQL → 向量(仅名称)
         """
         parts = []
         seen = set()
         for r in graph_results:
             if r and r not in seen:
-                # 路径结果优先（含→的为路径/关系），实体属性其次
                 if "→" in r:
-                    priority = 0
+                    priority = 0       # 路径/关系
                 elif "：" in r and "相似度" not in r:
-                    priority = 1
+                    priority = 1       # 实体属性
                 else:
-                    priority = 2
+                    priority = 2       # 其他图结果
                 parts.append((priority, r))
                 seen.add(r)
         if sql_results:
@@ -455,21 +603,34 @@ class Planner:
                     seen.add(r)
         for r in vector_results:
             if r and r not in seen:
-                parts.append((3, r))
+                if "向量相似度" in r:
+                    parts.append((1, r))   # 含属性的语义匹配，与实体属性同级
+                else:
+                    parts.append((3, r))   # 纯名称兜底
                 seen.add(r)
 
         # 按优先级排序
         parts.sort(key=lambda x: x[0])
 
-        # 格式化：优先结果完整保留，低优结果可能截断
+        # 格式化：先按优先级包含，空间不足时对低优做摘要而非直接丢弃
         combined = ""
+        dropped_count = 0
         for pri, text in parts:
-            seg = text.strip() + "\n\n"
-            if len(combined) + len(seg) > MAX_CHARS_REF * 3:
-                if pri <= 1:
-                    combined += seg[:MAX_CHARS_REF] + "\n...[截断]\n"
-                break
-            combined += seg
+            seg = text.strip()
+            full_seg = seg + "\n\n"
+            if len(combined) + len(full_seg) <= MAX_CHARS_REF * 3:
+                combined += full_seg
+            else:
+                remaining = MAX_CHARS_REF * 3 - len(combined)
+                if remaining > 80 and pri <= 2:
+                    # 空间不够但仍有较多余量：截断当前结果放入
+                    combined += seg[:remaining] + "\n...[截断]\n\n"
+                else:
+                    # 空间基本耗尽，记录被丢弃的结果数量
+                    dropped_count += 1
+
+        if dropped_count > 0:
+            combined += f"（另有{dropped_count}条检索结果因篇幅限制未展示）"
 
         return combined.strip()
 

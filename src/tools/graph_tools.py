@@ -106,6 +106,10 @@ def _format_entity(rec, prefix="e"):
     name = d.pop("name", "")
     d.pop("id", "")
     d.pop("embedding", None)
+    # 剔除内部/冗余字段（多标签合并产生的噪音）
+    for noise in ["mergedFromIds", "allDescriptions", "allCompilers",
+                  "allCompilationPeriods", "allLabels"]:
+        d.pop(noise, None)
     props = []
     for k, v in d.items():
         if not v:
@@ -120,26 +124,30 @@ def query_entity_by_name(name):
     """按名称查实体属性"""
     results = _run("MATCH (e {name: $name}) RETURN e", name=name)
     if not results:
-        return f"未在知识图谱中找到“{name}”。"
+        return f"未在知识图谱中找到「{name}」。"
     parts = []
     for r in results:
         parts.append(_format_entity(r))
     return "；\n".join(parts)
 
 
-def query_entity_relations(entity_id):
-    """查实体的所有一跳关系"""
-    results = _run(
-        "MATCH (e {id: $id})-[r]-(n) RETURN e.name AS entity, type(r) AS rel_type, r.description AS desc, n.name AS neighbor",
-        id=entity_id
+def query_entity_relations(entity_id, limit=None):
+    """查实体的所有一跳关系，可选限制数量"""
+    cypher = (
+        "MATCH (e {id: $id})-[r]-(n) "
+        "RETURN e.name AS entity, type(r) AS rel_type, r.description AS desc, n.name AS neighbor"
     )
+    if limit:
+        cypher += f" LIMIT {int(limit)}"
+    results = _run(cypher, id=entity_id)
     if not results:
-        return f"“{entity_id}”无关联关系。"
+        return f"「{entity_id}」无关联关系。"
     parts = []
     for r in results:
         desc = f"（{r['desc']}）" if r["desc"] else ""
         parts.append(f"{r['entity']} → {r['rel_type']} → {r['neighbor']}{desc}")
-    return "\n".join(parts)
+    suffix = f"\n（以上为前{limit}条关系，共查到{len(results)}条）" if limit and len(results) >= limit else ""
+    return "\n".join(parts) + suffix
 
 
 def get_neighbor_struct(entity_id):
@@ -160,7 +168,7 @@ def query_relation_between(name_a, name_b):
         a=name_a, b=name_b
     )
     if not results:
-        return f"“{name_a}”和“{name_b}”之间未找到关联路径。"
+        return f"「{name_a}」和「{name_b}」之间未找到关联路径。"
     r = results[0]
     steps = []
     for i in range(len(r["path"]) - 1):
@@ -168,16 +176,19 @@ def query_relation_between(name_a, name_b):
     return "，".join(steps)
 
 
-def query_by_label(label):
-    """按类型查所有实体"""
-    results = _run(
-        "MATCH (e:Entity) WHERE $label IN labels(e) RETURN e.name AS name",
-        label=label
+def query_by_label(label, limit=None):
+    """按类型查所有实体，可选限制数量"""
+    cypher = (
+        "MATCH (e:Entity) WHERE $label IN labels(e) RETURN e.name AS name"
     )
+    if limit:
+        cypher += f" LIMIT {int(limit)}"
+    results = _run(cypher, label=label)
     names = [r["name"] for r in results]
     if not names:
-        return f"无类型为“{label}”的实体。"
-    return f"类型“{label}”包含以下实体：\n" + "、".join(names)
+        return f"无类型为\"{label}\"的实体。"
+    suffix = f"（共{len(names)}个）" if limit else ""
+    return f"类型\"{label}\"包含以下实体{suffix}：\n" + "、".join(names)
 
 
 def close():

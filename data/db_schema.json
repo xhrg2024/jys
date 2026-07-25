@@ -1,0 +1,125 @@
+{
+  "enums": {
+    "doc_specific_category": [
+      "综合性类书",
+      "专书性类书"
+    ],
+    "doc_style": [
+      "事文一体",
+      "类事",
+      "类文"
+    ],
+    "completeness": [
+      "残本",
+      "全本"
+    ],
+    "dynasty": [
+      "明",
+      "宋",
+      "唐",
+      "清"
+    ]
+  },
+  "sample_docs": [
+    {
+      "id": 1,
+      "title": "《永乐大典》",
+      "category": "综合性类书",
+      "style": "事文一体",
+      "dynasty": "明",
+      "comp_time": "永乐年间 (1403-1408)",
+      "completeness": "残本",
+      "theme": "天地人事物"
+    },
+    {
+      "id": 2,
+      "title": "《敬齋古今黈》",
+      "category": null,
+      "style": null,
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "theme": null
+    },
+    {
+      "id": 3,
+      "title": "《甕牖閑評》",
+      "category": null,
+      "style": null,
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "theme": null
+    },
+    {
+      "id": 4,
+      "title": "《芥隱筆記》",
+      "category": null,
+      "style": null,
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "theme": null
+    },
+    {
+      "id": 5,
+      "title": "《謝上蔡語録》",
+      "category": null,
+      "style": null,
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "theme": null
+    },
+    {
+      "id": 6,
+      "title": "《詩文發源》",
+      "category": null,
+      "style": null,
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "theme": null
+    },
+    {
+      "id": 7,
+      "title": "《鶴林玉露》",
+      "category": null,
+      "style": null,
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "theme": null
+    },
+    {
+      "id": 8,
+      "title": "《耆舊續聞》",
+      "category": null,
+      "style": null,
+      "dynasty": "明",
+      "comp_time": null,
+      "completeness": null,
+      "theme": null
+    },
+    {
+      "id": 565,
+      "title": "《太平御覽》",
+      "category": "综合性类书",
+      "style": "类事",
+      "dynasty": "宋",
+      "comp_time": "宋太平兴国八年（983年）",
+      "completeness": "全本",
+      "theme": "天地人事物"
+    },
+    {
+      "id": 566,
+      "title": "《冊府元龜》",
+      "category": "专书性类书",
+      "style": "类事",
+      "dynasty": "宋",
+      "comp_time": null,
+      "completeness": null,
+      "theme": null
+    }
+  ]
+}
