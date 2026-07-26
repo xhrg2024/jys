@@ -160,20 +160,28 @@ def get_neighbor_struct(entity_id):
 
 
 def query_relation_between(name_a, name_b):
-    """查两实体间最短路径"""
+    """查两实体间最短路径（最多 3 条，按长度升序）"""
     results = _run(
-        "MATCH p=shortestPath((a {name: $a})-[*..4]-(b {name: $b})) "
+        "MATCH p=(a {name: $a})-[*..4]-(b {name: $b}) "
         "RETURN [n IN nodes(p) | n.name] AS path, "
-        "[r IN relationships(p) | type(r)] AS rels",
+        "[r IN relationships(p) | type(r)] AS rels, "
+        "length(p) AS len "
+        "ORDER BY len "
+        "LIMIT 3",
         a=name_a, b=name_b
     )
     if not results:
         return f"「{name_a}」和「{name_b}」之间未找到关联路径。"
-    r = results[0]
-    steps = []
-    for i in range(len(r["path"]) - 1):
-        steps.append(f"{r['path'][i]} → {r['rels'][i]} → {r['path'][i+1]}")
-    return "，".join(steps)
+
+    all_paths = []
+    for idx, r in enumerate(results):
+        steps = []
+        for i in range(len(r["path"]) - 1):
+            steps.append(f"{r['path'][i]} → {r['rels'][i]} → {r['path'][i+1]}")
+        path_str = "，".join(steps)
+        label = f"路径{idx+1}" if len(results) > 1 else "路径"
+        all_paths.append(f"{label}（{r['len']}跳）：{path_str}")
+    return "\n".join(all_paths)
 
 
 def query_by_label(label, limit=None):
@@ -189,6 +197,67 @@ def query_by_label(label, limit=None):
         return f"无类型为\"{label}\"的实体。"
     suffix = f"（共{len(names)}个）" if limit else ""
     return f"类型\"{label}\"包含以下实体{suffix}：\n" + "、".join(names)
+
+
+def explore_entity(name):
+    """高层工具：深度探索一个实体——属性 + 全部关系 + 关联实体属性。
+    封装了多跳遍历逻辑，一次调用返回完整画像。比单独调用 query_entity_by_name
+    和 query_entity_relations 更全面。
+    """
+    parts = []
+
+    # 1. 查实体自身属性（用 e.id 属性而非弃用的 id() 函数）
+    entity_results = _run("MATCH (e {name: $name}) RETURN e, e.id AS eid", name=name)
+    if not entity_results:
+        return f"未在知识图谱中找到「{name}」。"
+
+    for rec in entity_results:
+        eid = rec["eid"]
+        parts.append(f"【{name}】{_format_entity(rec)}")
+
+        # 2. 查该实体的所有关系（用属性 id 匹配）
+        rel_results = _run(
+            "MATCH (e {id: $id})-[r]-(n) "
+            "RETURN type(r) AS rel_type, r.description AS desc, n.name AS neighbor, "
+            "labels(n) AS n_labels, n.id AS nid LIMIT 30",
+            id=eid
+        )
+        if rel_results:
+            rel_lines = []
+            neighbors_seen = set()
+            for rr in rel_results:
+                desc = f"（{rr['desc']}）" if rr["desc"] else ""
+                rel_lines.append(f"  {name} → {rr['rel_type']} → {rr['neighbor']}{desc}")
+                neighbors_seen.add((rr["neighbor"], rr["nid"]))
+
+            parts.append(f"  关系网络（{len(rel_lines)}条）：")
+            parts.extend(rel_lines)
+
+            # 3. 对关键邻居做浅层属性查询（选前 5 个不同标签的）
+            neighbor_list = list(neighbors_seen)[:5]
+            for nname, nid in neighbor_list:
+                n_recs = _run("MATCH (e {id: $id}) RETURN e", id=nid)
+                for nr in n_recs:
+                    parts.append(f"  └ 关联实体：{_format_entity(nr)}")
+
+    return "\n".join(parts)
+
+
+def explore_relation(entity_a, entity_b):
+    """高层工具：深度探索两个实体之间的关系——各自属性 + 各自关系网络 + 最短路径 + 共同邻居。
+    封装了 relation_search + multi_hop 逻辑，一次调用完成全面关系分析。
+    """
+    parts = []
+    parts.append(f"═══ 实体 A：{entity_a} ═══")
+    parts.append(explore_entity(entity_a))
+    parts.append("")
+    parts.append(f"═══ 实体 B：{entity_b} ═══")
+    parts.append(explore_entity(entity_b))
+    parts.append("")
+    parts.append(f"═══ 最短路径：{entity_a} ↔ {entity_b} ═══")
+    parts.append(query_relation_between(entity_a, entity_b))
+
+    return "\n".join(parts)
 
 
 def close():

@@ -190,6 +190,60 @@ def list_providers():
     return result
 
 
+def _build_tool_selection_system_prompt(intent):
+    """构建工具选择 LLM 的 system prompt，包含意图引导。"""
+    intent_guidance = {
+        "FACTUAL": (
+            "用户正在查证事实。应同时进行三类检索：\n"
+            "1) 图谱：【优先用 kg_explore_entity 一次获取属性+关系网+关联实体】，如实体名不确定可先用 kg_list_by_type\n"
+            "2) SQL：search_document + search_full_text + search_author（如涉及人名）\n"
+            "3) 向量：vector_search"
+        ),
+        "RELATION": (
+            "用户正在分析实体关联。【重要】图谱检索只需调用一个工具：kg_explore_relation(A,B)。"
+            "该工具已内置：属性查询+关系网络+多跳扩展+最短路径，无需单独调用 kg_find_entities 等底层工具。\n"
+            "完整组合：kg_explore_relation(A,B) + vector_search + SQL（search_document + search_full_text + search_author）"
+        ),
+        "CHAIN": (
+            "用户正在梳理发展脉络。应同时进行三类检索：\n"
+            "1) 图谱：kg_list_by_type（列出相关实体）+ kg_explore_entity（对关键实体深度探索）\n"
+            "2) SQL：browse_documents + search_titles + search_full_text\n"
+            "3) 向量：vector_search"
+        ),
+        "METHOD": (
+            "用户正在探讨研究方法。应同时进行三类检索：\n"
+            "1) 图谱：kg_list_by_type(Method) + kg_explore_entity（对核心方法实体深度探索）\n"
+            "2) SQL：search_full_text（注意用'校勘''训诂''考证'等而非'辑佚'）+ search_titles + browse_documents\n"
+            "3) 向量：vector_search"
+        ),
+        "COMPARE": (
+            "用户正在比较两个事物。【重要】图谱检索只需调用一个工具：kg_explore_relation(A,B)。"
+            "该工具已内置：双方属性+关系网络+多跳扩展+最短路径，无需单独调用底层工具。\n"
+            "完整组合：kg_explore_relation(A,B) + vector_search + SQL（search_document×2 + search_author×2 + search_full_text）"
+        ),
+    }
+    guidance = intent_guidance.get(intent, intent_guidance["FACTUAL"])
+
+    return (
+        "你是一个辑佚学文献检索助手。你的任务是根据用户问题选择合适的工具来检索信息。\n"
+        "不要直接回答问题，只选择和调用合适的工具。\n\n"
+        "【组合检索铁律 — 必须遵守】\n"
+        "1. 每次检索必须覆盖三类工具，每类至少调用 2 个：图谱(kg_*) + SQL(search_*/browse_*) + 向量(vector_search)\n"
+        "2. vector_search 是语义兜底，每次都调——防止精确名称在知识图谱中未命中\n"
+        "3. kg_find_entities 和 kg_get_entity_relations 是固定搭档——查属性+查关系网缺一不可\n"
+        "4. 涉及多个实体时，必须对每个实体分别调用 kg_find_entities + kg_get_entity_relations\n"
+        "5. 涉及文献名时，必须同时调用 search_document + search_full_text + search_titles\n"
+        "6. 涉及人名时，必须同时调用 search_author + kg_find_entities\n"
+        "7. 宁可多调 5 个工具，不可遗漏关键信息。信息充分比精准克制更重要\n\n"
+        f"【用户意图】{intent} — {guidance}\n\n"
+        "【原则】\n"
+        "1. 每种工具可调用 1-3 次，用不同参数覆盖不同实体或不同搜索词\n"
+        "2. 模糊实体名先用 vector_search 定位，再用 kg_find_entities 查详情\n"
+        "3. 查询古籍原文时使用 search_full_text，注意古文献术语与现代术语的差异\n"
+        "4. 一次调用尽可能多地同时选择工具（并行执行，不会增加延迟）"
+    )
+
+
 class Generator:
     def __init__(self, model_id=None):
         self.planner = Planner()
@@ -260,6 +314,72 @@ class Generator:
             {"role": "system", "content": system},
             {"role": "user", "content": user_content},
         ]
+
+    def _call_api_tool_selection(self, question, intent):
+        """调用 LLM 选择工具并执行，返回工具结果列表。
+        失败时返回 None，由调用方降级为硬编码分派。
+        """
+        import requests
+        import json
+        from tools.tool_registry import TOOL_SCHEMAS, execute_tool_calls
+
+        config = get_model_config(self.model_id)
+        if not config["api_key"]:
+            print("[ToolSelect] API Key 未配置，跳过工具选择")
+            return None
+
+        system_prompt = _build_tool_selection_system_prompt(intent)
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": question},
+        ]
+        body = {
+            "model": config["model"],
+            "messages": messages,
+            "tools": TOOL_SCHEMAS,
+            "tool_choice": "auto",
+            "temperature": 0.3,
+            "max_tokens": 1024,
+        }
+        headers = {
+            "Authorization": f"Bearer {config['api_key']}",
+            "Content-Type": "application/json; charset=utf-8",
+        }
+
+        try:
+            body_bytes = json.dumps(body, ensure_ascii=False).encode("utf-8")
+            response = requests.post(
+                f"{config['base_url']}/chat/completions",
+                headers=headers,
+                data=body_bytes,
+                timeout=(10, 60),
+                stream=False,
+            )
+            if response.status_code != 200:
+                print(f"[ToolSelect] HTTP {response.status_code}: {response.text[:300]}")
+                return None
+
+            result = response.json()
+            if "choices" not in result or not result["choices"]:
+                print("[ToolSelect] 响应无 choices，降级")
+                return None
+
+            message = result["choices"][0].get("message", {})
+            tool_calls = message.get("tool_calls", [])
+            if not tool_calls:
+                print("[ToolSelect] LLM 未选择任何工具，降级")
+                return None
+
+            cfg_label = config["label"]
+            tool_names = [tc["function"]["name"] for tc in tool_calls]
+            print(f"[ToolSelect] {cfg_label} 选择了 {len(tool_calls)} 个工具: {tool_names}")
+
+            results = execute_tool_calls(tool_calls)
+            return results
+
+        except Exception as e:
+            print(f"[ToolSelect] 失败: {e}")
+            return None
 
     def _think(self, question, context):
         """第一轮推理（RACE 框架）：在正式回答前，按 RACE 结构进行前置分析。
@@ -549,7 +669,26 @@ class Generator:
             self._ensure_model(use_api=effective)
 
         intent = self._classify_intent(question, use_api=effective)
-        plan = self.planner.plan(question, intent_override=intent)
+
+        # ── 会话日志 ──
+        from utils.session_logger import SessionLogger
+        logger = SessionLogger(question)
+        cfg = get_model_config(self.model_id)
+        logger.log_header(intent, cfg["label"])
+
+        # ── LLM Tool Calling（仅 API 模式）──
+        tool_results = None
+        if effective:
+            tool_results = self._call_api_tool_selection(question, intent)
+            if tool_results:
+                names = [tr["name"] for tr in tool_results if tr.get("result")]
+                print(f"[ToolCall] ✅ LLM 选择了 {len(names)} 个工具: {', '.join(names)}")
+                logger.log_tool_selection(True, names)
+            else:
+                print(f"[ToolCall] ⚠️ 工具选择失败或为空，降级为硬编码分派")
+                logger.log_tool_selection(False, [], "API 返回空或失败")
+
+        plan = self.planner.plan(question, intent_override=intent, tool_results=tool_results, logger=logger)
 
         if verbose:
             mode = "API" if effective else "本地"
@@ -576,9 +715,19 @@ class Generator:
 
         self.last_thinking = thinking  # 暴露给 API 层
 
+        # 日志：Think 阶段
+        if thinking:
+            logger.log_thinking(thinking)
+
         messages = self._build_messages(question, plan["context"], thinking)
         response = self._call_model(messages, use_api=effective)
         cleaned = self.planner.postprocess(response)
+
+        # 日志：最终回答
+        logger.log_raw_api_response("raw_response", response)
+        logger.log_answer(cleaned)
+        logger.close()
+        print(f"[Log] 完整日志已写入: {logger.get_path()}")
 
         # 打印清理对比（仅当清理改变了原文时）
         BLD = "\033[1m"
@@ -603,9 +752,26 @@ class Generator:
         effective = self.use_api
 
         try:
+            # ── 会话日志 ──
+            from utils.session_logger import SessionLogger
+            logger = SessionLogger(question)
+            cfg = get_model_config(self.model_id)
+            logger.log_header("(streaming)", cfg["label"])
+
             # ── 意图 + 检索 ──
             intent = self._classify_intent(question, use_api=effective)
-            plan = self.planner.plan(question, intent_override=intent)
+            logger.log_header(intent, cfg["label"])  # 覆盖写入正确意图
+
+            # LLM Tool Calling（仅 API 模式）
+            tool_results = None
+            if effective:
+                tool_results = self._call_api_tool_selection(question, intent)
+                if tool_results:
+                    logger.log_tool_selection(True, [tr["name"] for tr in tool_results if tr.get("result")])
+                else:
+                    logger.log_tool_selection(False, [], "API 返回空或失败")
+
+            plan = self.planner.plan(question, intent_override=intent, tool_results=tool_results, logger=logger)
             yield {"type": "plan", "intent": plan["intent"], "plan_log": plan.get("plan_log", {})}
 
             # ── Think 阶段 ──
@@ -657,14 +823,26 @@ class Generator:
                 thinking = "".join(think_full).strip()
                 if thinking:
                     self.last_thinking = thinking
+                    logger.log_thinking(thinking)
                 yield {"type": "thinking_end"}
 
             # ── Answer 阶段 ──
             yield {"type": "answer_start"}
+            full_answer = []
             messages = self._build_messages(question, plan["context"], thinking)
             for tt, text in self._call_api_stream(messages, model_id=self.model_id):
                 if tt == "text":
+                    full_answer.append(text)
                     yield {"type": "answer", "content": text}
+
+            # 流式结束后写入日志
+            if full_answer:
+                raw = "".join(full_answer)
+                cleaned = self.planner.postprocess(raw)
+                logger.log_raw_api_response("stream_answer", raw)
+                logger.log_answer(cleaned)
+            logger.close()
+            print(f"[Log] 完整日志已写入: {logger.get_path()}")
 
             yield {"type": "done"}
 

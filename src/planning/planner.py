@@ -97,7 +97,7 @@ RACE_SYSTEM = """【R-角色】你是一位专精于辑佚学（中国古典文�
     · 全文不使用Markdown标记语言（不加**、##、-等标记）
     · 不使用英文标点，全部使用中文全角标点"""
 
-MAX_CHARS_REF = 600  # C 段参考信息最大字数（中文约 1 token/字）
+MAX_CHARS_REF = 6000  # C 段参考信息最大字数（6000*3=18000 字，约 9000 token）
 
 # 数据库 dynasty 列存的是单字，需要做映射
 DYNASTY_TO_DB = {
@@ -196,8 +196,13 @@ class Planner:
         sorted_kw = sorted(keywords, key=lambda x: -len(x))[:5]
         return sorted_kw if sorted_kw else [topic] if topic else []
 
-    def plan(self, question, intent_override=None):
-        """主入口：给定用户问题，返回完整 RACE Prompt 和检索摘要。"""
+    def plan(self, question, intent_override=None, tool_results=None, logger=None):
+        """主入口：给定用户问题，返回完整 RACE Prompt 和检索摘要。
+        tool_results: LLM tool-calling 返回的工具执行结果列表，
+                      格式 [{"name": str, "result": str}, ...]。
+                      为 None 时使用硬编码分派（fallback）。
+        logger: SessionLogger 实例，传入时写入完整无截断的检索日志。
+        """
         # 感知
         parsed = self.parser.parse(question)
         intent = intent_override or parsed["intent"]
@@ -208,32 +213,54 @@ class Planner:
         vector_results = []
         sql_results = []
 
-        if intent == "FACTUAL":
-            graph_results = self._factual_search(entities, parsed["parsed"])
-            sql_results = self._sql_factual_search(question, parsed["parsed"])
-            if not graph_results and not sql_results:
+        if tool_results:
+            # ── LLM Tool-Calling 路径 ──
+            for tr in tool_results:
+                name = tr.get("name", "")
+                result = tr.get("result", "")
+                if not result:
+                    continue
+                # 日志：完整工具结果（不截断）
+                if logger:
+                    logger.log_tool_result(name, result)
+                # 按工具名前缀分类到 graph / vector / sql
+                if name.startswith("kg_"):
+                    graph_results.append(f"[{name}] {result}")
+                elif name == "vector_search":
+                    vector_results.append(result)
+                else:
+                    sql_results.append(f"[{name}] {result}")
+            print(f"[Planner] Tool-Calling: "
+                  f"{len(graph_results)} graph, {len(sql_results)} sql, {len(vector_results)} vector")
+
+        else:
+            # ── Fallback：硬编码分派（完整保留）──
+            if intent == "FACTUAL":
+                graph_results = self._factual_search(entities, parsed["parsed"])
+                sql_results = self._sql_factual_search(question, parsed["parsed"])
+                if not graph_results and not sql_results:
+                    vector_results = [vector_tools.vector_search(question, k=5)]
+
+            elif intent == "RELATION":
+                graph_results = self._relation_search(entities, parsed["parsed"])
+                sql_results = self._sql_relation_search(question, parsed["parsed"])
+                if not graph_results and not sql_results:
+                    vector_results = [vector_tools.vector_search(question, k=5)]
+
+            elif intent == "CHAIN":
+                graph_results = self._chain_search(entities, parsed["parsed"])
+                sql_results = self._sql_chain_search(question, parsed["parsed"])
                 vector_results = [vector_tools.vector_search(question, k=5)]
 
-        elif intent == "RELATION":
-            graph_results = self._relation_search(entities, parsed["parsed"])
-            sql_results = self._sql_relation_search(question, parsed["parsed"])
-            if not graph_results and not sql_results:
+            elif intent == "METHOD":
+                graph_results = self._method_search(parsed["parsed"])
+                sql_results = self._sql_method_search(question, parsed["parsed"])
                 vector_results = [vector_tools.vector_search(question, k=5)]
 
-        elif intent == "CHAIN":
-            graph_results = self._chain_search(entities, parsed["parsed"])
-            sql_results = self._sql_chain_search(question, parsed["parsed"])
-            vector_results = [vector_tools.vector_search(question, k=5)]
-
-        elif intent == "METHOD":
-            graph_results = self._method_search(parsed["parsed"])
-            sql_results = self._sql_method_search(question, parsed["parsed"])
-            vector_results = [vector_tools.vector_search(question, k=5)]
-
-        elif intent == "COMPARE":
-            graph_results = self._compare_search(entities, parsed["parsed"])
-            sql_results = self._sql_compare_search(question, parsed["parsed"])
-            vector_results = [vector_tools.vector_search(question, k=5)]
+            elif intent == "COMPARE":
+                graph_results = self._compare_search(entities, parsed["parsed"])
+                sql_results = self._sql_compare_search(question, parsed["parsed"])
+                vector_results = [vector_tools.vector_search(question, k=5)]
 
         # 工具调用日志
         graph_count = len([r for r in graph_results if r])
@@ -243,8 +270,16 @@ class Planner:
         graph_detail = [r[:400] for r in graph_results if r]
         vector_detail = [r[:300] for r in vector_results if r]
 
-        print(f"\n{'─'*50}")
-        print(f"[Planner] 意图: {intent} | 问题: {question[:60]}")
+        # 工具来源标识
+        if tool_results:
+            tool_names = [tr.get("name", "?") for tr in tool_results if tr.get("result")]
+            source_label = f"LLM Tool Calling ({len(tool_names)} tools: {', '.join(tool_names)})"
+        else:
+            source_label = "硬编码分派 (Fallback)"
+
+        print(f"\n{'─'*60}")
+        print(f"[Planner] 意图: {intent} | 来源: {source_label}")
+        print(f"[Planner] 问题: {question[:80]}")
         print(f"[工具调用] 图查询: {graph_count}条 | "
               f"SQL查询: {sql_count}条 | "
               f"向量检索: {vector_count}条")
@@ -257,10 +292,18 @@ class Planner:
         for r in vector_results:
             if r:
                 print(f"  🔍 {r[:200]}")
-        print(f"{'─'*50}")
+        print(f"{'─'*60}")
+
+        # ── 完整日志（不截断，写入文件）──
+        if logger:
+            logger.log_graph_results(graph_results)
+            logger.log_sql_results(sql_results)
+            logger.log_vector_results(vector_results)
 
         # 结果融合 (5.3)
         context = self._merge(graph_results, vector_results, sql_results)
+        if logger:
+            logger.log_context(context)
 
         # RACE Prompt 构建 (5.4)
         prompt = self._build_race_prompt(question, context)
@@ -612,25 +655,14 @@ class Planner:
         # 按优先级排序
         parts.sort(key=lambda x: x[0])
 
-        # 格式化：先按优先级包含，空间不足时对低优做摘要而非直接丢弃
+        # 组装：按优先级拼接所有结果（容量充足，不截断）
         combined = ""
-        dropped_count = 0
         for pri, text in parts:
-            seg = text.strip()
-            full_seg = seg + "\n\n"
-            if len(combined) + len(full_seg) <= MAX_CHARS_REF * 3:
-                combined += full_seg
-            else:
-                remaining = MAX_CHARS_REF * 3 - len(combined)
-                if remaining > 80 and pri <= 2:
-                    # 空间不够但仍有较多余量：截断当前结果放入
-                    combined += seg[:remaining] + "\n...[截断]\n\n"
-                else:
-                    # 空间基本耗尽，记录被丢弃的结果数量
-                    dropped_count += 1
+            combined += text.strip() + "\n\n"
 
-        if dropped_count > 0:
-            combined += f"（另有{dropped_count}条检索结果因篇幅限制未展示）"
+        # 安全兜底：极端情况下超过 18000 字时做软截断
+        if len(combined) > MAX_CHARS_REF * 3:
+            combined = combined[:MAX_CHARS_REF * 3] + "\n（上下文已达上限，部分结果未展示）"
 
         return combined.strip()
 

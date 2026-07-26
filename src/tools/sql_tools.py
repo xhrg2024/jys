@@ -307,7 +307,7 @@ def query_author_by_name(name):
 # 全文检索（核心 — 使用 FULLTEXT 索引）
 # ══════════════════════════════════════════════
 
-def search_full_text(keyword, limit=10, mode="NATURAL"):
+def search_full_text(keyword, limit=5, mode="NATURAL"):
     """全文关键词搜索，使用 MySQL FULLTEXT ngram 索引。
     mode: NATURAL (自然语言模式) | BOOLEAN (布尔模式，支持 + - ~ 操作符)
     返回带文献元数据的匹配片段，按相关度排序。
