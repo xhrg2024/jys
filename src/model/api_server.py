@@ -368,6 +368,169 @@ def sql_stats():
 def health():
     return {"status": "ok"}
 
+
+# ========== 评估接口 ==========
+
+import re
+import uuid
+from datetime import datetime
+
+EVAL_DATA_DIR = Path(__file__).resolve().parents[2] / "data"
+EVAL_RESULTS_FILE = EVAL_DATA_DIR / "eval_results_manual.json"
+EVAL_QUESTIONS_FILE = EVAL_DATA_DIR / "test_questions.md"
+
+
+def _load_eval_results():
+    if EVAL_RESULTS_FILE.exists():
+        with open(EVAL_RESULTS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {"results": [], "custom_questions": []}
+
+
+def _save_eval_results(data):
+    with open(EVAL_RESULTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _parse_questions_from_md():
+    """从 test_questions.md 解析题目列表"""
+    questions = []
+    if not EVAL_QUESTIONS_FILE.exists():
+        return questions
+    with open(EVAL_QUESTIONS_FILE, "r", encoding="utf-8") as f:
+        content = f.read()
+    # 解析形如 "### N. 问题内容" 的标题
+    pattern = r'###\s+(\d+)\.\s+(.+?)(?=\n-|\n\n|$)'
+    matches = re.findall(pattern, content)
+    for num, text in matches:
+        questions.append({
+            "id": f"q{num}",
+            "question": text.strip(),
+        })
+    return questions
+
+
+@app.get("/eval/questions")
+def get_eval_questions():
+    """获取所有评估题目（预设 + 自定义）"""
+    preset = _parse_questions_from_md()
+    data = _load_eval_results()
+    custom = data.get("custom_questions", [])
+    return {"questions": preset + custom}
+
+
+@app.post("/eval/questions")
+def add_eval_question(body: dict):
+    """添加自定义题目 {question: str}"""
+    data = _load_eval_results()
+    custom = data.get("custom_questions", [])
+    new_q = {
+        "id": f"custom_{uuid.uuid4().hex[:6]}",
+        "question": body.get("question", "").strip(),
+    }
+    custom.append(new_q)
+    data["custom_questions"] = custom
+    _save_eval_results(data)
+    return {"ok": True, "question": new_q}
+
+
+@app.delete("/eval/questions/{qid}")
+def delete_eval_question(qid: str):
+    """删除自定义题目及关联结果"""
+    data = _load_eval_results()
+    data["custom_questions"] = [q for q in data.get("custom_questions", []) if q["id"] != qid]
+    data["results"] = [r for r in data.get("results", []) if r.get("question_id") != qid]
+    _save_eval_results(data)
+    return {"ok": True}
+
+
+@app.post("/eval/run")
+def eval_run(body: dict):
+    """对指定题目调用 API 并返回结果 {question_id, question, model}"""
+    question = body.get("question", "")
+    model_id = body.get("model")
+    try:
+        answer, plan_log = generator.answer(question, use_api=True, model_id=model_id)
+        thinking = getattr(generator, 'last_thinking', None)
+        return {
+            "answer": answer,
+            "plan_log": plan_log,
+            "model": generator.model_id,
+            "thinking": thinking,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"调用失败: {str(e)}")
+
+
+@app.post("/eval/save")
+def eval_save(body: dict):
+    """保存评分结果"""
+    data = _load_eval_results()
+    entry = {
+        "id": uuid.uuid4().hex[:8],
+        "question_id": body.get("question_id", ""),
+        "question": body.get("question", ""),
+        "model": body.get("model", ""),
+        "answer": body.get("answer", ""),
+        "plan_log": body.get("plan_log", {}),
+        "thinking": body.get("thinking", ""),
+        "scores": body.get("scores", {}),   # {C: int, D: int, A: int, B: int}
+        "notes": body.get("notes", ""),
+        "timestamp": datetime.now().isoformat(),
+    }
+    data.setdefault("results", []).append(entry)
+    _save_eval_results(data)
+    return {"ok": True, "id": entry["id"]}
+
+
+@app.get("/eval/results")
+def get_eval_results():
+    """获取所有评分结果"""
+    data = _load_eval_results()
+    return {"results": data.get("results", [])}
+
+
+@app.delete("/eval/results/{qid}")
+def reset_eval_result(qid: str, model: Optional[str] = None):
+    """重置某题的评分结果，可指定模型"""
+    data = _load_eval_results()
+    if model:
+        data["results"] = [r for r in data.get("results", [])
+                           if not (r.get("question_id") == qid and r.get("model") == model)]
+    else:
+        data["results"] = [r for r in data.get("results", []) if r.get("question_id") != qid]
+    _save_eval_results(data)
+    return {"ok": True}
+
+
+@app.get("/eval/summary")
+def get_eval_summary():
+    """获取汇总统计（按模型分组）"""
+    data = _load_eval_results()
+    results = data.get("results", [])
+    # 按模型分组
+    models = {}
+    for r in results:
+        m = r.get("model", "unknown")
+        if m not in models:
+            models[m] = {"count": 0, "C": [], "D": [], "A": [], "B": [], "results": []}
+        s = r.get("scores", {})
+        models[m]["count"] += 1
+        for k in ["C", "D", "A", "B"]:
+            if k in s:
+                models[m][k].append(s[k])
+        models[m]["results"].append(r)
+    # 算均分
+    summary = {}
+    for m, v in models.items():
+        avg = {}
+        for k in ["C", "D", "A", "B"]:
+            vals = v[k]
+            avg[k] = round(sum(vals) / len(vals), 2) if vals else 0
+        summary[m] = {"count": v["count"], "avg_scores": avg, "results": v["results"]}
+    return {"summary": summary, "total_results": len(results)}
+
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("API_PORT", 8000))

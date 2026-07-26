@@ -308,6 +308,9 @@ class Planner:
         # RACE Prompt 构建 (5.4)
         prompt = self._build_race_prompt(question, context)
 
+        # 构建结构化的工具调用摘要（供评估页面展示）
+        tool_summary = self._build_tool_summary(tool_results, graph_results, sql_results, vector_results)
+
         return {
             "parsed": parsed,
             "context": context,
@@ -324,6 +327,8 @@ class Planner:
                 "vector_details": vector_detail,
                 "entities_matched": [(e["name"], e["label"]) for e in entities[:5]],
                 "question": question,
+                "tool_summary": tool_summary,
+                "using_tool_calling": bool(tool_results),
             }
         }
 
@@ -665,6 +670,128 @@ class Planner:
             combined = combined[:MAX_CHARS_REF * 3] + "\n（上下文已达上限，部分结果未展示）"
 
         return combined.strip()
+
+    # ── 工具调用摘要 (评估用) ──
+
+    @staticmethod
+    def _build_tool_summary(tool_results, graph_results, sql_results, vector_results):
+        """从工具调用结果中提取结构化摘要，供评估页面展示。
+        返回 [{"tool": 工具名, "params": 关键参数, "status": 命中/未命中, "summary": 简短摘要}]
+        """
+        import re
+        summary = []
+
+        all_results = []
+        if tool_results:
+            for tr in tool_results:
+                name = tr.get("name", "")
+                result = tr.get("result", "")
+                all_results.append((name, result))
+        else:
+            # Fallback 路径：从结果前缀提取
+            for r in graph_results + sql_results + vector_results:
+                if not r:
+                    continue
+                m = re.match(r'^\[(\w+)\]', r)
+                if m:
+                    all_results.append((m.group(1), r[len(m.group(0)):].strip()))
+
+        for tool_name, result in all_results:
+            entry = {"tool": tool_name, "params": "", "status": "命中", "summary": ""}
+
+            # 提取参数和摘要
+            if tool_name in ("kg_explore_entity", "kg_find_entities", "kg_explore_relation"):
+                # 从结果第一行提取实体名
+                first_line = result.split("\n")[0] if result else ""
+                name_m = re.search(r'【(.+?)】', first_line)
+                entry["params"] = f'实体: {name_m.group(1)}' if name_m else tool_name
+                # 统计关系数
+                rel_m = re.search(r'关系网络（(\d+)条）', result)
+                if rel_m:
+                    entry["summary"] = f'{rel_m.group(1)}条关系'
+                elif "未在知识图谱中找到" in result:
+                    entry["status"] = "未命中"
+                    entry["summary"] = "未找到"
+                else:
+                    entry["summary"] = "已找到属性"
+
+            elif tool_name == "kg_find_relation_between":
+                entry["params"] = "查两实体间最短路径"
+                paths = [l for l in result.split("\n") if "路径" in l and "跳" in l]
+                entry["summary"] = f'{len(paths)}条路径' if paths else ("未找到" if "未找到" in result else "已找到")
+
+            elif tool_name == "kg_get_entity_relations":
+                entry["params"] = "查实体关系网络"
+                entry["summary"] = "已找到" if "无关联关系" not in result else "无关联"
+
+            elif tool_name == "kg_list_by_type":
+                entry["params"] = "列出类型实体"
+                cnt_m = re.search(r'共(\d+)个', result)
+                entry["summary"] = f'{cnt_m.group(1)}个实体' if cnt_m else "已列出"
+
+            elif tool_name == "vector_search":
+                entry["params"] = "语义搜索"
+                if "未找到" in result or "失败" in result:
+                    entry["status"] = "未命中"
+                    entry["summary"] = "无结果"
+                else:
+                    cnt = result.count("[向量相似度")
+                    entry["summary"] = f'{cnt}个匹配' if cnt > 0 else "有结果"
+
+            elif tool_name == "search_document":
+                # 从结果中提取文献名
+                title_m = re.search(r'《(.+?)》', result)
+                entry["params"] = f'文献: {title_m.group(1)}' if title_m else "文献搜索"
+                if "未找到" in result.split("\n")[0] if result else "":
+                    entry["status"] = "未命中"
+                    entry["summary"] = "未找到"
+                else:
+                    frag_m = re.search(r'全文片段：(\d+)条', result)
+                    entry["summary"] = f'{frag_m.group(1)}条全文' if frag_m else "找到元数据"
+
+            elif tool_name == "search_author":
+                author_m = re.search(r'姓名包含「(.+?)」', result)
+                entry["params"] = f'作者: {author_m.group(1)}' if author_m else "作者搜索"
+                if "未找到" in result:
+                    entry["status"] = "未命中"
+                    entry["summary"] = "未找到"
+                else:
+                    entry["summary"] = "找到"
+
+            elif tool_name == "search_full_text":
+                entry["params"] = "全文关键词搜索"
+                if "未找到" in result:
+                    entry["status"] = "未命中"
+                    entry["summary"] = "无匹配"
+                else:
+                    cnt = result.count("相关度:")
+                    entry["summary"] = f'{cnt}条匹配'
+
+            elif tool_name == "search_titles":
+                entry["params"] = "标题关键词搜索"
+                if "未找到" in result:
+                    entry["status"] = "未命中"
+                    entry["summary"] = "无匹配"
+                else:
+                    cnt = result.count("【")
+                    entry["summary"] = f'{cnt}条匹配'
+
+            elif tool_name == "browse_documents":
+                entry["params"] = "浏览文献列表"
+                if "未找到" in result:
+                    entry["status"] = "未命中"
+                    entry["summary"] = "无结果"
+                else:
+                    cnt = result.count("《")
+                    entry["summary"] = f'{cnt}部文献'
+
+            else:
+                entry["params"] = tool_name
+                entry["summary"] = "已执行" if "未找到" not in result else "未命中"
+
+            summary.append(entry)
+
+        return summary
 
     # ── RACE Prompt 构建 (5.4) ──
 

@@ -24,6 +24,8 @@ export default defineConfig(({ mode }) => {
         '/search': { target: apiTarget, changeOrigin: true },
         '/vector_search': { target: apiTarget, changeOrigin: true },
         '/graph': { target: apiTarget, changeOrigin: true },
+        '/eval': { target: apiTarget, changeOrigin: true },
+        '/health': { target: apiTarget, changeOrigin: true },
       }
     }
   }

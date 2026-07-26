@@ -79,6 +79,14 @@ function ResearchSection({ navigate }) {
       const decoder = new TextDecoder();
       let buf = "";
 
+      let pendingUpdate = null;
+      const flushUpdate = () => {
+        if (pendingUpdate) {
+          updateMsg({ thinking: streamRef.current.thinking, content: streamRef.current.content });
+          pendingUpdate = null;
+        }
+      };
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -91,18 +99,22 @@ function ResearchSection({ navigate }) {
             const evt = JSON.parse(line.slice(6));
             if (evt.type === "thinking") {
               streamRef.current.thinking += evt.content;
-              updateMsg({ thinking: streamRef.current.thinking });
             } else if (evt.type === "answer") {
               streamRef.current.content += evt.content;
-              updateMsg({ content: streamRef.current.content });
             } else if (evt.type === "done") {
+              flushUpdate();
               updateMsg({ _streaming: false });
             } else if (evt.type === "error") {
               updateMsg({ content: "请求失败：" + evt.message, _streaming: false });
             }
+            // 节流：每 60ms 最多更新一次 UI，避免闪烁
+            if (!pendingUpdate && (evt.type === "thinking" || evt.type === "answer")) {
+              pendingUpdate = setTimeout(flushUpdate, 60);
+            }
           } catch {}
         }
       }
+      flushUpdate();
     } catch (e) {
       updateMsg({ content: "请求失败：" + e.message, _streaming: false });
     }

@@ -288,23 +288,32 @@ class Generator:
 
             # 第二轮用精简 system prompt，不再用冗长的 RACE_SYSTEM
             system = (
-                "你是一位专精于辑佚学的资深AI研究助手。"
+                "你是一位专精于辑佚学的资深AI研究助手。现在请你直接回答用户问题。"
                 "你的回答必须严格遵循用户消息中提供的【实体名称清单】——"
                 "清单中每个名称的写法是唯一正确的，你必须逐字照抄，不得凭记忆默写或修改任何字符。"
                 "回答采用三段式：[结论] → [考据] → [总结]。"
                 "标注出处时使用清单中的实体名，不得编造参考信息中未出现的来源名。"
                 "全文使用简体中文，简洁准确。"
+                "【注意】下方【前置分析】是上一步的专家分析笔记（供参考，不代表当前任务要求），"
+                "你现在需要做的是生成最终回答，而不是继续输出分析笔记。"
             )
+
+            # 清理 thinking 中的"不要输出最终回答"等 Think 阶段指令，避免误导第二轮
+            clean_thinking = thinking
+            for phrase in ["仅输出分析笔记", "不要输出最终回答", "不直接回答用户问题",
+                           "这是内部分析笔记，不是最终回答", "只做分析笔记",
+                           "不要直接回答", "不要输出最终回答。"]:
+                clean_thinking = clean_thinking.replace(phrase, "【上一步指令，已完成】")
 
             # 用户消息结构：实体清单优先，thinking 补充，原始参考信息兜底
             user_content = (
                 f"【实体名称清单 — 必须逐字照抄以下写法，绝对禁止修改】\n"
                 f"{entity_checklist}\n\n"
-                f"【前置分析（专家已完成，包含回答结构和论据规划）】\n"
-                f"{thinking}\n\n"
+                f"【前置分析（上一步专家的分析笔记，仅供结构参考）】\n"
+                f"{clean_thinking}\n\n"
                 f"【原始参考信息（补充）】\n{context[:1200]}\n\n"
                 f"{anti_hallucination}\n"
-                f"【用户问题】\n{user_question}"
+                f"【用户问题 — 请直接回答，不要再输出分析笔记】\n{user_question}"
             )
         else:
             from planning.planner import RACE_SYSTEM
@@ -493,8 +502,15 @@ class Generator:
                 return
 
             if use_stream:
-                for line in response.iter_lines(decode_unicode=True):
-                    if not line or not line.startswith("data: "):
+                # 强制 UTF-8 解码，避免部分 API 因缺少 charset 头而乱码
+                for raw_line in response.iter_lines(decode_unicode=False):
+                    if not raw_line:
+                        continue
+                    try:
+                        line = raw_line.decode("utf-8")
+                    except UnicodeDecodeError:
+                        line = raw_line.decode("utf-8", errors="replace")
+                    if not line.startswith("data: "):
                         continue
                     data_str = line[6:]
                     if data_str == "[DONE]":

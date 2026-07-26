@@ -6,6 +6,7 @@ function TopNav({ page, navigate }) {
     { label: "首页", key: "home" },
     { label: "资源浏览", key: "resources-overview" },
     { label: "智能研究", key: "research-home" },
+    { label: "API 评估", key: "eval" },
     { label: "关于我们", key: "about" },
   ];
   return (
@@ -17,6 +18,7 @@ function TopNav({ page, navigate }) {
         const active = (item.label === "首页" && page === "home") ||
           (item.label === "资源浏览" && page.startsWith("resources")) ||
           (item.label === "智能研究" && page.startsWith("research")) ||
+          (item.label === "API 评估" && page === "eval") ||
           (item.label === "关于我们" && page === "about");
         return (
           <div key={item.label} onClick={() => navigate(item.key)} style={{

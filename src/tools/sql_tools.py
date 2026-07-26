@@ -281,18 +281,28 @@ def query_document_detail(title):
 # ══════════════════════════════════════════════
 
 def query_author_by_name(name):
-    """按作者姓名模糊查询，返回其参与编纂的文献"""
-    rows = _fetchall(
-        """SELECT a.author_name, a.author_org,
-                  GROUP_CONCAT(CONCAT(d.doc_title, '(', dal.role, ')')
-                               SEPARATOR '、') AS works
-           FROM authors a
-           LEFT JOIN document_author_links dal ON a.author_id = dal.author_id
-           LEFT JOIN documents d ON dal.doc_id = d.doc_id
-           WHERE a.author_name LIKE %s
-           GROUP BY a.author_id""",
-        (f"%{name}%",)
-    )
+    """按作者姓名模糊查询，返回其参与编纂的文献。简繁双搜。"""
+    def _do(t):
+        return _fetchall(
+            """SELECT a.author_name, a.author_org,
+                      GROUP_CONCAT(CONCAT(d.doc_title, '(', dal.role, ')')
+                                   SEPARATOR '、') AS works
+               FROM authors a
+               LEFT JOIN document_author_links dal ON a.author_id = dal.author_id
+               LEFT JOIN documents d ON dal.doc_id = d.doc_id
+               WHERE a.author_name LIKE %s
+               GROUP BY a.author_id""",
+            (f"%{t}%",)
+        )
+
+    variants = _search_variants(name)
+    merged = {}
+    for v in variants:
+        for r in _do(v):
+            if r['author_name'] not in merged:
+                merged[r['author_name']] = r
+    rows = list(merged.values())
+
     if not rows:
         return f"未找到姓名包含「{name}」的作者。"
     parts = []
@@ -388,19 +398,31 @@ def query_full_text_by_keyword(keyword, limit=10):
 # ══════════════════════════════════════════════
 
 def search_titles(keyword, limit=15):
-    """在层级标题中搜索关键词，了解类书的章节结构。
+    """在层级标题中搜索关键词，了解类书的章节结构。简繁双搜。
     标题层级：h1=卷次, h2=部类, h3=小类, h4=条目
     """
-    rows = _fetchall(
-        """SELECT t.title_name, t.title_level, t.title_order,
-                  d.doc_title, d.dynasty
-           FROM titles t
-           JOIN documents d ON t.doc_id = d.doc_id
-           WHERE t.title_name LIKE %s
-           ORDER BY d.doc_id, t.title_order
-           LIMIT %s""",
-        (f"%{keyword}%", limit)
-    )
+    def _do_like(kw):
+        return _fetchall(
+            """SELECT t.title_name, t.title_level, t.title_order,
+                      d.doc_title, d.dynasty
+               FROM titles t
+               JOIN documents d ON t.doc_id = d.doc_id
+               WHERE t.title_name LIKE %s
+               ORDER BY d.doc_id, t.title_order
+               LIMIT %s""",
+            (f"%{kw}%", limit)
+        )
+
+    # 简繁双搜
+    variants = _search_variants(keyword)
+    merged = {}
+    for v in variants:
+        for r in _do_like(v):
+            key = (r['title_name'], r['doc_title'])
+            if key not in merged:
+                merged[key] = r
+    rows = sorted(merged.values(), key=lambda r: (r['doc_title'], r['title_order']))[:limit]
+
     if not rows:
         # 尝试 FULLTEXT（如果 titles 表有 FULLTEXT 索引）
         rows = _fetchall(
@@ -511,11 +533,21 @@ def search_document(title, text_limit=8):
 
 
 def query_by_author_org(org):
-    """按机构查询作者"""
-    rows = _fetchall(
-        "SELECT author_name, author_org FROM authors WHERE author_org LIKE %s",
-        (f"%{org}%",)
-    )
+    """按机构查询作者。简繁双搜。"""
+    def _do(t):
+        return _fetchall(
+            "SELECT author_name, author_org FROM authors WHERE author_org LIKE %s",
+            (f"%{t}%",)
+        )
+
+    variants = _search_variants(org)
+    merged = {}
+    for v in variants:
+        for r in _do(v):
+            if r['author_name'] not in merged:
+                merged[r['author_name']] = r
+    rows = list(merged.values())
+
     if not rows:
         return f"未找到机构包含「{org}」的作者。"
     parts = [f"{r['author_name']}（{r['author_org']}）" for r in rows]
