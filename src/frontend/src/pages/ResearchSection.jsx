@@ -1,6 +1,39 @@
 import { useState, useRef, useEffect } from "react";
 import C from "../constants/colors";
 
+function renderMessageWithCitations(text, sourceIndex) {
+  if (!sourceIndex || Object.keys(sourceIndex).length === 0) return text;
+  
+  // 匹配 [数字] 格式的引用标记
+  const parts = [];
+  let lastIndex = 0;
+  const regex = /\[(\d+)\]/g;
+  let match;
+  
+  while ((match = regex.exec(text)) !== null) {
+    // 添加匹配前的文本
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    
+    const num = match[1];
+    const source = sourceIndex[num];
+    
+    parts.push(
+      `<sup style="color:#8a4520;cursor:pointer;font-size:11px;font-weight:600;" title="${source || '来源索引 ' + num}">[${num}]</sup>`
+    );
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // 添加剩余文本
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  
+  return <span dangerouslySetInnerHTML={{ __html: parts.join('') }} />;
+}
+
 function ResearchSection({ navigate }) {
   const [chatState, setChatState] = useState("landing");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -103,7 +136,7 @@ function ResearchSection({ navigate }) {
               streamRef.current.content += evt.content;
             } else if (evt.type === "done") {
               flushUpdate();
-              updateMsg({ _streaming: false });
+              updateMsg({ _streaming: false, plan_log: evt.plan_log || null });
             } else if (evt.type === "error") {
               updateMsg({ content: "请求失败：" + evt.message, _streaming: false });
             }
@@ -238,10 +271,44 @@ function ResearchSection({ navigate }) {
                     border: `1px solid ${C.border}`,
                     fontSize: 14, color: C.text, lineHeight: 1.7, whiteSpace: "pre-wrap",
                   }}>
-                    {msg.content}
+                    {msg.role === "assistant" && msg.plan_log?.source_index ? (
+                      renderMessageWithCitations(msg.content, msg.plan_log.source_index)
+                    ) : (
+                      msg.content
+                    )}
                     {msg._streaming && <span className="stream-cursor">|</span>}
                   </div>
                 ) : null}
+                {/* 依据来源列表 */}
+                {msg.role === "assistant" && !msg._streaming && msg.plan_log?.source_index && (() => {
+                  // 从回答中提取所有引用的编号
+                  const citedNums = new Set();
+                  const regex = /\[(\d+)\]/g;
+                  let m;
+                  while ((m = regex.exec(msg.content)) !== null) {
+                    citedNums.add(m[1]);
+                  }
+                  if (citedNums.size === 0) return null;
+                  const sources = msg.plan_log.source_index;
+                  return (
+                    <div style={{
+                      maxWidth: "75%", marginTop: 6, padding: "10px 18px",
+                      background: "#fafaf5", borderRadius: 10,
+                      border: `1px solid ${C.border}`,
+                      fontSize: 12, color: C.textM, lineHeight: 1.6,
+                    }}>
+                      <div style={{ fontWeight: 600, color: C.text, marginBottom: 6, fontSize: 13 }}>
+                        [依据]
+                      </div>
+                      {[...citedNums].sort((a, b) => parseInt(a) - parseInt(b)).map(num => (
+                        <div key={num} style={{ marginBottom: 2 }}>
+                          <span style={{ color: "#8a4520", fontWeight: 600 }}>[{num}]</span>{' '}
+                          {sources[num] || '未知来源'}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
             ))}
             {loading && !messages.some(m => m._streaming) && (

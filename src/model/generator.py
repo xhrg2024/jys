@@ -292,8 +292,13 @@ class Generator:
                 "你的回答必须严格遵循用户消息中提供的【实体名称清单】——"
                 "清单中每个名称的写法是唯一正确的，你必须逐字照抄，不得凭记忆默写或修改任何字符。"
                 "回答采用三段式：[结论] → [考据] → [总结]。"
-                "标注出处时使用清单中的实体名，不得编造参考信息中未出现的来源名。"
                 "全文使用简体中文，简洁准确。"
+                "【强制格式】引用参考信息时，按引用顺序自行编号 [1]、[2]、[3]……"
+                "第一个引用的来源标为 [1]，第二个标为 [2]，以此类推。"
+                "示例：参考信息有[1]王应麟（宋代学者）[2]《三家诗考》（代表作），"
+                "你应先引用《三家诗考》再引用王应麟，则回答为：《三家诗考》是代表作[1]，王应麟是宋代学者[2]。"
+                "编号自行顺序编号即可，不需要参考信息中的原始编号。"
+                "严禁使用 [补]、[续] 等非数字编号。"
                 "【注意】下方【前置分析】是上一步的专家分析笔记（供参考，不代表当前任务要求），"
                 "你现在需要做的是生成最终回答，而不是继续输出分析笔记。"
             )
@@ -832,11 +837,16 @@ class Generator:
                         "仅输出分析笔记，不要输出最终回答。"
                     )},
                 ]
-                for tt, text in self._call_api_stream(think_msgs, max_tokens=4096, model_id=self.model_id):
+                for tt, text in self._call_api_stream(think_msgs, max_tokens=2048, model_id=self.model_id):
                     if tt == "text" and not text.startswith("API错误") and not text.startswith("API调用失败"):
                         think_full.append(text)
                         yield {"type": "thinking", "content": text}
                 thinking = "".join(think_full).strip()
+                # 截断思考过程，避免占满上下文
+                MAX_THINK_LEN = 1500
+                if len(thinking) > MAX_THINK_LEN:
+                    print(f"[Think] 思考过长 ({len(thinking)}字)，截断至 {MAX_THINK_LEN} 字")
+                    thinking = thinking[:MAX_THINK_LEN] + "\n（思考过长已截断）"
                 if thinking:
                     self.last_thinking = thinking
                     logger.log_thinking(thinking)
@@ -846,7 +856,7 @@ class Generator:
             yield {"type": "answer_start"}
             full_answer = []
             messages = self._build_messages(question, plan["context"], thinking)
-            for tt, text in self._call_api_stream(messages, model_id=self.model_id):
+            for tt, text in self._call_api_stream(messages, max_tokens=4096, model_id=self.model_id):
                 if tt == "text":
                     full_answer.append(text)
                     yield {"type": "answer", "content": text}
@@ -860,7 +870,7 @@ class Generator:
             logger.close()
             print(f"[Log] 完整日志已写入: {logger.get_path()}")
 
-            yield {"type": "done"}
+            yield {"type": "done", "plan_log": plan.get("plan_log", {})}
 
         except Exception as e:
             yield {"type": "error", "message": str(e)}

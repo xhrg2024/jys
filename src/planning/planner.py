@@ -95,7 +95,14 @@ RACE_SYSTEM = """【R-角色】你是一位专精于辑佚学（中国古典文�
     · 比较类回答优先使用表格呈现逐项对比
     · 脉络类回答优先使用时间线或序号列举
     · 全文不使用Markdown标记语言（不加**、##、-等标记）
-    · 不使用英文标点，全部使用中文全角标点"""
+    · 不使用英文标点，全部使用中文全角标点
+
+11. 【附加要求】来源编号标注
+    · 参考信息中的每条内容都有编号，但你在回答中引用时请按引用顺序自行重新编号
+    · 你回答中第一个引用的来源标为 [1]，第二个标为 [2]，以此类推
+    · 示例：你回答的第一句话引用的是参考信息第5条，应标为 [1] 而非 [5]
+    · 多条引用使用 [1][2] 格式，未引用参考信息的内容不加编号
+    · 【严禁】使用 [补]、[续]、[甲]、[一] 等非数字编号，只允许使用 [数字] 格式"""
 
 MAX_CHARS_REF = 6000  # C 段参考信息最大字数（6000*3=18000 字，约 9000 token）
 
@@ -301,7 +308,7 @@ class Planner:
             logger.log_vector_results(vector_results)
 
         # 结果融合 (5.3)
-        context = self._merge(graph_results, vector_results, sql_results)
+        context, source_index = self._merge(graph_results, vector_results, sql_results)
         if logger:
             logger.log_context(context)
 
@@ -329,6 +336,7 @@ class Planner:
                 "question": question,
                 "tool_summary": tool_summary,
                 "using_tool_calling": bool(tool_results),
+                "source_index": source_index,
             }
         }
 
@@ -631,6 +639,8 @@ class Planner:
     def _merge(self, graph_results, vector_results, sql_results=None):
         """去重、排序、截断、格式化为 C 段文本。
         排序策略：路径关系 → 实体属性/向量(含属性) → SQL → 向量(仅名称)
+        返回 (context_text, source_index)
+        source_index: {数字: "来源描述"} 映射，供前端标注角标
         """
         parts = []
         seen = set()
@@ -660,16 +670,30 @@ class Planner:
         # 按优先级排序
         parts.sort(key=lambda x: x[0])
 
-        # 组装：按优先级拼接所有结果（容量充足，不截断）
+        # 组装带编号的上下文和来源索引
         combined = ""
+        source_index = {}
+        idx = 0
         for pri, text in parts:
-            combined += text.strip() + "\n\n"
+            idx += 1
+            # 提取来源类型
+            source_type = "图谱"
+            if "[SQL" in text or "[search_" in text:
+                source_type = "数据库"
+            elif "相似度" in text or "向量" in text:
+                source_type = "向量检索"
+            # 提取来源描述（前端[依据]区域展示用，截断加省略号）
+            desc = text.strip().replace("\n", " ")
+            if len(desc) > 200:
+                desc = desc[:200] + "……"
+            source_index[str(idx)] = f"{source_type}：{desc}"
+            combined += f"[{idx}] {text.strip()}\n\n"
 
         # 安全兜底：极端情况下超过 18000 字时做软截断
         if len(combined) > MAX_CHARS_REF * 3:
             combined = combined[:MAX_CHARS_REF * 3] + "\n（上下文已达上限，部分结果未展示）"
 
-        return combined.strip()
+        return combined.strip(), source_index
 
     # ── 工具调用摘要 (评估用) ──
 
@@ -858,6 +882,14 @@ class Planner:
         # 5. 修正残留的空括号
         text = re.sub(r'[（(]\s*[)）]', '', text)
         text = re.sub(r'[（(]\s*[,，;；:\s]*\s*[)）]', '', text)
+        # 6. 过滤错误的编号标记：只允许 [数字] 格式，移除 [补][续][甲] 等非法标记
+        text = re.sub(r'\[(?!\d+\])([^\[\]]+)\]', '', text)
+        # 7. 修正数字过大的编号（最大不超过参考信息条目数，超过则移除）
+        import re as _re
+        all_nums = _re.findall(r'\[(\d+)\]', text)
+        for num in all_nums:
+            if int(num) > 20:  # 超过20的编号视为无效
+                text = text.replace(f'[{num}]', '')
         return text.strip()
 
     @classmethod
