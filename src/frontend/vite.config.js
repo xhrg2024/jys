@@ -26,6 +26,8 @@ export default defineConfig(({ mode }) => {
         '/graph': { target: apiTarget, changeOrigin: true },
         '/eval': { target: apiTarget, changeOrigin: true },
         '/health': { target: apiTarget, changeOrigin: true },
+        '/reference': { target: apiTarget, changeOrigin: true },
+        '/sql': { target: apiTarget, changeOrigin: true },
       }
     }
   }

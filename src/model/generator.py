@@ -18,6 +18,18 @@ from model.model_loader import get_qa_model, get_intent_model
 
 MAX_HISTORY = 2
 
+
+def _to_simplified(text):
+    """把问题中的繁体字统一转为简体，保证与全简体的知识图谱检索对齐。"""
+    if not text:
+        return text
+    try:
+        from opencc import OpenCC
+        return OpenCC('t2s').convert(text)
+    except ImportError:
+        return text
+
+
 # ========== 从环境变量读取配置 ==========
 USE_API = os.environ.get("USE_API", "false").lower() == "true"
 TWO_PASS = os.environ.get("TWO_PASS", "true").lower() == "true"  # 两段式 CoT 推理
@@ -107,6 +119,7 @@ PROVIDERS = [
             {"id": "ernie-4.5-turbo-32k", "label": "ERNIE 4.5 Turbo 32K"},
             {"id": "ernie-4.5-turbo-vl", "label": "ERNIE 4.5 Turbo VL"},
             {"id": "ernie-4.5-turbo", "label": "ERNIE 4.5 Turbo"},
+            {"id": "losofalx_2026xhrg786315", "label": "精调模型 v1 (微调版本)"},
         ],
     },
     {
@@ -262,45 +275,26 @@ class Generator:
         有 thinking 时用简化 system prompt，实体名从 thinking 中提取清单。
         """
         import re
-        anti_hallucination = (
-            "【重要提醒】\n"
-            "1. 所有实体名称（人名、书名、方法名）必须逐字照抄上方【实体名称清单】中的写法，一字不差。\n"
-            "2. 清单中的名称已经过专家逐字核对，是唯一正确的写法，绝对不得凭记忆修改。\n"
-            '3. "魏源"等未出现在清单中的名称绝对不得作为来源引用。\n'
-        )
+        anti_hallucination = "【重要提醒】实体名称必须逐字照抄【实体名称清单】中的写法，不得凭记忆修改。\n"
         if thinking:
-            # 从 thinking 的【A-证据定位】中提取实体名称行，构建强制清单
+            # 从 thinking 中提取实体名，构建强制清单（兼容新版极简格式 A： 与旧版 人名：/书名：/方法名：）
             entity_lines = []
-            in_evidence = False
             for line in thinking.split('\n'):
                 stripped = line.strip()
-                if '【A-证据定位】' in stripped:
-                    in_evidence = True
-                    continue
-                if in_evidence and stripped.startswith('【') and '】' in stripped:
-                    break
-                if in_evidence and ('人名：' in stripped or '书名：' in stripped or '方法名' in stripped):
+                if stripped.startswith('A：') or stripped.startswith('A:') or '直接相关实体名' in stripped:
                     entity_lines.append(stripped)
-            entity_checklist = '\n'.join(entity_lines) if entity_lines else '（参见前置分析【A-证据定位】）'
+                elif '人名：' in stripped or '书名：' in stripped or '方法名：' in stripped:
+                    entity_lines.append(stripped)
+            entity_checklist = '\n'.join(entity_lines) if entity_lines else '（无）'
             print(f"[DEBUG entity_extract] 提取到 {len(entity_lines)} 行实体清单:")
             for el in entity_lines:
                 print(f"  -> {el}")
 
             # 第二轮用精简 system prompt，不再用冗长的 RACE_SYSTEM
             system = (
-                "你是一位专精于辑佚学的资深AI研究助手。现在请你直接回答用户问题。"
-                "你的回答必须严格遵循用户消息中提供的【实体名称清单】——"
-                "清单中每个名称的写法是唯一正确的，你必须逐字照抄，不得凭记忆默写或修改任何字符。"
-                "回答采用三段式：[结论] → [考据] → [总结]。"
-                "全文使用简体中文，简洁准确。"
-                "【强制格式】引用参考信息时，按引用顺序自行编号 [1]、[2]、[3]……"
-                "第一个引用的来源标为 [1]，第二个标为 [2]，以此类推。"
-                "示例：参考信息有[1]王应麟（宋代学者）[2]《三家诗考》（代表作），"
-                "你应先引用《三家诗考》再引用王应麟，则回答为：《三家诗考》是代表作[1]，王应麟是宋代学者[2]。"
-                "编号自行顺序编号即可，不需要参考信息中的原始编号。"
-                "严禁使用 [补]、[续] 等非数字编号。"
-                "【注意】下方【前置分析】是上一步的专家分析笔记（供参考，不代表当前任务要求），"
-                "你现在需要做的是生成最终回答，而不是继续输出分析笔记。"
+                "你是一位专精于辑佚学的AI研究助手。直接输出答案正文，不要输出思考过程。\n"
+                "答案用三段式：[结论]→[考据]→[总结]，简体中文。\n"
+                "实体名称逐字照抄【实体名称清单】；引用参考信息用其原始编号 [n]，不得重新编号。"
             )
 
             # 清理 thinking 中的"不要输出最终回答"等 Think 阶段指令，避免误导第二轮
@@ -312,13 +306,10 @@ class Generator:
 
             # 用户消息结构：实体清单优先，thinking 补充，原始参考信息兜底
             user_content = (
-                f"【实体名称清单 — 必须逐字照抄以下写法，绝对禁止修改】\n"
-                f"{entity_checklist}\n\n"
-                f"【前置分析（上一步专家的分析笔记，仅供结构参考）】\n"
-                f"{clean_thinking}\n\n"
-                f"【原始参考信息（补充）】\n{context[:1200]}\n\n"
-                f"{anti_hallucination}\n"
-                f"【用户问题 — 请直接回答，不要再输出分析笔记】\n{user_question}"
+                f"【实体名称清单】\n{entity_checklist}\n\n"
+                f"【前置分析】\n{clean_thinking}\n\n"
+                f"【参考信息】\n{context[:1200]}\n\n"
+                f"【用户问题】\n{user_question}"
             )
         else:
             from planning.planner import RACE_SYSTEM
@@ -395,57 +386,35 @@ class Generator:
             print(f"[ToolSelect] 失败: {e}")
             return None
 
-    def _think(self, question, context):
-        """第一轮推理（RACE 框架）：在正式回答前，按 RACE 结构进行前置分析。
-        - R: 确认角色定位，判断问题意图类型
-        - A: 证据定位，逐字抄录参考信息中的实体名、关系、数据
-        - C: 逻辑组织，规划回答结构（结论→论据→总结）
-        - E: 预判要点，明确哪些能答、哪些缺失
-        失败时返回 None，自动降级为单轮推理。
+    def _build_think_messages(self, question, context):
+        """构建 Think 阶段的 RACE 前置分析消息。
+
+        提示词刻意精简，并对上下文截断，避免超长参考信息诱发推理模型陷入长思考。
         """
-        think_prompt = (
-            "你是一位专精于辑佚学的资深AI研究助手。在正式回答用户问题之前，"
-            "请先按以下 RACE 框架对参考信息进行前置分析。"
-            "注意：这是内部分析笔记，不是最终回答，不要直接回答用户问题。\n\n"
+        if context and len(context) > 6000:
+            context = context[:6000] + "\n（上下文过长，已截断）"
+        system = "你是一位严谨的辑佚学专家。请对参考信息做极简前置分析笔记，只输出笔记，不要直接回答。"
+        prompt = (
             f"【参考信息】\n{context}\n\n"
             f"【用户问题】\n{question}\n\n"
-            "━━━━━━ RACE 前置分析 ━━━━━━\n\n"
-            "【R-角色定位】\n"
-            "- 我作为辑佚学专家的身份\n"
-            "- 此问题属于哪种类型：事实查证(FACTUAL)/关联分析(RELATION)/脉络梳理(CHAIN)/方法探讨(METHOD)/比较辨析(COMPARE)\n"
-            "- 回答此问题需要覆盖的关键要素\n\n"
-            "【A-证据定位】\n"
-            "- 相关实体（逐字照抄参考信息原文，不得增删改任何字符）：\n"
-            "  · 人名（精确到每个字）：\n"
-            "  · 书名（精确到每个字，书名号内的文字不得增减）：\n"
-            "  · 方法名/学派名：\n"
-            "  · 时期/朝代：\n"
-            "- 关键关系（使用参考信息原文表述）：\n"
-            "- 关键数据（年代/卷数/数量等，照抄原文数值）：\n"
-            "- 直接证据（与问题直接相关的信息）：\n"
-            "- 辅助证据（提供背景的关联信息）：\n\n"
-            "【C-逻辑组织】\n"
-            "- 回答结构规划（结论→论据→总结 的三段式）\n"
-            "- 结论预判（一句话核心答案）：\n"
-            "- 论据分层（第一层/第二层/第三层各写什么）：\n"
-            "- 信息脉络（实体间的因果/时序/层级关系）：\n\n"
-            "【E-预期管理】\n"
-            "- 参考信息足以回答的部分：\n"
-            "- 参考信息不足或缺失的部分：\n"
-            '- 回答中需要特别标注"据参考信息"的存疑点：\n'
-            "- 预期回答长度和重点：\n\n"
-            "【实体名自检 — 必须逐字拆分核对，确保与参考信息原文完全一致】\n"
-            "请对上文【A-证据定位】中列出的每个实体名称，逐字拆开与参考信息比对：\n"
-            "- 人名\"XXX\"：参考信息中确认为\"X-X-X\"（逐字拆分），比对结果：✓正确 或 ✗需修正为\"YYY\"\n"
-            "- 书名\"XXX\"：参考信息中确认为\"X-X-X-...\"（逐字拆分），比对结果：✓正确 或 ✗需修正为\"YYY\"\n"
-            "- 方法名\"XXX\"：参考信息中确认为\"X-X-X\"（逐字拆分），比对结果：✓正确 或 ✗需修正为\"YYY\"\n"
-            "注意：逐字拆分是指把名称的每个汉字用\"-\"分隔写出（如\"辑-佚-书\"），以确认没有多字、少字、错字。"
-            "如果发现某实体名写错了，立即在自检中修正并标注✗。仅输出分析笔记，不要输出最终回答。"
+            "按以下四行输出，每行一句，全文不超过 1000 字：\n"
+            "R：问题类型 + 关键要素\n"
+            "A：直接相关实体名（照抄原文）\n"
+            "C：一句话结论预判\n"
+            "E：能答/缺失\n\n"
+            "不要复述框架定义、不要解释思考过程、不要写\"我需要/我们要\"、不要枚举无关实体。\n"
+            "直接输出笔记，不要输出最终回答。"
         )
-        messages = [
-            {"role": "system", "content": "你是一位严谨的辑佚学专家。请按 RACE 框架对参考信息进行前置分析，精确抄录实体名称和关系。只做分析笔记，不直接回答用户问题。"},
-            {"role": "user", "content": think_prompt},
+        return [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt},
         ]
+
+    def _think(self, question, context):
+        """第一轮推理（RACE 框架）：在正式回答前，按 RACE 结构进行前置分析。
+        失败时返回 None，自动降级为单轮推理。
+        """
+        messages = self._build_think_messages(question, context)
         try:
             result = self._call_api(messages, max_tokens=4096)
             if result.startswith("API错误") or result.startswith("API调用失败"):
@@ -456,12 +425,15 @@ class Generator:
             print(f"\033[2m[Think] 异常，降级为单轮推理: {e}\033[0m")
             return None
 
-    def _call_api_stream(self, messages, max_tokens=None, model_id=None):
+    def _call_api_stream(self, messages, max_tokens=None, model_id=None, max_reasoning_chars=None):
         """流式调用API，yield (token_type, text) 元组。
         token_type: "text" | "reasoning"
+        max_reasoning_chars: 推理内容（reasoning_content）超过该长度时主动断开，
+                             防止推理模型陷入自我复读无限循环。
         """
         import requests
         import json
+        import time
 
         mid = model_id or self.model_id
         config = get_model_config(mid)
@@ -490,73 +462,104 @@ class Generator:
             "max_tokens": max_tokens,
             "temperature": config["temperature"],
             "stream": use_stream,
+            # 抑制复读：推理型模型在冗长模板下易陷入自我循环
+            "frequency_penalty": config.get("frequency_penalty", 0.5),
+            "presence_penalty": config.get("presence_penalty", 0.0),
         }
 
-        try:
-            body_bytes = json.dumps(body, ensure_ascii=False).encode("utf-8")
-            response = requests.post(
-                f"{base_url}/chat/completions",
-                headers=headers,
-                data=body_bytes,
-                timeout=(10, config.get("timeout", 180)),
-                stream=use_stream,
-            )
-            if response.status_code != 200:
+        body_bytes = json.dumps(body, ensure_ascii=False).encode("utf-8")
+        url = f"{base_url}/chat/completions"
+
+        # 网络层自动重试：连接重置/超时等瞬时错误，最多重试 3 次
+        MAX_RETRIES = 3
+        response = None
+        for attempt in range(MAX_RETRIES + 1):
+            try:
+                response = requests.post(
+                    url,
+                    headers=headers,
+                    data=body_bytes,
+                    timeout=(10, config.get("timeout", 180)),
+                    stream=use_stream,
+                )
+                if response.status_code == 200:
+                    break
+                # 429/5xx 等瞬时错误才重试；4xx 是请求本身问题，重试无意义
+                if response.status_code in (429, 500, 502, 503, 504) and attempt < MAX_RETRIES:
+                    wait = min(2 ** attempt, 8)
+                    print(f"[API] HTTP {response.status_code}，第 {attempt + 1}/{MAX_RETRIES} 次重试（{wait}s）")
+                    time.sleep(wait)
+                    continue
                 print(f"[API] HTTP {response.status_code}: {response.text[:500]}")
                 yield ("text", f"API错误({response.status_code}): {response.text[:200]}")
                 return
+            except requests.exceptions.RequestException as e:
+                if attempt < MAX_RETRIES:
+                    wait = min(2 ** attempt, 8)
+                    print(f"[API] 连接失败，第 {attempt + 1}/{MAX_RETRIES} 次重试（{wait}s）：{e}")
+                    time.sleep(wait)
+                    continue
+                import traceback
+                print(f"[API] 调用失败（已重试 {MAX_RETRIES} 次仍失败）: {e}")
+                traceback.print_exc()
+                yield ("text", f"API调用失败: {str(e)}")
+                return
 
-            if use_stream:
-                # 强制 UTF-8 解码，避免部分 API 因缺少 charset 头而乱码
-                for raw_line in response.iter_lines(decode_unicode=False):
-                    if not raw_line:
+        if use_stream:
+            # 强制 UTF-8 解码，避免部分 API 因缺少 charset 头而乱码
+            reasoning_chars = 0
+            for raw_line in response.iter_lines(decode_unicode=False):
+                if not raw_line:
+                    continue
+                try:
+                    line = raw_line.decode("utf-8")
+                except UnicodeDecodeError:
+                    line = raw_line.decode("utf-8", errors="replace")
+                if not line.startswith("data: "):
+                    continue
+                data_str = line[6:]
+                if data_str == "[DONE]":
+                    break
+                try:
+                    chunk = json.loads(data_str)
+                    choices = chunk.get("choices", [])
+                    if not choices:
                         continue
-                    try:
-                        line = raw_line.decode("utf-8")
-                    except UnicodeDecodeError:
-                        line = raw_line.decode("utf-8", errors="replace")
-                    if not line.startswith("data: "):
-                        continue
-                    data_str = line[6:]
-                    if data_str == "[DONE]":
-                        break
-                    try:
-                        chunk = json.loads(data_str)
-                        choices = chunk.get("choices", [])
-                        if not choices:
-                            continue
-                        delta = choices[0].get("delta", {})
-                        reasoning = delta.get("reasoning_content") or delta.get("thinking") or ""
-                        if reasoning:
-                            print(f"\033[2m{reasoning}\033[0m", end="", flush=True)
-                            yield ("reasoning", reasoning)
-                        content = delta.get("content", "")
-                        if content:
-                            print(content, end="", flush=True)
-                            yield ("text", content)
-                    except json.JSONDecodeError:
-                        continue
-                print()
-            else:
-                result = response.json()
-                if "choices" not in result:
-                    msg = f"API错误: 响应格式异常 - {json.dumps(result, ensure_ascii=False)[:200]}"
-                    print(msg)
-                    yield ("text", msg)
-                    return
-                content = result["choices"][0]["message"]["content"]
-                if content is None:
-                    msg = "API错误: 模型返回空内容"
-                    print(msg)
-                    yield ("text", msg)
-                    return
-                print(content.strip())
-                yield ("text", content.strip())
-        except Exception as e:
-            import traceback
-            print(f"[API] 调用失败: {e}")
-            traceback.print_exc()
-            yield ("text", f"API调用失败: {str(e)}")
+                    delta = choices[0].get("delta", {})
+                    reasoning = delta.get("reasoning_content") or delta.get("thinking") or ""
+                    if reasoning:
+                        print(f"\033[2m{reasoning}\033[0m", end="", flush=True)
+                        yield ("reasoning", reasoning)
+                        reasoning_chars += len(reasoning)
+                        if max_reasoning_chars and reasoning_chars > max_reasoning_chars:
+                            print(f"\n[API] 推理内容超过 {max_reasoning_chars} 字，疑似陷入复读，主动中断")
+                            try:
+                                response.close()
+                            except Exception:
+                                pass
+                            break
+                    content = delta.get("content", "")
+                    if content:
+                        print(content, end="", flush=True)
+                        yield ("text", content)
+                except json.JSONDecodeError:
+                    continue
+            print()
+        else:
+            result = response.json()
+            if "choices" not in result:
+                msg = f"API错误: 响应格式异常 - {json.dumps(result, ensure_ascii=False)[:200]}"
+                print(msg)
+                yield ("text", msg)
+                return
+            content = result["choices"][0]["message"]["content"]
+            if content is None:
+                msg = "API错误: 模型返回空内容"
+                print(msg)
+                yield ("text", msg)
+                return
+            print(content.strip())
+            yield ("text", content.strip())
 
     def _call_api(self, messages, max_tokens=None, model_id=None):
         """调用API并返回完整文本（内部使用 _call_api_stream）"""
@@ -685,6 +688,7 @@ class Generator:
         """
         if model_id:
             self.model_id = model_id
+        question = _to_simplified(question)  # 先繁体→简体，再进入检索与解析
         effective = self.use_api if use_api is None else use_api
         if not effective:
             self._ensure_model(use_api=effective)
@@ -762,7 +766,51 @@ class Generator:
             print(f"{GRN}└───────────────{RST}\n")
         print(f"{BLD}┌─ Answer 结束 ── {cfg['label']}{RST}\n")
 
-        return cleaned, plan.get("plan_log", {})
+        # 按正文首次出现顺序重排引用编号（[2][3][1] → [1][2][3]），并只保留被引用来源
+        plan_log = plan.get("plan_log") or {}
+        if plan_log.get("source_index"):
+            cleaned, plan_log["source_index"] = self._renumber_citations_by_appearance(cleaned, plan_log["source_index"])
+
+        return cleaned, plan_log
+
+    def _filter_source_index_by_citations(self, answer_text, source_index):
+        """根据回答中实际出现的 [N] 引用，过滤 source_index 只保留被引用条目。
+        消除 LLM 生成的引用编号与 source_index 条目数不一致的幻觉。
+        """
+        import re
+        if not source_index:
+            return source_index
+        cited = set()
+        for m in re.finditer(r'\[(\d+)\]', answer_text or ""):
+            cited.add(m.group(1))
+        return {k: v for k, v in source_index.items() if k in cited}
+
+    def _renumber_citations_by_appearance(self, answer_text, source_index):
+        """按引用在正文中首次出现的顺序重新编号 [N]，并重排 source_index 的 key。
+        例：正文依次出现 [2][3][1] → 重编号为 [1][2][3]；
+        同时丢弃正文中未被引用的来源。返回 (new_answer_text, new_source_index)。
+        """
+        import re
+        if not answer_text or not source_index:
+            return answer_text, source_index
+        order = []
+        seen = set()
+        for m in re.finditer(r'\[(\d+)\]', answer_text):
+            n = m.group(1)
+            if n not in seen:
+                seen.add(n)
+                order.append(n)
+        if not order:
+            return answer_text, {}
+        remap = {old: str(i) for i, old in enumerate(order, 1)}
+
+        def _repl(m):
+            new = remap.get(m.group(1))
+            return f"[{new}]" if new else m.group(0)
+
+        new_text = re.sub(r'\[(\d+)\]', _repl, answer_text)
+        new_si = {remap[k]: v for k, v in source_index.items() if k in remap}
+        return new_text, new_si
 
     def answer_stream(self, question, model_id=None):
         """流式回答生成器，yield SSE 事件 dict 供前端实时渲染。
@@ -770,6 +818,7 @@ class Generator:
         """
         if model_id:
             self.model_id = model_id
+        question = _to_simplified(question)  # 先繁体→简体，再进入检索与解析
         effective = self.use_api
 
         try:
@@ -800,50 +849,15 @@ class Generator:
             if effective and TWO_PASS:
                 yield {"type": "thinking_start"}
                 think_full = []
-                think_msgs = [
-                    {"role": "system", "content": "你是一位严谨的辑佚学专家。请按 RACE 框架对参考信息进行前置分析，精确抄录实体名称和关系。只做分析笔记，不直接回答用户问题。"},
-                    {"role": "user", "content": (
-                        "你是一位专精于辑佚学的资深AI研究助手。在正式回答用户问题之前，"
-                        "请先按以下 RACE 框架对参考信息进行前置分析。"
-                        "注意：这是内部分析笔记，不是最终回答，不要直接回答用户问题。\n\n"
-                        f"【参考信息】\n{plan['context']}\n\n"
-                        f"【用户问题】\n{question}\n\n"
-                        "━━━━━━ RACE 前置分析 ━━━━━━\n\n"
-                        "【R-角色定位】\n- 我作为辑佚学专家的身份\n"
-                        "- 此问题属于哪种类型：FACTUAL/RELATION/CHAIN/METHOD/COMPARE\n"
-                        "- 回答此问题需要覆盖的关键要素\n\n"
-                        "【A-证据定位】\n"
-                        "- 相关实体（逐字照抄参考信息原文，不得增删改任何字符）：\n"
-                        "  · 人名（精确到每个字）：\n"
-                        "  · 书名（精确到每个字，书名号内的文字不得增减）：\n"
-                        "  · 方法名/学派名：\n"
-                        "  · 时期/朝代：\n"
-                        "- 关键关系（使用参考信息原文表述）：\n"
-                        "- 关键数据（年代/卷数/数量等，照抄原文数值）：\n"
-                        "- 直接证据（与问题直接相关的信息）：\n"
-                        "- 辅助证据（提供背景的关联信息）：\n\n"
-                        "【C-逻辑组织】\n"
-                        "- 回答结构规划（结论→论据→总结 的三段式）\n"
-                        "- 结论预判（一句话核心答案）：\n"
-                        "- 论据分层：\n"
-                        "- 信息脉络：\n\n"
-                        "【E-预期管理】\n"
-                        "- 参考信息足以回答的部分：\n"
-                        "- 参考信息不足或缺失的部分：\n"
-                        "- 回答中需要特别标注\"据参考信息\"的存疑点：\n"
-                        "- 预期回答长度和重点：\n\n"
-                        "【实体名自检】\n"
-                        "逐字拆分核对每个实体名，格式：人名\"XXX\"→\"X-X-X\"，比对结果：✓正确 或 ✗需修正为\"YYY\"。\n"
-                        "仅输出分析笔记，不要输出最终回答。"
-                    )},
-                ]
-                for tt, text in self._call_api_stream(think_msgs, max_tokens=2048, model_id=self.model_id):
-                    if tt == "text" and not text.startswith("API错误") and not text.startswith("API调用失败"):
+                think_msgs = self._build_think_messages(question, plan["context"])
+                for tt, text in self._call_api_stream(think_msgs, max_tokens=4096, model_id=self.model_id, max_reasoning_chars=6000):
+                    # 同时捕获 content 与 reasoning_content（推理型模型会把分析放到 reasoning_content）
+                    if tt in ("text", "reasoning") and not text.startswith("API错误") and not text.startswith("API调用失败"):
                         think_full.append(text)
                         yield {"type": "thinking", "content": text}
                 thinking = "".join(think_full).strip()
                 # 截断思考过程，避免占满上下文
-                MAX_THINK_LEN = 1500
+                MAX_THINK_LEN = 1200
                 if len(thinking) > MAX_THINK_LEN:
                     print(f"[Think] 思考过长 ({len(thinking)}字)，截断至 {MAX_THINK_LEN} 字")
                     thinking = thinking[:MAX_THINK_LEN] + "\n（思考过长已截断）"
@@ -854,23 +868,54 @@ class Generator:
 
             # ── Answer 阶段 ──
             yield {"type": "answer_start"}
-            full_answer = []
-            messages = self._build_messages(question, plan["context"], thinking)
-            for tt, text in self._call_api_stream(messages, max_tokens=4096, model_id=self.model_id):
-                if tt == "text":
-                    full_answer.append(text)
-                    yield {"type": "answer", "content": text}
+
+            def _stream_answer(msgs, max_tk):
+                buf = []
+                for tt, text in self._call_api_stream(msgs, max_tokens=max_tk, model_id=self.model_id):
+                    if tt == "text":
+                        buf.append(text)
+                        yield {"type": "answer", "content": text}
+                return buf
+
+            full_answer = yield from _stream_answer(
+                self._build_messages(question, plan["context"], thinking), 4096
+            )
+
+            # 空正文兜底：推理型模型可能把 max_tokens 额度全花在 reasoning_content 上，
+            # 正文一个字都没生成就结束（表现为"思考一大段后无结果、前端空白"）。
+            # 重试一次：更大额度 + 精简 prompt（不带 thinking，避免二次诱导长推理）。
+            if not "".join(full_answer).strip():
+                print("[Answer] 正文为空（推理耗尽额度），改用精简 prompt + 更大额度重试一次")
+                retry_msgs = [
+                    {"role": "system", "content": (
+                        "你是一位专精于辑佚学的AI研究助手。请直接输出最终答案正文，"
+                        "不要输出任何思考、分析或前置说明。答案采用三段式：[结论] → [考据] → [总结]。"
+                        "全文使用简体中文。引用参考信息时直接使用其原始编号 [n]。"
+                    )},
+                    {"role": "user", "content": f"【参考信息】\n{plan['context'][:2000]}\n\n【用户问题】\n{question}"},
+                ]
+                full_answer = yield from _stream_answer(retry_msgs, 8192)
+
+            # 重试后仍为空：给前端一个明确信号，避免空白/卡死
+            if not "".join(full_answer).strip():
+                msg = "（生成失败：模型未返回正文，请重试或更换模型）"
+                full_answer = [msg]
+                yield {"type": "answer", "content": msg}
 
             # 流式结束后写入日志
-            if full_answer:
-                raw = "".join(full_answer)
-                cleaned = self.planner.postprocess(raw)
-                logger.log_raw_api_response("stream_answer", raw)
-                logger.log_answer(cleaned)
+            raw = "".join(full_answer)
+            cleaned = self.planner.postprocess(raw)
+            logger.log_raw_api_response("stream_answer", raw)
+            logger.log_answer(cleaned)
             logger.close()
             print(f"[Log] 完整日志已写入: {logger.get_path()}")
 
-            yield {"type": "done", "plan_log": plan.get("plan_log", {})}
+            # 过滤 source_index：只保留回答中实际引用的编号，避免"8条 vs 实际2条"的幻觉
+            plan_log = plan.get("plan_log") or {}
+            if plan_log.get("source_index"):
+                plan_log["source_index"] = self._filter_source_index_by_citations(raw, plan_log["source_index"])
+
+            yield {"type": "done", "plan_log": plan_log}
 
         except Exception as e:
             yield {"type": "error", "message": str(e)}

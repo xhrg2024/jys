@@ -1,37 +1,71 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import C from "../constants/colors";
+import ReferenceSidebar from "../components/ReferenceSidebar";
 
-function renderMessageWithCitations(text, sourceIndex) {
+function renderMessageWithCitations(text, sourceIndex, onCitationClick) {
   if (!sourceIndex || Object.keys(sourceIndex).length === 0) return text;
-  
+
   // 匹配 [数字] 格式的引用标记
   const parts = [];
   let lastIndex = 0;
   const regex = /\[(\d+)\]/g;
   let match;
-  
+
   while ((match = regex.exec(text)) !== null) {
     // 添加匹配前的文本
     if (match.index > lastIndex) {
       parts.push(text.slice(lastIndex, match.index));
     }
-    
+
     const num = match[1];
     const source = sourceIndex[num];
-    
+    const tooltip = typeof source === 'object' ? source.desc : source;
+
     parts.push(
-      `<sup style="color:#8a4520;cursor:pointer;font-size:11px;font-weight:600;" title="${source || '来源索引 ' + num}">[${num}]</sup>`
+      <sup
+        key={match.index}
+        onClick={(e) => { e.stopPropagation(); onCitationClick && onCitationClick(num); }}
+        style={{
+          color: "#8a4520", cursor: "pointer", fontSize: 11,
+          fontWeight: 600, textDecoration: "underline",
+          textUnderlineOffset: 2,
+        }}
+        title={tooltip || ('来源索引 ' + num)}
+      >[{num}]</sup>
     );
-    
+
     lastIndex = match.index + match[0].length;
   }
-  
+
   // 添加剩余文本
   if (lastIndex < text.length) {
     parts.push(text.slice(lastIndex));
   }
-  
-  return <span dangerouslySetInnerHTML={{ __html: parts.join('') }} />;
+
+  return parts;
+}
+
+// 按引用在正文中首次出现的顺序重新编号 [N]（[2][3][1] → [1][2][3]），
+// 并同步重排 source_index 的 key，保证角标点击仍对应到正确的来源。
+function renumberCitations(text, sourceIndex) {
+  if (!sourceIndex || !text) return { text, sourceIndex };
+  const order = [];
+  const seen = new Set();
+  const regex = /\[(\d+)\]/g;
+  let m;
+  while ((m = regex.exec(text)) !== null) {
+    if (!seen.has(m[1])) {
+      seen.add(m[1]);
+      order.push(m[1]);
+    }
+  }
+  if (order.length === 0) return { text, sourceIndex };
+  const remap = {};
+  order.forEach((old, i) => { remap[old] = String(i + 1); });
+  const newText = text.replace(/\[(\d+)\]/g, (full, num) => (remap[num] ? `[${remap[num]}]` : full));
+  const newSI = {};
+  Object.keys(sourceIndex).forEach((k) => { newSI[remap[k] || k] = sourceIndex[k]; });
+  return { text: newText, sourceIndex: newSI };
 }
 
 function ResearchSection({ navigate }) {
@@ -48,6 +82,14 @@ function ResearchSection({ navigate }) {
   const composingRef = useRef(false);
   const chatEndRef = useRef(null);
   const streamRef = useRef({ thinking: "", content: "" });  // 避免 StrictMode 双重调用
+
+  // 参考资料右侧栏状态
+  const [refPanel, setRefPanel] = useState({
+    open: false, citationNum: null, sourceData: null,
+    detailData: null, loading: false,
+  });
+  // 图谱节点跳转路径（面包屑）：[原始实体, ..., 当前实体]
+  const [graphTrail, setGraphTrail] = useState([]);
 
   // 加载供应商+模型列表；供应商切换时自动选该供应商第一个模型
   useEffect(() => {
@@ -89,7 +131,8 @@ function ResearchSection({ navigate }) {
     setMessages(prev => [...prev, { role: "user", content: q }]);
     setMessages(prev => [...prev, { _id: msgIdx, role: "assistant", content: "", thinking: "", _streaming: true }]);
     setLoading(true);
-    const thinkKey = messages.length;
+    // assistant 消息位于 user 之后（messages.length+1 索引），据此定位思考框
+    const thinkKey = messages.length + 1;
     setExpandedThink(prev => ({ ...prev, [thinkKey]: true }));
 
     const updateMsg = (patch) => {
@@ -136,7 +179,16 @@ function ResearchSection({ navigate }) {
               streamRef.current.content += evt.content;
             } else if (evt.type === "done") {
               flushUpdate();
-              updateMsg({ _streaming: false, plan_log: evt.plan_log || null });
+              // 按正文首次出现顺序重排引用编号，避免 [2][3][1] 这类乱序
+              const si = evt.plan_log?.source_index;
+              let finalContent = streamRef.current.content;
+              let finalPlanLog = evt.plan_log || null;
+              if (si && finalContent) {
+                const rn = renumberCitations(finalContent, si);
+                finalContent = rn.text;
+                finalPlanLog = { ...evt.plan_log, source_index: rn.sourceIndex };
+              }
+              updateMsg({ _streaming: false, content: finalContent, plan_log: finalPlanLog });
             } else if (evt.type === "error") {
               updateMsg({ content: "请求失败：" + evt.message, _streaming: false });
             }
@@ -153,6 +205,100 @@ function ResearchSection({ navigate }) {
     }
     setLoading(false);
   };
+
+  // 角标点击 → 打开右侧参考资料面板
+  const handleCitationClick = useCallback(async (num) => {
+    // 从最新消息中查找 source_index
+    let sourceData = null;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const si = messages[i]?.plan_log?.source_index;
+      if (si && si[num]) {
+        sourceData = si[num];
+        break;
+      }
+    }
+    if (!sourceData) return;
+
+    // sourceData 可能是字符串（旧格式）或对象（新格式）
+    const isObject = typeof sourceData === 'object';
+    const sourceType = isObject ? sourceData.source_type : null;
+
+    setRefPanel({ open: true, citationNum: num, sourceData, detailData: null, loading: true });
+
+    // 重置图谱跳转路径：图谱源以来源实体为起点，其余类型清空
+    setGraphTrail(sourceType === 'graph' && sourceData.entity_name ? [{ id: null, name: sourceData.entity_name }] : []);
+
+    // 如果有结构化元数据，获取详细信息
+    if (sourceType === 'graph' && sourceData.entity_name) {
+      try {
+        const res = await fetch(`/reference/graph?entity_name=${encodeURIComponent(sourceData.entity_name)}&depth=2`);
+        const detail = await res.json();
+        setRefPanel(prev => ({ ...prev, detailData: detail, loading: false }));
+      } catch (e) {
+        setRefPanel(prev => ({ ...prev, detailData: { error: e.message }, loading: false }));
+      }
+    } else if (sourceType === 'sql' && sourceData.doc_title) {
+      // SQL 无关联、无需实时生成：复用检索阶段已随 source_index 下发的 detail_text，不再查库。
+      if (sourceData.detail_text) {
+        setRefPanel(prev => ({ ...prev, detailData: { detail_text: sourceData.detail_text, doc_title: sourceData.doc_title }, loading: false }));
+      } else {
+        try {
+          const res = await fetch(`/reference/sql?title=${encodeURIComponent(sourceData.doc_title)}`);
+          const detail = await res.json();
+          setRefPanel(prev => ({ ...prev, detailData: detail, loading: false }));
+        } catch (e) {
+          setRefPanel(prev => ({ ...prev, detailData: { error: e.message }, loading: false }));
+        }
+      }
+    } else if (sourceType === 'sql' && sourceData.author_name) {
+      try {
+        const res = await fetch(`/reference/sql?author_name=${encodeURIComponent(sourceData.author_name)}`);
+        const detail = await res.json();
+        setRefPanel(prev => ({ ...prev, detailData: detail, loading: false }));
+      } catch (e) {
+        setRefPanel(prev => ({ ...prev, detailData: { error: e.message }, loading: false }));
+      }
+    } else {
+      // 文本/向量类型或无结构化数据 → 纯文本展示
+      setRefPanel(prev => ({ ...prev, detailData: { fallback: true }, loading: false }));
+    }
+  }, [messages]);
+
+  // 图谱节点点击 → 跳转到该节点，展开同样的介绍与力导向图
+  // node 为节点对象 {id, name, label, ...}（也可兼容字符串 name）
+  const handleNodeJump = useCallback(async (node) => {
+    const name = typeof node === "object" ? node?.name : node;
+    const id = typeof node === "object" ? node?.id : null;
+    if (!name && !id) return;
+    setRefPanel(prev => ({ ...prev, loading: true }));
+    setGraphTrail(prev => [...prev, { id: id || null, name }]);
+    const q = id ? `entity_id=${encodeURIComponent(id)}` : `entity_name=${encodeURIComponent(name)}`;
+    try {
+      const res = await fetch(`/reference/graph?${q}&depth=2`);
+      const detail = await res.json();
+      setRefPanel(prev => ({ ...prev, detailData: detail, loading: false }));
+    } catch (e) {
+      setRefPanel(prev => ({ ...prev, detailData: { error: e.message }, loading: false }));
+    }
+  }, []);
+
+  // 面包屑点击 → 回到该节点（截断后续路径）
+  const handleTrailBack = useCallback(async (index) => {
+    const item = graphTrail[index];
+    if (!item) return;
+    const name = typeof item === "object" ? item.name : item;
+    const id = typeof item === "object" ? item.id : null;
+    setGraphTrail(prev => prev.slice(0, index + 1));
+    setRefPanel(prev => ({ ...prev, loading: true }));
+    const q = id ? `entity_id=${encodeURIComponent(id)}` : `entity_name=${encodeURIComponent(name)}`;
+    try {
+      const res = await fetch(`/reference/graph?${q}&depth=2`);
+      const detail = await res.json();
+      setRefPanel(prev => ({ ...prev, detailData: detail, loading: false }));
+    } catch (e) {
+      setRefPanel(prev => ({ ...prev, detailData: { error: e.message }, loading: false }));
+    }
+  }, [graphTrail]);
 
   const selectStyle = {
     padding: "4px 8px", borderRadius: 6, border: `1px solid ${C.border}`,
@@ -272,40 +418,25 @@ function ResearchSection({ navigate }) {
                     fontSize: 14, color: C.text, lineHeight: 1.7, whiteSpace: "pre-wrap",
                   }}>
                     {msg.role === "assistant" && msg.plan_log?.source_index ? (
-                      renderMessageWithCitations(msg.content, msg.plan_log.source_index)
+                      renderMessageWithCitations(msg.content, msg.plan_log.source_index, handleCitationClick)
                     ) : (
                       msg.content
                     )}
                     {msg._streaming && <span className="stream-cursor">|</span>}
                   </div>
                 ) : null}
-                {/* 依据来源列表 */}
+                {/* 来源提示 — 点击文中编号查看可视化详情 */}
                 {msg.role === "assistant" && !msg._streaming && msg.plan_log?.source_index && (() => {
-                  // 从回答中提取所有引用的编号
-                  const citedNums = new Set();
-                  const regex = /\[(\d+)\]/g;
-                  let m;
-                  while ((m = regex.exec(msg.content)) !== null) {
-                    citedNums.add(m[1]);
-                  }
-                  if (citedNums.size === 0) return null;
-                  const sources = msg.plan_log.source_index;
+                  const sourceKeys = Object.keys(msg.plan_log.source_index);
+                  if (sourceKeys.length === 0) return null;
                   return (
                     <div style={{
-                      maxWidth: "75%", marginTop: 6, padding: "10px 18px",
-                      background: "#fafaf5", borderRadius: 10,
+                      maxWidth: "75%", marginTop: 6, padding: "6px 14px",
+                      background: "#fafaf5", borderRadius: 8,
                       border: `1px solid ${C.border}`,
-                      fontSize: 12, color: C.textM, lineHeight: 1.6,
+                      fontSize: 11.5, color: C.textM,
                     }}>
-                      <div style={{ fontWeight: 600, color: C.text, marginBottom: 6, fontSize: 13 }}>
-                        [依据]
-                      </div>
-                      {[...citedNums].sort((a, b) => parseInt(a) - parseInt(b)).map(num => (
-                        <div key={num} style={{ marginBottom: 2 }}>
-                          <span style={{ color: "#8a4520", fontWeight: 600 }}>[{num}]</span>{' '}
-                          {sources[num] || '未知来源'}
-                        </div>
-                      ))}
+                      点击文中<sup style={{color:"#8a4520",fontWeight:600}}>[N]</sup>编号查看{sourceKeys.length}条参考资料可视化详情
                     </div>
                   );
                 })()}
@@ -366,6 +497,19 @@ function ResearchSection({ navigate }) {
           </div>
         </div>
       </div>
+
+      {/* 参考资料右侧栏 */}
+      <ReferenceSidebar
+        open={refPanel.open}
+        citationNum={refPanel.citationNum}
+        sourceData={refPanel.sourceData}
+        detailData={refPanel.detailData}
+        loading={refPanel.loading}
+        onNodeClick={handleNodeJump}
+        trail={graphTrail}
+        onTrailClick={handleTrailBack}
+        onClose={() => { setGraphTrail([]); setRefPanel({ open: false, citationNum: null, sourceData: null, detailData: null, loading: false }); }}
+      />
     </div>
   );
 }

@@ -97,11 +97,11 @@ RACE_SYSTEM = """【R-角色】你是一位专精于辑佚学（中国古典文�
     · 全文不使用Markdown标记语言（不加**、##、-等标记）
     · 不使用英文标点，全部使用中文全角标点
 
-11. 【附加要求】来源编号标注
-    · 参考信息中的每条内容都有编号，但你在回答中引用时请按引用顺序自行重新编号
-    · 你回答中第一个引用的来源标为 [1]，第二个标为 [2]，以此类推
-    · 示例：你回答的第一句话引用的是参考信息第5条，应标为 [1] 而非 [5]
-    · 多条引用使用 [1][2] 格式，未引用参考信息的内容不加编号
+11. 【附加要求】来源编号标注（照抄原始编号，不重排）
+    · 参考信息中的每条内容已有固定编号（形如 [1] [2] [3] …），引用时直接使用该条内容本身的编号
+    · 编号必须与参考信息中该条内容的编号一一对应：引用第几条就标 [几]，严禁自行按引用顺序重新编号
+    · 示例：你引用的内容来自参考信息第5条，就标 [5]，绝对不要改成 [1]
+    · 多条引用使用 [1][2] 或 [3][5] 格式，未引用参考信息的内容不加编号
     · 【严禁】使用 [补]、[续]、[甲]、[一] 等非数字编号，只允许使用 [数字] 格式"""
 
 MAX_CHARS_REF = 6000  # C 段参考信息最大字数（6000*3=18000 字，约 9000 token）
@@ -230,6 +230,9 @@ class Planner:
                 # 日志：完整工具结果（不截断）
                 if logger:
                     logger.log_tool_result(name, result)
+                # 纯"未找到"结果不作为可引用来源（仍保留在日志中供排查）
+                if "未找到" in result:
+                    continue
                 # 按工具名前缀分类到 graph / vector / sql
                 if name.startswith("kg_"):
                     graph_results.append(f"[{name}] {result}")
@@ -311,6 +314,7 @@ class Planner:
         context, source_index = self._merge(graph_results, vector_results, sql_results)
         if logger:
             logger.log_context(context)
+            logger.log_source_index(source_index)
 
         # RACE Prompt 构建 (5.4)
         prompt = self._build_race_prompt(question, context)
@@ -636,36 +640,92 @@ class Planner:
 
     # ── 结果融合 (5.3) ──
 
+    # ── source_index 结构化辅助函数 ──
+
+    @staticmethod
+    def _extract_entity_name(text):
+        """从图谱/向量工具结果中提取主实体名称。"""
+        import re
+        clean = re.sub(r'\s*\[.*?\]\s*', '', text)
+        # 跳过常见的标题行（如"语义匹配结果（含属性）"）
+        skip_patterns = ['语义匹配结果', '知识图谱检索结果', '搜索', '查询', '类型']
+        # 实体格式: ChineseName（prop1；prop2...）
+        for m in re.finditer(r'([一-鿿\w·]{2,20})[（(]', clean):
+            name = m.group(1)
+            if name not in skip_patterns:
+                return name
+        # 路径格式: Name → ...
+        m = re.search(r'([一-鿿\w·]+)\s*→', clean)
+        if m:
+            return m.group(1)
+        return None
+
+    @staticmethod
+    def _extract_doc_title(text):
+        """从SQL工具结果中提取文献标题。"""
+        import re
+        m = re.search(r'《([一-鿿\w·▲╔═─└，；。、\s]+)》', text)
+        if m and len(m.group(1)) <= 50:
+            return m.group(1).strip()
+        return None
+
+    @staticmethod
+    def _extract_author_name(text):
+        """从SQL作者查询结果中提取作者姓名。"""
+        import re
+        # 格式: "作者「姓名」..." 或 "姓名（机构）"
+        m = re.search(r'作者[「「]([^」」]+)[」」]', text)
+        if m:
+            return m.group(1)
+        m = re.match(r'([一-鿿·]{2,4})[（(]', text)
+        if m:
+            return m.group(1)
+        return None
+
     def _merge(self, graph_results, vector_results, sql_results=None):
         """去重、排序、截断、格式化为 C 段文本。
-        排序策略：路径关系 → 实体属性/向量(含属性) → SQL → 向量(仅名称)
+        排序策略：知识图谱(kg_* + 语义检索，合并为一个来源) → SQL（每条一个来源）
         返回 (context_text, source_index)
-        source_index: {数字: "来源描述"} 映射，供前端标注角标
+        source_index 每个条目为 dict: {desc, source_type, tool_name, entity_name?, doc_title?}
+        同时兼容旧版字符串格式，desc 字段供现有 tooltip 使用。
         """
+        import re
+
         parts = []
         seen = set()
+
+        # ── 知识图谱检索（kg_* 工具）+ 语义检索（vector_search）合并为【一个来源】──
+        # 同一实体经 kg_explore_entity / kg_find_entities 等多次命中不应被拆成多个角标；
+        # 语义检索本质上也属于知识图谱检索，一并并入该来源。
+        kg_items = []
         for r in graph_results:
             if r and r not in seen:
                 if "→" in r:
-                    priority = 0       # 路径/关系
+                    pri = 0            # 路径/关系
                 elif "：" in r and "相似度" not in r:
-                    priority = 1       # 实体属性
+                    pri = 1            # 实体属性
                 else:
-                    priority = 2       # 其他图结果
-                parts.append((priority, r))
+                    pri = 2            # 其他图结果
+                kg_items.append((pri, r))
                 seen.add(r)
+        for r in vector_results:
+            if r and r not in seen:
+                if "向量相似度" in r:
+                    pri = 1            # 含属性的语义匹配，与实体属性同级
+                else:
+                    pri = 3            # 纯名称兜底
+                kg_items.append((pri, r))
+                seen.add(r)
+        kg_items.sort(key=lambda x: x[0])
+        if kg_items:
+            parts.append((0, "\n\n".join(t for _, t in kg_items)))
+
+        # ── SQL 检索：每条结果单独一个来源 ──
         if sql_results:
             for r in sql_results:
                 if r and r not in seen:
                     parts.append((1.5, r))
                     seen.add(r)
-        for r in vector_results:
-            if r and r not in seen:
-                if "向量相似度" in r:
-                    parts.append((1, r))   # 含属性的语义匹配，与实体属性同级
-                else:
-                    parts.append((3, r))   # 纯名称兜底
-                seen.add(r)
 
         # 按优先级排序
         parts.sort(key=lambda x: x[0])
@@ -676,18 +736,90 @@ class Planner:
         idx = 0
         for pri, text in parts:
             idx += 1
-            # 提取来源类型
-            source_type = "图谱"
-            if "[SQL" in text or "[search_" in text:
-                source_type = "数据库"
-            elif "相似度" in text or "向量" in text:
-                source_type = "向量检索"
-            # 提取来源描述（前端[依据]区域展示用，截断加省略号）
-            desc = text.strip().replace("\n", " ")
+            clean_text = text.strip()
+
+            # ── 结构化元数据提取 ──
+            source_type = "graph"
+            tool_name = None
+            entity_name = None
+            doc_title = None
+            author_name = None
+            label = "图谱"
+
+            # 提取工具名
+            tool_m = re.match(r'\[([a-z_]+)\]', clean_text)
+            if tool_m:
+                tool_name = tool_m.group(1)
+
+            # 按工具名分类
+            if tool_name and tool_name.startswith("kg_"):
+                source_type = "graph"
+                label = "图谱"
+                entity_name = self._extract_entity_name(clean_text)
+            elif tool_name and tool_name in ("search_document", "search_full_text",
+                                               "search_titles", "browse_documents"):
+                source_type = "sql"
+                label = "数据库"
+                doc_title = self._extract_doc_title(clean_text)
+            elif tool_name == "search_author":
+                source_type = "sql"
+                label = "数据库"
+                author_name = self._extract_author_name(clean_text)
+            elif tool_name == "vector_search":
+                source_type = "vector"
+                label = "向量检索"
+                # 向量结果可能也包含实体名
+                entity_name = self._extract_entity_name(clean_text)
+            else:
+                # Fallback: 从内容判断
+                if "[SQL" in clean_text or "[search_" in clean_text:
+                    source_type = "sql"
+                    label = "数据库"
+                    doc_title = self._extract_doc_title(clean_text)
+                    if not doc_title:
+                        author_name = self._extract_author_name(clean_text)
+                elif "相似度" in clean_text or "向量" in clean_text:
+                    source_type = "vector"
+                    label = "向量检索"
+                    entity_name = self._extract_entity_name(clean_text)
+                else:
+                    source_type = "graph"
+                    label = "图谱"
+                    entity_name = self._extract_entity_name(clean_text)
+
+            # 对于 SQL 搜索结果（非具体文献），不设 doc_title
+            if tool_name == "search_full_text" and not doc_title:
+                # 全文搜索结果是关键词搜索，entity_name 设为搜索词
+                pass
+
+            # 提取来源描述（前端 tooltip 展示用，截断加省略号）
+            desc = clean_text.replace("\n", " ")
             if len(desc) > 200:
                 desc = desc[:200] + "……"
-            source_index[str(idx)] = f"{source_type}：{desc}"
-            combined += f"[{idx}] {text.strip()}\n\n"
+
+            # 结构化条目
+            entry = {
+                "desc": f"{label}：{desc}",
+                "source_type": source_type,
+                "label": label,
+            }
+            if tool_name:
+                entry["tool_name"] = tool_name
+            if entity_name:
+                entry["entity_name"] = entity_name
+            if doc_title:
+                entry["doc_title"] = doc_title
+            if author_name:
+                entry["author_name"] = author_name
+
+            # SQL 来源：把检索阶段已生成的完整结果一并下发，
+            # 前端点击角标时直接复用，无需再实时查 SQL（耗时）。
+            if source_type == "sql":
+                detail = re.sub(r'^\[[a-z_]+\]\s*', '', clean_text)
+                entry["detail_text"] = detail
+
+            source_index[str(idx)] = entry
+            combined += f"[{idx}] {clean_text}\n\n"
 
         # 安全兜底：极端情况下超过 18000 字时做软截断
         if len(combined) > MAX_CHARS_REF * 3:

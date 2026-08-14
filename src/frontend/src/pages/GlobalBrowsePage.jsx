@@ -171,8 +171,7 @@ function GlobalBrowsePage({ navigate }) {
               <KnowledgeGraph
                 nodes={graphNodes}
                 edges={graphEdges}
-                onNodeClick={(id) => {
-                  const node = graphNodes.find(n => n.id === id);
+                onNodeClick={(node) => {
                   if (node) {
                     handleSelectEntity({ name: node.name, id: node.id, labels: [node.label] });
                   }

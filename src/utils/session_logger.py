@@ -93,6 +93,39 @@ class SessionLogger:
         self._write("─" * 50)
         self._write(context)
 
+    def log_source_index(self, source_index):
+        """记录结构化来源索引：每条编号的来源类型 + 实体/文献名。
+        便于核对图谱 / 数据库 / 向量各类来源是否都被正确标注。
+        """
+        if not source_index:
+            return
+        self._write("")
+        self._write("─" * 50)
+        self._write(f"  🏷️  来源索引 source_index ({len(source_index)} 条)")
+        self._write("─" * 50)
+        for num in sorted(source_index, key=lambda k: int(k) if str(k).isdigit() else 0):
+            entry = source_index[num]
+            if isinstance(entry, dict):
+                stype = entry.get("source_type", "?")
+                label = entry.get("label", "?")
+                tool = entry.get("tool_name", "")
+                entity = entry.get("entity_name", "")
+                doc = entry.get("doc_title", "")
+                author = entry.get("author_name", "")
+                detail = []
+                if tool:
+                    detail.append(f"tool={tool}")
+                if entity:
+                    detail.append(f"实体={entity}")
+                if doc:
+                    detail.append(f"文献={doc}")
+                if author:
+                    detail.append(f"作者={author}")
+                extra = f" ({', '.join(detail)})" if detail else ""
+                self._write(f"  [{num}] {label}({stype}){extra}")
+            else:
+                self._write(f"  [{num}] {entry}")
+
     def log_thinking(self, thinking):
         self._write("")
         self._write("═" * 50)

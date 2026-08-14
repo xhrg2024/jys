@@ -479,7 +479,7 @@ def query_full_text_by_doc(doc_title, keyword=None, limit=30):
                    FROM full_text_1 f
                    JOIN documents d ON f.doc_id = d.doc_id
                    WHERE d.doc_title LIKE %s AND f.full_text LIKE %s
-                   ORDER BY f.full_text_order LIMIT %s""",
+                   ORDER BY f.full_text_id LIMIT %s""",
                 (f"%{title_term}%", f"%{keyword}%", limit)
             )
         else:
@@ -488,7 +488,7 @@ def query_full_text_by_doc(doc_title, keyword=None, limit=30):
                    FROM full_text_1 f
                    JOIN documents d ON f.doc_id = d.doc_id
                    WHERE d.doc_title LIKE %s
-                   ORDER BY f.full_text_order LIMIT %s""",
+                   ORDER BY f.full_text_id LIMIT %s""",
                 (f"%{title_term}%", limit)
             )
 
@@ -500,8 +500,10 @@ def query_full_text_by_doc(doc_title, keyword=None, limit=30):
             if r['full_text_id'] not in merged:
                 merged[r['full_text_id']] = r
 
-    # 按 full_text_order 排序，取前 limit 条
-    rows = sorted(merged.values(), key=lambda r: r['full_text_order'])[:limit]
+    # 按 full_text_id（自然阅读顺序）排序，取前 limit 条。
+    # 不能用 full_text_order：它在每个章节内从 1 重新计数，全局排序会把所有
+    # 章节的"第1段"（多为引书）排到一起，导致预览全是书名、没有正文。
+    rows = sorted(merged.values(), key=lambda r: r['full_text_id'])[:limit]
 
     if not rows:
         kw = f"且关键词「{keyword}」" if keyword else ""
@@ -509,7 +511,7 @@ def query_full_text_by_doc(doc_title, keyword=None, limit=30):
     parts = []
     for r in rows:
         text = r['full_text'][:120].replace('\n', ' ').replace('\r', ' ')
-        parts.append(f"[第{r['full_text_order']}段]（{r['text_type'] or '正文'}）{text}")
+        parts.append(f"（{r['text_type'] or '正文'}）{text}")
     return "\n".join(parts)
 
 

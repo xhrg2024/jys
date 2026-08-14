@@ -1,1450 +1,5 @@
 [
   {
-    "name": "戴派",
-    "id": "Ac0001",
-    "label": "Academic"
-  },
-  {
-    "name": "汉学",
-    "id": "Ac0002",
-    "label": "Academic"
-  },
-  {
-    "name": "惠派",
-    "id": "Ac0003",
-    "label": "Academic"
-  },
-  {
-    "name": "辑佚学",
-    "id": "Di0001",
-    "label": "Discipline"
-  },
-  {
-    "name": "考据学",
-    "id": "Ac0005",
-    "label": "Academic"
-  },
-  {
-    "name": "钱派",
-    "id": "Ac0006",
-    "label": "Academic"
-  },
-  {
-    "name": "乾嘉考据学派",
-    "id": "Ac0007",
-    "label": "Academic"
-  },
-  {
-    "name": "清代考据学",
-    "id": "Ac0008",
-    "label": "Academic"
-  },
-  {
-    "name": "明代书坊文化",
-    "id": "Ac0009",
-    "label": "Academic"
-  },
-  {
-    "name": "宋学",
-    "id": "Ac0010",
-    "label": "Academic"
-  },
-  {
-    "name": "皖派",
-    "id": "Ac0011",
-    "label": "Academic"
-  },
-  {
-    "name": "吴派",
-    "id": "Ac0012",
-    "label": "Academic"
-  },
-  {
-    "name": "扬州学派",
-    "id": "Ac0013",
-    "label": "Academic"
-  },
-  {
-    "name": "浙东学派",
-    "id": "Ac0014",
-    "label": "Academic"
-  },
-  {
-    "name": "辑佚者知识储备",
-    "id": "AR0001",
-    "label": "Academic_Requirement"
-  },
-  {
-    "name": "爱日斋丛钞",
-    "id": "Co0001",
-    "label": "Compilation"
-  },
-  {
-    "name": "熬波图",
-    "id": "Co0002",
-    "label": "Compilation"
-  },
-  {
-    "name": "八代全文",
-    "id": "Co0003",
-    "label": "Compilation"
-  },
-  {
-    "name": "百川学海",
-    "id": "Co0004",
-    "label": "Compilation"
-  },
-  {
-    "name": "百家异苑",
-    "id": "Co0005",
-    "label": "Compilation"
-  },
-  {
-    "name": "百宋一廛赋",
-    "id": "Co0006",
-    "label": "Compilation"
-  },
-  {
-    "name": "百宋一廛书录",
-    "id": "Co0007",
-    "label": "Compilation"
-  },
-  {
-    "name": "百正集",
-    "id": "Co0008",
-    "label": "Compilation"
-  },
-  {
-    "name": "拜经堂文集",
-    "id": "Co0009",
-    "label": "Compilation"
-  },
-  {
-    "name": "宝晋山林集拾遗",
-    "id": "Co0010",
-    "label": "Compilation"
-  },
-  {
-    "name": "抱朴子内篇佚文",
-    "id": "Co0011",
-    "label": "Compilation"
-  },
-  {
-    "name": "抱朴子骈言",
-    "id": "Co0012",
-    "label": "Compilation"
-  },
-  {
-    "name": "抱朴子外篇佚文",
-    "id": "Co0014",
-    "label": "Compilation"
-  },
-  {
-    "name": "抱朴子佚文",
-    "id": "Co0015",
-    "label": "Compilation"
-  },
-  {
-    "name": "抱朴子逸文",
-    "id": "Co0016",
-    "label": "Compilation"
-  },
-  {
-    "name": "北魏佚书考",
-    "id": "Co0017",
-    "label": "Compilation"
-  },
-  {
-    "name": "北溪先生全集补遗",
-    "id": "Co0018",
-    "label": "Compilation"
-  },
-  {
-    "name": "北征记",
-    "id": "Co0019",
-    "label": "Compilation"
-  },
-  {
-    "name": "本草经",
-    "id": "Co0020",
-    "label": "Compilation"
-  },
-  {
-    "name": "本草正经",
-    "id": "Co0021",
-    "label": "Compilation"
-  },
-  {
-    "name": "碧溪诗话",
-    "id": "Co0022",
-    "label": "Compilation"
-  },
-  {
-    "name": "砭愚堂丛书",
-    "id": "Co0023",
-    "label": "Compilation"
-  },
-  {
-    "name": "驳五经异义",
-    "id": "Co0024",
-    "label": "Compilation"
-  },
-  {
-    "name": "驳五经异义补遗",
-    "id": "Co0026",
-    "label": "Compilation"
-  },
-  {
-    "name": "博物志",
-    "id": "Co0027",
-    "label": "Compilation"
-  },
-  {
-    "name": "补古今人表",
-    "id": "Co0028",
-    "label": "Compilation"
-  },
-  {
-    "name": "补后汉书艺文志",
-    "id": "Co0030",
-    "label": "Compilation"
-  },
-  {
-    "name": "补后汉书艺文志并考",
-    "id": "Co0031",
-    "label": "Compilation"
-  },
-  {
-    "name": "补后汉艺文志",
-    "id": "Co0032",
-    "label": "Compilation"
-  },
-  {
-    "name": "补晋书经籍志",
-    "id": "Co0033",
-    "label": "Compilation"
-  },
-  {
-    "name": "补晋书艺文志",
-    "id": "Co0034",
-    "label": "Compilation"
-  },
-  {
-    "name": "补梁书艺文志",
-    "id": "Co0036",
-    "label": "Compilation"
-  },
-  {
-    "name": "补辽金元三史艺文志",
-    "id": "Co0037",
-    "label": "Compilation"
-  },
-  {
-    "name": "补辽金元艺文志",
-    "id": "Co0038",
-    "label": "Compilation"
-  },
-  {
-    "name": "补辽史经籍志",
-    "id": "Co0039",
-    "label": "Compilation"
-  },
-  {
-    "name": "补辽史艺文志",
-    "id": "Co0040",
-    "label": "Compilation"
-  },
-  {
-    "name": "补三国艺文志",
-    "id": "Co0041",
-    "label": "Compilation"
-  },
-  {
-    "name": "补宋书食货志",
-    "id": "Co0042",
-    "label": "Compilation"
-  },
-  {
-    "name": "补宋书刑法志",
-    "id": "Co0043",
-    "label": "Compilation"
-  },
-  {
-    "name": "补宋书艺文志",
-    "id": "Co0044",
-    "label": "Compilation"
-  },
-  {
-    "name": "补五代史艺文志",
-    "id": "Co0045",
-    "label": "Compilation"
-  },
-  {
-    "name": "补续汉书艺文志",
-    "id": "Co0046",
-    "label": "Compilation"
-  },
-  {
-    "name": "补严氏古文存",
-    "id": "Co0047",
-    "label": "Compilation"
-  },
-  {
-    "name": "补元史艺文志",
-    "id": "Co0048",
-    "label": "Compilation"
-  },
-  {
-    "name": "补元艺文志",
-    "id": "Co0049",
-    "label": "Compilation"
-  },
-  {
-    "name": "采辑历朝诗话",
-    "id": "Co0050",
-    "label": "Compilation"
-  },
-  {
-    "name": "蔡氏明堂月令章句",
-    "id": "Co0051",
-    "label": "Compilation"
-  },
-  {
-    "name": "蔡氏月令",
-    "id": "Co0052",
-    "label": "Compilation"
-  },
-  {
-    "name": "蔡氏月令章句",
-    "id": "Co0053",
-    "label": "Compilation"
-  },
-  {
-    "name": "蔡中郎集",
-    "id": "Co0054",
-    "label": "Compilation"
-  },
-  {
-    "name": "蔡中郎集举正",
-    "id": "Co0055",
-    "label": "Compilation"
-  },
-  {
-    "name": "蔡中郎文集补",
-    "id": "Co0056",
-    "label": "Compilation"
-  },
-  {
-    "name": "仓颉篇",
-    "id": "Co0057",
-    "label": "Compilation"
-  },
-  {
-    "name": "仓颉篇补本续",
-    "id": "Co0061",
-    "label": "Compilation"
-  },
-  {
-    "name": "仓颉篇义证",
-    "id": "Co0062",
-    "label": "Compilation"
-  },
-  {
-    "name": "苍颉",
-    "id": "Co0063",
-    "label": "Compilation"
-  },
-  {
-    "name": "苍颉篇",
-    "id": "Co0064",
-    "label": "Compilation"
-  },
-  {
-    "name": "藏书",
-    "id": "Co0065",
-    "label": "Compilation"
-  },
-  {
-    "name": "藏书纪事诗",
-    "id": "Co0066",
-    "label": "Compilation"
-  },
-  {
-    "name": "曹放斋诗说",
-    "id": "Co0067",
-    "label": "Compilation"
-  },
-  {
-    "name": "曹集考异",
-    "id": "Co0069",
-    "label": "Compilation"
-  },
-  {
-    "name": "曹子建集",
-    "id": "Co0070",
-    "label": "Compilation"
-  },
-  {
-    "name": "曾公遗录",
-    "id": "Co0074",
-    "label": "Compilation"
-  },
-  {
-    "name": "曾思二子书",
-    "id": "Co0075",
-    "label": "Compilation"
-  },
-  {
-    "name": "茶山集",
-    "id": "Co0076",
-    "label": "Compilation"
-  },
-  {
-    "name": "常郡八邑艺文志",
-    "id": "Co0078",
-    "label": "Compilation"
-  },
-  {
-    "name": "常谈",
-    "id": "Co0079",
-    "label": "Compilation"
-  },
-  {
-    "name": "朝野类要",
-    "id": "Co0080",
-    "label": "Compilation"
-  },
-  {
-    "name": "陈孔璋集",
-    "id": "Co0081",
-    "label": "Compilation"
-  },
-  {
-    "name": "陈氏礼记集说补正",
-    "id": "Co0083",
-    "label": "Compilation"
-  },
-  {
-    "name": "陈忠贞公遗集",
-    "id": "Co0085",
-    "label": "Compilation"
-  },
-  {
-    "name": "谶纬",
-    "id": "Co0086",
-    "label": "Compilation"
-  },
-  {
-    "name": "耻堂存稿",
-    "id": "Co0087",
-    "label": "Compilation"
-  },
-  {
-    "name": "崇文总目",
-    "id": "Co0088",
-    "label": "Compilation"
-  },
-  {
-    "name": "崇文总目辑释",
-    "id": "Co0089",
-    "label": "Compilation"
-  },
-  {
-    "name": "楚宝增辑考异",
-    "id": "Co0091",
-    "label": "Compilation"
-  },
-  {
-    "name": "楚汉春秋",
-    "id": "Co0092",
-    "label": "Compilation"
-  },
-  {
-    "name": "春卿遗稿",
-    "id": "Co0093",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋",
-    "id": "Co0095",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋辨疑",
-    "id": "Co0096",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋传说例",
-    "id": "Co0097",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋古经",
-    "id": "Co0098",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋后语",
-    "id": "Co0099",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋会义",
-    "id": "Co0100",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋纪年",
-    "id": "Co0101",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋经解",
-    "id": "Co0103",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋考异",
-    "id": "Co0104",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋例要",
-    "id": "Co0105",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋内传古注辑存",
-    "id": "Co0106",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋世族谱",
-    "id": "Co0107",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋世族谱拾遗",
-    "id": "Co0108",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋通训",
-    "id": "Co0109",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋透天关",
-    "id": "Co0110",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋纬",
-    "id": "Co0111",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋义补注",
-    "id": "Co0112",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋义宗",
-    "id": "Co0113",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋摘微",
-    "id": "Co0115",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋左传补注",
-    "id": "Co0117",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋左传服注存",
-    "id": "Co0118",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋左传贾服注辑述",
-    "id": "Co0119",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋左氏传古经",
-    "id": "Co0120",
-    "label": "Compilation"
-  },
-  {
-    "name": "春秋左氏古义",
-    "id": "Co0121",
-    "label": "Compilation"
-  },
-  {
-    "name": "淳祐临安志",
-    "id": "Co0122",
-    "label": "Compilation"
-  },
-  {
-    "name": "慈湖先生遗书",
-    "id": "Co0123",
-    "label": "Compilation"
-  },
-  {
-    "name": "崔寔政论",
-    "id": "Co0125",
-    "label": "Compilation"
-  },
-  {
-    "name": "存悔斋诗续补遗",
-    "id": "Co0126",
-    "label": "Compilation"
-  },
-  {
-    "name": "大戴礼记",
-    "id": "Co0127",
-    "label": "Compilation"
-  },
-  {
-    "name": "大金吊伐录",
-    "id": "Co0128",
-    "label": "Compilation"
-  },
-  {
-    "name": "大元海运记",
-    "id": "Co0129",
-    "label": "Compilation"
-  },
-  {
-    "name": "大元马政记",
-    "id": "Co0130",
-    "label": "Compilation"
-  },
-  {
-    "name": "大元一统志",
-    "id": "Co0132",
-    "label": "Compilation"
-  },
-  {
-    "name": "戴山刘子全书",
-    "id": "Co0133",
-    "label": "Compilation"
-  },
-  {
-    "name": "丹阳集",
-    "id": "Co0134",
-    "label": "Compilation"
-  },
-  {
-    "name": "鄧峰真隐漫录",
-    "id": "Co0135",
-    "label": "Compilation"
-  },
-  {
-    "name": "帝范",
-    "id": "Co0136",
-    "label": "Compilation"
-  },
-  {
-    "name": "帝王世纪",
-    "id": "Co0137",
-    "label": "Compilation"
-  },
-  {
-    "name": "帝王世纪续补",
-    "id": "Co0142",
-    "label": "Compilation"
-  },
-  {
-    "name": "禘说",
-    "id": "Co0143",
-    "label": "Compilation"
-  },
-  {
-    "name": "定庵类稿",
-    "id": "Co0144",
-    "label": "Compilation"
-  },
-  {
-    "name": "定川遗书",
-    "id": "Co0145",
-    "label": "Compilation"
-  },
-  {
-    "name": "定命录",
-    "id": "Co0146",
-    "label": "Compilation"
-  },
-  {
-    "name": "定斋集",
-    "id": "Co0147",
-    "label": "Compilation"
-  },
-  {
-    "name": "东观汉记",
-    "id": "Co0148",
-    "label": "Compilation"
-  },
-  {
-    "name": "东观汉纪",
-    "id": "Co0152",
-    "label": "Compilation"
-  },
-  {
-    "name": "东南纪闻",
-    "id": "Co0153",
-    "label": "Compilation"
-  },
-  {
-    "name": "东堂集",
-    "id": "Co0154",
-    "label": "Compilation"
-  },
-  {
-    "name": "都官集",
-    "id": "Co0155",
-    "label": "Compilation"
-  },
-  {
-    "name": "读易别录",
-    "id": "Co0156",
-    "label": "Compilation"
-  },
-  {
-    "name": "读易序录",
-    "id": "Co0157",
-    "label": "Compilation"
-  },
-  {
-    "name": "杜诗百篇",
-    "id": "Co0158",
-    "label": "Compilation"
-  },
-  {
-    "name": "敦煌零拾",
-    "id": "Co0159",
-    "label": "Compilation"
-  },
-  {
-    "name": "敦煌石室碎金",
-    "id": "Co0160",
-    "label": "Compilation"
-  },
-  {
-    "name": "敦煌石室遗书",
-    "id": "Co0161",
-    "label": "Compilation"
-  },
-  {
-    "name": "敦煌唐人诗集残卷",
-    "id": "Co0162",
-    "label": "Compilation"
-  },
-  {
-    "name": "尔雅补注残本",
-    "id": "Co0163",
-    "label": "Compilation"
-  },
-  {
-    "name": "尔雅古义",
-    "id": "Co0164",
-    "label": "Compilation"
-  },
-  {
-    "name": "尔雅古注合存",
-    "id": "Co0167",
-    "label": "Compilation"
-  },
-  {
-    "name": "尔雅古注斟",
-    "id": "Co0168",
-    "label": "Compilation"
-  },
-  {
-    "name": "尔雅汉注",
-    "id": "Co0169",
-    "label": "Compilation"
-  },
-  {
-    "name": "尔雅释文补",
-    "id": "Co0170",
-    "label": "Compilation"
-  },
-  {
-    "name": "尔雅岁阳考",
-    "id": "Co0171",
-    "label": "Compilation"
-  },
-  {
-    "name": "尔雅图赞",
-    "id": "Co0172",
-    "label": "Compilation"
-  },
-  {
-    "name": "尔雅小笺",
-    "id": "Co0173",
-    "label": "Compilation"
-  },
-  {
-    "name": "尔雅校义",
-    "id": "Co0174",
-    "label": "Compilation"
-  },
-  {
-    "name": "尔雅逸文",
-    "id": "Co0175",
-    "label": "Compilation"
-  },
-  {
-    "name": "二西堂丛书",
-    "id": "Co0176",
-    "label": "Compilation"
-  },
-  {
-    "name": "二酉堂丛书",
-    "id": "Co0177",
-    "label": "Compilation"
-  },
-  {
-    "name": "二酉缀遗",
-    "id": "Co0178",
-    "label": "Compilation"
-  },
-  {
-    "name": "二袁先生文钞",
-    "id": "Co0179",
-    "label": "Compilation"
-  },
-  {
-    "name": "发墨守",
-    "id": "Co0180",
-    "label": "Compilation"
-  },
-  {
-    "name": "发墨守评",
-    "id": "Co0181",
-    "label": "Compilation"
-  },
-  {
-    "name": "范子计然",
-    "id": "Co0182",
-    "label": "Compilation"
-  },
-  {
-    "name": "方言",
-    "id": "Co0183",
-    "label": "Compilation"
-  },
-  {
-    "name": "方言注",
-    "id": "Co0184",
-    "label": "Compilation"
-  },
-  {
-    "name": "方舟集",
-    "id": "Co0185",
-    "label": "Compilation"
-  },
-  {
-    "name": "放斋诗说",
-    "id": "Co0186",
-    "label": "Compilation"
-  },
-  {
-    "name": "非有斋类稿",
-    "id": "Co0187",
-    "label": "Compilation"
-  },
-  {
-    "name": "焚书",
-    "id": "Co0188",
-    "label": "Compilation"
-  },
-  {
-    "name": "丰清敏公诗文辑存",
-    "id": "Co0189",
-    "label": "Compilation"
-  },
-  {
-    "name": "风俗通义佚文",
-    "id": "Co0190",
-    "label": "Compilation"
-  },
-  {
-    "name": "风俗通逸文",
-    "id": "Co0191",
-    "label": "Compilation"
-  },
-  {
-    "name": "枫山章先生语录",
-    "id": "Co0193",
-    "label": "Compilation"
-  },
-  {
-    "name": "封泥考略",
-    "id": "Co0194",
-    "label": "Compilation"
-  },
-  {
-    "name": "封氏闻见记",
-    "id": "Co0195",
-    "label": "Compilation"
-  },
-  {
-    "name": "奉天录",
-    "id": "Co0196",
-    "label": "Compilation"
-  },
-  {
-    "name": "伏侯古今注",
-    "id": "Co0197",
-    "label": "Compilation"
-  },
-  {
-    "name": "浮溪集",
-    "id": "Co0198",
-    "label": "Compilation"
-  },
-  {
-    "name": "浮沚集",
-    "id": "Co0200",
-    "label": "Compilation"
-  },
-  {
-    "name": "甫里集",
-    "id": "Co0201",
-    "label": "Compilation"
-  },
-  {
-    "name": "辅行记",
-    "id": "Co0202",
-    "label": "Compilation"
-  },
-  {
-    "name": "傅鹑觚集",
-    "id": "Co0203",
-    "label": "Compilation"
-  },
-  {
-    "name": "傅鵑觚集",
-    "id": "Co0204",
-    "label": "Compilation"
-  },
-  {
-    "name": "傅氏家书",
-    "id": "Co0205",
-    "label": "Compilation"
-  },
-  {
-    "name": "傅子",
-    "id": "Co0206",
-    "label": "Compilation"
-  },
-  {
-    "name": "干常侍易注疏证",
-    "id": "Co0214",
-    "label": "Compilation"
-  },
-  {
-    "name": "纲鉴易知录",
-    "id": "Co0215",
-    "label": "Compilation"
-  },
-  {
-    "name": "高峰集",
-    "id": "Co0216",
-    "label": "Compilation"
-  },
-  {
-    "name": "高士传",
-    "id": "Co0217",
-    "label": "Compilation"
-  },
-  {
-    "name": "公是集",
-    "id": "Co0220",
-    "label": "Compilation"
-  },
-  {
-    "name": "公是先生弟子记",
-    "id": "Co0226",
-    "label": "Compilation"
-  },
-  {
-    "name": "公是先生文钞",
-    "id": "Co0227",
-    "label": "Compilation"
-  },
-  {
-    "name": "攻愧集",
-    "id": "Co0229",
-    "label": "Compilation"
-  },
-  {
-    "name": "攻愧集拾遗",
-    "id": "Co0231",
-    "label": "Compilation"
-  },
-  {
-    "name": "孤篷倦客集补",
-    "id": "Co0232",
-    "label": "Compilation"
-  },
-  {
-    "name": "古本大学辑解",
-    "id": "Co0233",
-    "label": "Compilation"
-  },
-  {
-    "name": "古本竹书纪年辑校",
-    "id": "Co0234",
-    "label": "Compilation"
-  },
-  {
-    "name": "古本竹书纪年辑证",
-    "id": "Co0235",
-    "label": "Compilation"
-  },
-  {
-    "name": "古今风谣拾遗",
-    "id": "Co0236",
-    "label": "Compilation"
-  },
-  {
-    "name": "古今历法通考",
-    "id": "Co0237",
-    "label": "Compilation"
-  },
-  {
-    "name": "古今谚拾遗",
-    "id": "Co0238",
-    "label": "Compilation"
-  },
-  {
-    "name": "古今逸史",
-    "id": "Co0239",
-    "label": "Compilation"
-  },
-  {
-    "name": "古今字诂疏证",
-    "id": "Co0240",
-    "label": "Compilation"
-  },
-  {
-    "name": "古经解钩沉",
-    "id": "Co0243",
-    "label": "Compilation"
-  },
-  {
-    "name": "古经解钩沈",
-    "id": "Co0245",
-    "label": "Compilation"
-  },
-  {
-    "name": "古礼",
-    "id": "Co0246",
-    "label": "Compilation"
-  },
-  {
-    "name": "古诗辑存",
-    "id": "Co0248",
-    "label": "Compilation"
-  },
-  {
-    "name": "古史考",
-    "id": "Co0249",
-    "label": "Compilation"
-  },
-  {
-    "name": "古世本",
-    "id": "Co0252",
-    "label": "Compilation"
-  },
-  {
-    "name": "古书逸文",
-    "id": "Co0254",
-    "label": "Compilation"
-  },
-  {
-    "name": "古微书",
-    "id": "Co0256",
-    "label": "Compilation"
-  },
-  {
-    "name": "古文春秋左传",
-    "id": "Co0257",
-    "label": "Compilation"
-  },
-  {
-    "name": "古文辞类纂",
-    "id": "Co0258",
-    "label": "Compilation"
-  },
-  {
-    "name": "古文论语",
-    "id": "Co0259",
-    "label": "Compilation"
-  },
-  {
-    "name": "伪古文尚书（梅本）",
-    "id": "Co0261",
-    "label": "Compilation"
-  },
-  {
-    "name": "古文尚书",
-    "id": "Co0262",
-    "label": "Compilation"
-  },
-  {
-    "name": "古文尚书考",
-    "id": "Co0263",
-    "label": "Compilation"
-  },
-  {
-    "name": "古文尚书冤词",
-    "id": "Co0264",
-    "label": "Compilation"
-  },
-  {
-    "name": "古文孝经孔传",
-    "id": "Co0265",
-    "label": "Compilation"
-  },
-  {
-    "name": "古文选",
-    "id": "Co0266",
-    "label": "Compilation"
-  },
-  {
-    "name": "古文苑",
-    "id": "Co0267",
-    "label": "Compilation"
-  },
-  {
-    "name": "古小说钩沉",
-    "id": "Co0269",
-    "label": "Compilation"
-  },
-  {
-    "name": "古写本贞观政要残",
-    "id": "Co0270",
-    "label": "Compilation"
-  },
-  {
-    "name": "古行记校录",
-    "id": "Co0271",
-    "label": "Compilation"
-  },
-  {
-    "name": "古学经辑注",
-    "id": "Co0272",
-    "label": "Compilation"
-  },
-  {
-    "name": "古谚谣",
-    "id": "Co0273",
-    "label": "Compilation"
-  },
-  {
-    "name": "古谣谚",
-    "id": "Co0274",
-    "label": "Compilation"
-  },
-  {
-    "name": "古佚书辑本目录",
-    "id": "Co0275",
-    "label": "Compilation"
-  },
-  {
-    "name": "古易音训",
-    "id": "Co0276",
-    "label": "Compilation"
-  },
-  {
-    "name": "古逸丛书",
-    "id": "Co0277",
-    "label": "Compilation"
-  },
-  {
-    "name": "穀梁废疾申何",
-    "id": "Co0280",
-    "label": "Compilation"
-  },
-  {
-    "name": "穀梁古注",
-    "id": "Co0281",
-    "label": "Compilation"
-  },
-  {
-    "name": "顾子逸篇",
-    "id": "Co0282",
-    "label": "Compilation"
-  },
-  {
-    "name": "关中金石记",
-    "id": "Co0284",
-    "label": "Compilation"
-  },
-  {
-    "name": "观古堂汇刻书",
-    "id": "Co0285",
-    "label": "Compilation"
-  },
-  {
-    "name": "广仓",
-    "id": "Co0286",
-    "label": "Compilation"
-  },
-  {
-    "name": "广东文征",
-    "id": "Co0287",
-    "label": "Compilation"
-  },
-  {
-    "name": "广林",
-    "id": "Co0288",
-    "label": "Compilation"
-  },
-  {
-    "name": "广州府",
-    "id": "Co0289",
-    "label": "Compilation"
-  },
-  {
-    "name": "归潜志",
-    "id": "Co0290",
-    "label": "Compilation"
-  },
-  {
-    "name": "归田类稿",
-    "id": "Co0293",
-    "label": "Compilation"
-  },
-  {
-    "name": "龟城叟集辑",
-    "id": "Co0294",
-    "label": "Compilation"
-  },
-  {
-    "name": "鬼谷子",
-    "id": "Co0295",
-    "label": "Compilation"
-  },
-  {
-    "name": "桂苑珠丛",
-    "id": "Co0296",
-    "label": "Compilation"
-  },
-  {
-    "name": "郭氏传家易说",
-    "id": "Co0297",
-    "label": "Compilation"
-  },
-  {
-    "name": "郭氏玄中记",
-    "id": "Co0298",
-    "label": "Compilation"
-  },
-  {
-    "name": "国朝词综",
-    "id": "Co0299",
-    "label": "Compilation"
-  },
-  {
-    "name": "国朝汉学师承记",
-    "id": "Co0300",
-    "label": "Compilation"
-  },
-  {
-    "name": "国清百录",
-    "id": "Co0301",
-    "label": "Compilation"
-  },
-  {
-    "name": "国语贾景伯注",
-    "id": "Co0302",
-    "label": "Compilation"
-  },
-  {
-    "name": "国语三君注辑存",
-    "id": "Co0303",
-    "label": "Compilation"
-  },
-  {
-    "name": "海昌经籍志略",
-    "id": "Co0304",
-    "label": "Compilation"
-  },
-  {
-    "name": "海昌艺文志",
-    "id": "Co0305",
-    "label": "Compilation"
-  },
-  {
-    "name": "海岛算经",
-    "id": "Co0306",
-    "label": "Compilation"
-  },
-  {
-    "name": "海宁渤海陈氏著录",
-    "id": "Co0307",
-    "label": "Compilation"
-  },
-  {
-    "name": "海虞艺文志",
-    "id": "Co0308",
-    "label": "Compilation"
-  },
-  {
-    "name": "韩非子佚文",
-    "id": "Co0309",
-    "label": "Compilation"
-  },
-  {
-    "name": "韩诗故",
-    "id": "Co0310",
-    "label": "Compilation"
-  },
-  {
-    "name": "韩诗辑",
-    "id": "Co0311",
-    "label": "Compilation"
-  },
-  {
-    "name": "韩诗内传考",
-    "id": "Co0312",
-    "label": "Compilation"
-  },
-  {
-    "name": "韩诗内传征",
-    "id": "Co0313",
-    "label": "Compilation"
-  },
-  {
-    "name": "韩诗外传校注",
-    "id": "Co0314",
-    "label": "Compilation"
-  },
-  {
-    "name": "韩诗外传校注拾遗",
-    "id": "Co0315",
-    "label": "Compilation"
-  },
-  {
-    "name": "韩诗外传遗文",
-    "id": "Co0316",
-    "label": "Compilation"
-  },
-  {
-    "name": "韩诗遗说",
-    "id": "Co0317",
-    "label": "Compilation"
-  },
-  {
-    "name": "韩诗遗说考",
-    "id": "Co0318",
-    "label": "Compilation"
-  },
-  {
-    "name": "韩诗遗说续考",
-    "id": "Co0319",
-    "label": "Compilation"
-  },
-  {
-    "name": "韩子粹言",
-    "id": "Co0320",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉氾胜之遗书",
-    "id": "Co0321",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉甘露石渠礼仪",
-    "id": "Co0322",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉官",
-    "id": "Co0323",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉官典职仪式选用",
-    "id": "Co0324",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉官解诂",
-    "id": "Co0325",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉官旧仪",
-    "id": "Co0326",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉官仪",
-    "id": "Co0327",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉晋春秋辑本",
-    "id": "Co0330",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉晋各家逸史",
-    "id": "Co0331",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉旧仪",
-    "id": "Co0332",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉礼器制度",
-    "id": "Co0333",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉乾象术",
-    "id": "Co0335",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉书古注辑存",
-    "id": "Co0336",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉书艺文志拾补",
-    "id": "Co0337",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉书音义",
-    "id": "Co0338",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉唐地理书钞",
-    "id": "Co0339",
-    "label": "Compilation"
-  },
-  {
-    "name": "汉唐方志辑佚",
-    "id": "Co0340",
-    "label": "Compilation"
-  },
-  {
     "name": "汉魏二十一家易注",
     "id": "Co0342",
     "label": "Compilation"
@@ -12083,5 +10638,1450 @@
     "name": "以出处为纲编排",
     "id": "Me0074",
     "label": "Method"
+  },
+  {
+    "name": "戴派",
+    "id": "Ac0001",
+    "label": "Academic"
+  },
+  {
+    "name": "汉学",
+    "id": "Ac0002",
+    "label": "Academic"
+  },
+  {
+    "name": "惠派",
+    "id": "Ac0003",
+    "label": "Academic"
+  },
+  {
+    "name": "辑佚学",
+    "id": "Di0001",
+    "label": "Discipline"
+  },
+  {
+    "name": "考据学",
+    "id": "Ac0005",
+    "label": "Academic"
+  },
+  {
+    "name": "钱派",
+    "id": "Ac0006",
+    "label": "Academic"
+  },
+  {
+    "name": "乾嘉考据学派",
+    "id": "Ac0007",
+    "label": "Academic"
+  },
+  {
+    "name": "清代考据学",
+    "id": "Ac0008",
+    "label": "Academic"
+  },
+  {
+    "name": "明代书坊文化",
+    "id": "Ac0009",
+    "label": "Academic"
+  },
+  {
+    "name": "宋学",
+    "id": "Ac0010",
+    "label": "Academic"
+  },
+  {
+    "name": "皖派",
+    "id": "Ac0011",
+    "label": "Academic"
+  },
+  {
+    "name": "吴派",
+    "id": "Ac0012",
+    "label": "Academic"
+  },
+  {
+    "name": "扬州学派",
+    "id": "Ac0013",
+    "label": "Academic"
+  },
+  {
+    "name": "浙东学派",
+    "id": "Ac0014",
+    "label": "Academic"
+  },
+  {
+    "name": "辑佚者知识储备",
+    "id": "AR0001",
+    "label": "Academic_Requirement"
+  },
+  {
+    "name": "爱日斋丛钞",
+    "id": "Co0001",
+    "label": "Compilation"
+  },
+  {
+    "name": "熬波图",
+    "id": "Co0002",
+    "label": "Compilation"
+  },
+  {
+    "name": "八代全文",
+    "id": "Co0003",
+    "label": "Compilation"
+  },
+  {
+    "name": "百川学海",
+    "id": "Co0004",
+    "label": "Compilation"
+  },
+  {
+    "name": "百家异苑",
+    "id": "Co0005",
+    "label": "Compilation"
+  },
+  {
+    "name": "百宋一廛赋",
+    "id": "Co0006",
+    "label": "Compilation"
+  },
+  {
+    "name": "百宋一廛书录",
+    "id": "Co0007",
+    "label": "Compilation"
+  },
+  {
+    "name": "百正集",
+    "id": "Co0008",
+    "label": "Compilation"
+  },
+  {
+    "name": "拜经堂文集",
+    "id": "Co0009",
+    "label": "Compilation"
+  },
+  {
+    "name": "宝晋山林集拾遗",
+    "id": "Co0010",
+    "label": "Compilation"
+  },
+  {
+    "name": "抱朴子内篇佚文",
+    "id": "Co0011",
+    "label": "Compilation"
+  },
+  {
+    "name": "抱朴子骈言",
+    "id": "Co0012",
+    "label": "Compilation"
+  },
+  {
+    "name": "抱朴子外篇佚文",
+    "id": "Co0014",
+    "label": "Compilation"
+  },
+  {
+    "name": "抱朴子佚文",
+    "id": "Co0015",
+    "label": "Compilation"
+  },
+  {
+    "name": "抱朴子逸文",
+    "id": "Co0016",
+    "label": "Compilation"
+  },
+  {
+    "name": "北魏佚书考",
+    "id": "Co0017",
+    "label": "Compilation"
+  },
+  {
+    "name": "北溪先生全集补遗",
+    "id": "Co0018",
+    "label": "Compilation"
+  },
+  {
+    "name": "北征记",
+    "id": "Co0019",
+    "label": "Compilation"
+  },
+  {
+    "name": "本草经",
+    "id": "Co0020",
+    "label": "Compilation"
+  },
+  {
+    "name": "本草正经",
+    "id": "Co0021",
+    "label": "Compilation"
+  },
+  {
+    "name": "碧溪诗话",
+    "id": "Co0022",
+    "label": "Compilation"
+  },
+  {
+    "name": "砭愚堂丛书",
+    "id": "Co0023",
+    "label": "Compilation"
+  },
+  {
+    "name": "驳五经异义",
+    "id": "Co0024",
+    "label": "Compilation"
+  },
+  {
+    "name": "驳五经异义补遗",
+    "id": "Co0026",
+    "label": "Compilation"
+  },
+  {
+    "name": "博物志",
+    "id": "Co0027",
+    "label": "Compilation"
+  },
+  {
+    "name": "补古今人表",
+    "id": "Co0028",
+    "label": "Compilation"
+  },
+  {
+    "name": "补后汉书艺文志",
+    "id": "Co0030",
+    "label": "Compilation"
+  },
+  {
+    "name": "补后汉书艺文志并考",
+    "id": "Co0031",
+    "label": "Compilation"
+  },
+  {
+    "name": "补后汉艺文志",
+    "id": "Co0032",
+    "label": "Compilation"
+  },
+  {
+    "name": "补晋书经籍志",
+    "id": "Co0033",
+    "label": "Compilation"
+  },
+  {
+    "name": "补晋书艺文志",
+    "id": "Co0034",
+    "label": "Compilation"
+  },
+  {
+    "name": "补梁书艺文志",
+    "id": "Co0036",
+    "label": "Compilation"
+  },
+  {
+    "name": "补辽金元三史艺文志",
+    "id": "Co0037",
+    "label": "Compilation"
+  },
+  {
+    "name": "补辽金元艺文志",
+    "id": "Co0038",
+    "label": "Compilation"
+  },
+  {
+    "name": "补辽史经籍志",
+    "id": "Co0039",
+    "label": "Compilation"
+  },
+  {
+    "name": "补辽史艺文志",
+    "id": "Co0040",
+    "label": "Compilation"
+  },
+  {
+    "name": "补三国艺文志",
+    "id": "Co0041",
+    "label": "Compilation"
+  },
+  {
+    "name": "补宋书食货志",
+    "id": "Co0042",
+    "label": "Compilation"
+  },
+  {
+    "name": "补宋书刑法志",
+    "id": "Co0043",
+    "label": "Compilation"
+  },
+  {
+    "name": "补宋书艺文志",
+    "id": "Co0044",
+    "label": "Compilation"
+  },
+  {
+    "name": "补五代史艺文志",
+    "id": "Co0045",
+    "label": "Compilation"
+  },
+  {
+    "name": "补续汉书艺文志",
+    "id": "Co0046",
+    "label": "Compilation"
+  },
+  {
+    "name": "补严氏古文存",
+    "id": "Co0047",
+    "label": "Compilation"
+  },
+  {
+    "name": "补元史艺文志",
+    "id": "Co0048",
+    "label": "Compilation"
+  },
+  {
+    "name": "补元艺文志",
+    "id": "Co0049",
+    "label": "Compilation"
+  },
+  {
+    "name": "采辑历朝诗话",
+    "id": "Co0050",
+    "label": "Compilation"
+  },
+  {
+    "name": "蔡氏明堂月令章句",
+    "id": "Co0051",
+    "label": "Compilation"
+  },
+  {
+    "name": "蔡氏月令",
+    "id": "Co0052",
+    "label": "Compilation"
+  },
+  {
+    "name": "蔡氏月令章句",
+    "id": "Co0053",
+    "label": "Compilation"
+  },
+  {
+    "name": "蔡中郎集",
+    "id": "Co0054",
+    "label": "Compilation"
+  },
+  {
+    "name": "蔡中郎集举正",
+    "id": "Co0055",
+    "label": "Compilation"
+  },
+  {
+    "name": "蔡中郎文集补",
+    "id": "Co0056",
+    "label": "Compilation"
+  },
+  {
+    "name": "仓颉篇",
+    "id": "Co0057",
+    "label": "Compilation"
+  },
+  {
+    "name": "仓颉篇补本续",
+    "id": "Co0061",
+    "label": "Compilation"
+  },
+  {
+    "name": "仓颉篇义证",
+    "id": "Co0062",
+    "label": "Compilation"
+  },
+  {
+    "name": "苍颉",
+    "id": "Co0063",
+    "label": "Compilation"
+  },
+  {
+    "name": "苍颉篇",
+    "id": "Co0064",
+    "label": "Compilation"
+  },
+  {
+    "name": "藏书",
+    "id": "Co0065",
+    "label": "Compilation"
+  },
+  {
+    "name": "藏书纪事诗",
+    "id": "Co0066",
+    "label": "Compilation"
+  },
+  {
+    "name": "曹放斋诗说",
+    "id": "Co0067",
+    "label": "Compilation"
+  },
+  {
+    "name": "曹集考异",
+    "id": "Co0069",
+    "label": "Compilation"
+  },
+  {
+    "name": "曹子建集",
+    "id": "Co0070",
+    "label": "Compilation"
+  },
+  {
+    "name": "曾公遗录",
+    "id": "Co0074",
+    "label": "Compilation"
+  },
+  {
+    "name": "曾思二子书",
+    "id": "Co0075",
+    "label": "Compilation"
+  },
+  {
+    "name": "茶山集",
+    "id": "Co0076",
+    "label": "Compilation"
+  },
+  {
+    "name": "常郡八邑艺文志",
+    "id": "Co0078",
+    "label": "Compilation"
+  },
+  {
+    "name": "常谈",
+    "id": "Co0079",
+    "label": "Compilation"
+  },
+  {
+    "name": "朝野类要",
+    "id": "Co0080",
+    "label": "Compilation"
+  },
+  {
+    "name": "陈孔璋集",
+    "id": "Co0081",
+    "label": "Compilation"
+  },
+  {
+    "name": "陈氏礼记集说补正",
+    "id": "Co0083",
+    "label": "Compilation"
+  },
+  {
+    "name": "陈忠贞公遗集",
+    "id": "Co0085",
+    "label": "Compilation"
+  },
+  {
+    "name": "谶纬",
+    "id": "Co0086",
+    "label": "Compilation"
+  },
+  {
+    "name": "耻堂存稿",
+    "id": "Co0087",
+    "label": "Compilation"
+  },
+  {
+    "name": "崇文总目",
+    "id": "Co0088",
+    "label": "Compilation"
+  },
+  {
+    "name": "崇文总目辑释",
+    "id": "Co0089",
+    "label": "Compilation"
+  },
+  {
+    "name": "楚宝增辑考异",
+    "id": "Co0091",
+    "label": "Compilation"
+  },
+  {
+    "name": "楚汉春秋",
+    "id": "Co0092",
+    "label": "Compilation"
+  },
+  {
+    "name": "春卿遗稿",
+    "id": "Co0093",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋",
+    "id": "Co0095",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋辨疑",
+    "id": "Co0096",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋传说例",
+    "id": "Co0097",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋古经",
+    "id": "Co0098",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋后语",
+    "id": "Co0099",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋会义",
+    "id": "Co0100",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋纪年",
+    "id": "Co0101",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋经解",
+    "id": "Co0103",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋考异",
+    "id": "Co0104",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋例要",
+    "id": "Co0105",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋内传古注辑存",
+    "id": "Co0106",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋世族谱",
+    "id": "Co0107",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋世族谱拾遗",
+    "id": "Co0108",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋通训",
+    "id": "Co0109",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋透天关",
+    "id": "Co0110",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋纬",
+    "id": "Co0111",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋义补注",
+    "id": "Co0112",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋义宗",
+    "id": "Co0113",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋摘微",
+    "id": "Co0115",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋左传补注",
+    "id": "Co0117",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋左传服注存",
+    "id": "Co0118",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋左传贾服注辑述",
+    "id": "Co0119",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋左氏传古经",
+    "id": "Co0120",
+    "label": "Compilation"
+  },
+  {
+    "name": "春秋左氏古义",
+    "id": "Co0121",
+    "label": "Compilation"
+  },
+  {
+    "name": "淳祐临安志",
+    "id": "Co0122",
+    "label": "Compilation"
+  },
+  {
+    "name": "慈湖先生遗书",
+    "id": "Co0123",
+    "label": "Compilation"
+  },
+  {
+    "name": "崔寔政论",
+    "id": "Co0125",
+    "label": "Compilation"
+  },
+  {
+    "name": "存悔斋诗续补遗",
+    "id": "Co0126",
+    "label": "Compilation"
+  },
+  {
+    "name": "大戴礼记",
+    "id": "Co0127",
+    "label": "Compilation"
+  },
+  {
+    "name": "大金吊伐录",
+    "id": "Co0128",
+    "label": "Compilation"
+  },
+  {
+    "name": "大元海运记",
+    "id": "Co0129",
+    "label": "Compilation"
+  },
+  {
+    "name": "大元马政记",
+    "id": "Co0130",
+    "label": "Compilation"
+  },
+  {
+    "name": "大元一统志",
+    "id": "Co0132",
+    "label": "Compilation"
+  },
+  {
+    "name": "戴山刘子全书",
+    "id": "Co0133",
+    "label": "Compilation"
+  },
+  {
+    "name": "丹阳集",
+    "id": "Co0134",
+    "label": "Compilation"
+  },
+  {
+    "name": "鄧峰真隐漫录",
+    "id": "Co0135",
+    "label": "Compilation"
+  },
+  {
+    "name": "帝范",
+    "id": "Co0136",
+    "label": "Compilation"
+  },
+  {
+    "name": "帝王世纪",
+    "id": "Co0137",
+    "label": "Compilation"
+  },
+  {
+    "name": "帝王世纪续补",
+    "id": "Co0142",
+    "label": "Compilation"
+  },
+  {
+    "name": "禘说",
+    "id": "Co0143",
+    "label": "Compilation"
+  },
+  {
+    "name": "定庵类稿",
+    "id": "Co0144",
+    "label": "Compilation"
+  },
+  {
+    "name": "定川遗书",
+    "id": "Co0145",
+    "label": "Compilation"
+  },
+  {
+    "name": "定命录",
+    "id": "Co0146",
+    "label": "Compilation"
+  },
+  {
+    "name": "定斋集",
+    "id": "Co0147",
+    "label": "Compilation"
+  },
+  {
+    "name": "东观汉记",
+    "id": "Co0148",
+    "label": "Compilation"
+  },
+  {
+    "name": "东观汉纪",
+    "id": "Co0152",
+    "label": "Compilation"
+  },
+  {
+    "name": "东南纪闻",
+    "id": "Co0153",
+    "label": "Compilation"
+  },
+  {
+    "name": "东堂集",
+    "id": "Co0154",
+    "label": "Compilation"
+  },
+  {
+    "name": "都官集",
+    "id": "Co0155",
+    "label": "Compilation"
+  },
+  {
+    "name": "读易别录",
+    "id": "Co0156",
+    "label": "Compilation"
+  },
+  {
+    "name": "读易序录",
+    "id": "Co0157",
+    "label": "Compilation"
+  },
+  {
+    "name": "杜诗百篇",
+    "id": "Co0158",
+    "label": "Compilation"
+  },
+  {
+    "name": "敦煌零拾",
+    "id": "Co0159",
+    "label": "Compilation"
+  },
+  {
+    "name": "敦煌石室碎金",
+    "id": "Co0160",
+    "label": "Compilation"
+  },
+  {
+    "name": "敦煌石室遗书",
+    "id": "Co0161",
+    "label": "Compilation"
+  },
+  {
+    "name": "敦煌唐人诗集残卷",
+    "id": "Co0162",
+    "label": "Compilation"
+  },
+  {
+    "name": "尔雅补注残本",
+    "id": "Co0163",
+    "label": "Compilation"
+  },
+  {
+    "name": "尔雅古义",
+    "id": "Co0164",
+    "label": "Compilation"
+  },
+  {
+    "name": "尔雅古注合存",
+    "id": "Co0167",
+    "label": "Compilation"
+  },
+  {
+    "name": "尔雅古注斟",
+    "id": "Co0168",
+    "label": "Compilation"
+  },
+  {
+    "name": "尔雅汉注",
+    "id": "Co0169",
+    "label": "Compilation"
+  },
+  {
+    "name": "尔雅释文补",
+    "id": "Co0170",
+    "label": "Compilation"
+  },
+  {
+    "name": "尔雅岁阳考",
+    "id": "Co0171",
+    "label": "Compilation"
+  },
+  {
+    "name": "尔雅图赞",
+    "id": "Co0172",
+    "label": "Compilation"
+  },
+  {
+    "name": "尔雅小笺",
+    "id": "Co0173",
+    "label": "Compilation"
+  },
+  {
+    "name": "尔雅校义",
+    "id": "Co0174",
+    "label": "Compilation"
+  },
+  {
+    "name": "尔雅逸文",
+    "id": "Co0175",
+    "label": "Compilation"
+  },
+  {
+    "name": "二西堂丛书",
+    "id": "Co0176",
+    "label": "Compilation"
+  },
+  {
+    "name": "二酉堂丛书",
+    "id": "Co0177",
+    "label": "Compilation"
+  },
+  {
+    "name": "二酉缀遗",
+    "id": "Co0178",
+    "label": "Compilation"
+  },
+  {
+    "name": "二袁先生文钞",
+    "id": "Co0179",
+    "label": "Compilation"
+  },
+  {
+    "name": "发墨守",
+    "id": "Co0180",
+    "label": "Compilation"
+  },
+  {
+    "name": "发墨守评",
+    "id": "Co0181",
+    "label": "Compilation"
+  },
+  {
+    "name": "范子计然",
+    "id": "Co0182",
+    "label": "Compilation"
+  },
+  {
+    "name": "方言",
+    "id": "Co0183",
+    "label": "Compilation"
+  },
+  {
+    "name": "方言注",
+    "id": "Co0184",
+    "label": "Compilation"
+  },
+  {
+    "name": "方舟集",
+    "id": "Co0185",
+    "label": "Compilation"
+  },
+  {
+    "name": "放斋诗说",
+    "id": "Co0186",
+    "label": "Compilation"
+  },
+  {
+    "name": "非有斋类稿",
+    "id": "Co0187",
+    "label": "Compilation"
+  },
+  {
+    "name": "焚书",
+    "id": "Co0188",
+    "label": "Compilation"
+  },
+  {
+    "name": "丰清敏公诗文辑存",
+    "id": "Co0189",
+    "label": "Compilation"
+  },
+  {
+    "name": "风俗通义佚文",
+    "id": "Co0190",
+    "label": "Compilation"
+  },
+  {
+    "name": "风俗通逸文",
+    "id": "Co0191",
+    "label": "Compilation"
+  },
+  {
+    "name": "枫山章先生语录",
+    "id": "Co0193",
+    "label": "Compilation"
+  },
+  {
+    "name": "封泥考略",
+    "id": "Co0194",
+    "label": "Compilation"
+  },
+  {
+    "name": "封氏闻见记",
+    "id": "Co0195",
+    "label": "Compilation"
+  },
+  {
+    "name": "奉天录",
+    "id": "Co0196",
+    "label": "Compilation"
+  },
+  {
+    "name": "伏侯古今注",
+    "id": "Co0197",
+    "label": "Compilation"
+  },
+  {
+    "name": "浮溪集",
+    "id": "Co0198",
+    "label": "Compilation"
+  },
+  {
+    "name": "浮沚集",
+    "id": "Co0200",
+    "label": "Compilation"
+  },
+  {
+    "name": "甫里集",
+    "id": "Co0201",
+    "label": "Compilation"
+  },
+  {
+    "name": "辅行记",
+    "id": "Co0202",
+    "label": "Compilation"
+  },
+  {
+    "name": "傅鹑觚集",
+    "id": "Co0203",
+    "label": "Compilation"
+  },
+  {
+    "name": "傅鵑觚集",
+    "id": "Co0204",
+    "label": "Compilation"
+  },
+  {
+    "name": "傅氏家书",
+    "id": "Co0205",
+    "label": "Compilation"
+  },
+  {
+    "name": "傅子",
+    "id": "Co0206",
+    "label": "Compilation"
+  },
+  {
+    "name": "干常侍易注疏证",
+    "id": "Co0214",
+    "label": "Compilation"
+  },
+  {
+    "name": "纲鉴易知录",
+    "id": "Co0215",
+    "label": "Compilation"
+  },
+  {
+    "name": "高峰集",
+    "id": "Co0216",
+    "label": "Compilation"
+  },
+  {
+    "name": "高士传",
+    "id": "Co0217",
+    "label": "Compilation"
+  },
+  {
+    "name": "公是集",
+    "id": "Co0220",
+    "label": "Compilation"
+  },
+  {
+    "name": "公是先生弟子记",
+    "id": "Co0226",
+    "label": "Compilation"
+  },
+  {
+    "name": "公是先生文钞",
+    "id": "Co0227",
+    "label": "Compilation"
+  },
+  {
+    "name": "攻愧集",
+    "id": "Co0229",
+    "label": "Compilation"
+  },
+  {
+    "name": "攻愧集拾遗",
+    "id": "Co0231",
+    "label": "Compilation"
+  },
+  {
+    "name": "孤篷倦客集补",
+    "id": "Co0232",
+    "label": "Compilation"
+  },
+  {
+    "name": "古本大学辑解",
+    "id": "Co0233",
+    "label": "Compilation"
+  },
+  {
+    "name": "古本竹书纪年辑校",
+    "id": "Co0234",
+    "label": "Compilation"
+  },
+  {
+    "name": "古本竹书纪年辑证",
+    "id": "Co0235",
+    "label": "Compilation"
+  },
+  {
+    "name": "古今风谣拾遗",
+    "id": "Co0236",
+    "label": "Compilation"
+  },
+  {
+    "name": "古今历法通考",
+    "id": "Co0237",
+    "label": "Compilation"
+  },
+  {
+    "name": "古今谚拾遗",
+    "id": "Co0238",
+    "label": "Compilation"
+  },
+  {
+    "name": "古今逸史",
+    "id": "Co0239",
+    "label": "Compilation"
+  },
+  {
+    "name": "古今字诂疏证",
+    "id": "Co0240",
+    "label": "Compilation"
+  },
+  {
+    "name": "古经解钩沉",
+    "id": "Co0243",
+    "label": "Compilation"
+  },
+  {
+    "name": "古经解钩沈",
+    "id": "Co0245",
+    "label": "Compilation"
+  },
+  {
+    "name": "古礼",
+    "id": "Co0246",
+    "label": "Compilation"
+  },
+  {
+    "name": "古诗辑存",
+    "id": "Co0248",
+    "label": "Compilation"
+  },
+  {
+    "name": "古史考",
+    "id": "Co0249",
+    "label": "Compilation"
+  },
+  {
+    "name": "古世本",
+    "id": "Co0252",
+    "label": "Compilation"
+  },
+  {
+    "name": "古书逸文",
+    "id": "Co0254",
+    "label": "Compilation"
+  },
+  {
+    "name": "古微书",
+    "id": "Co0256",
+    "label": "Compilation"
+  },
+  {
+    "name": "古文春秋左传",
+    "id": "Co0257",
+    "label": "Compilation"
+  },
+  {
+    "name": "古文辞类纂",
+    "id": "Co0258",
+    "label": "Compilation"
+  },
+  {
+    "name": "古文论语",
+    "id": "Co0259",
+    "label": "Compilation"
+  },
+  {
+    "name": "伪古文尚书（梅本）",
+    "id": "Co0261",
+    "label": "Compilation"
+  },
+  {
+    "name": "古文尚书",
+    "id": "Co0262",
+    "label": "Compilation"
+  },
+  {
+    "name": "古文尚书考",
+    "id": "Co0263",
+    "label": "Compilation"
+  },
+  {
+    "name": "古文尚书冤词",
+    "id": "Co0264",
+    "label": "Compilation"
+  },
+  {
+    "name": "古文孝经孔传",
+    "id": "Co0265",
+    "label": "Compilation"
+  },
+  {
+    "name": "古文选",
+    "id": "Co0266",
+    "label": "Compilation"
+  },
+  {
+    "name": "古文苑",
+    "id": "Co0267",
+    "label": "Compilation"
+  },
+  {
+    "name": "古小说钩沉",
+    "id": "Co0269",
+    "label": "Compilation"
+  },
+  {
+    "name": "古写本贞观政要残",
+    "id": "Co0270",
+    "label": "Compilation"
+  },
+  {
+    "name": "古行记校录",
+    "id": "Co0271",
+    "label": "Compilation"
+  },
+  {
+    "name": "古学经辑注",
+    "id": "Co0272",
+    "label": "Compilation"
+  },
+  {
+    "name": "古谚谣",
+    "id": "Co0273",
+    "label": "Compilation"
+  },
+  {
+    "name": "古谣谚",
+    "id": "Co0274",
+    "label": "Compilation"
+  },
+  {
+    "name": "古佚书辑本目录",
+    "id": "Co0275",
+    "label": "Compilation"
+  },
+  {
+    "name": "古易音训",
+    "id": "Co0276",
+    "label": "Compilation"
+  },
+  {
+    "name": "古逸丛书",
+    "id": "Co0277",
+    "label": "Compilation"
+  },
+  {
+    "name": "穀梁废疾申何",
+    "id": "Co0280",
+    "label": "Compilation"
+  },
+  {
+    "name": "穀梁古注",
+    "id": "Co0281",
+    "label": "Compilation"
+  },
+  {
+    "name": "顾子逸篇",
+    "id": "Co0282",
+    "label": "Compilation"
+  },
+  {
+    "name": "关中金石记",
+    "id": "Co0284",
+    "label": "Compilation"
+  },
+  {
+    "name": "观古堂汇刻书",
+    "id": "Co0285",
+    "label": "Compilation"
+  },
+  {
+    "name": "广仓",
+    "id": "Co0286",
+    "label": "Compilation"
+  },
+  {
+    "name": "广东文征",
+    "id": "Co0287",
+    "label": "Compilation"
+  },
+  {
+    "name": "广林",
+    "id": "Co0288",
+    "label": "Compilation"
+  },
+  {
+    "name": "广州府",
+    "id": "Co0289",
+    "label": "Compilation"
+  },
+  {
+    "name": "归潜志",
+    "id": "Co0290",
+    "label": "Compilation"
+  },
+  {
+    "name": "归田类稿",
+    "id": "Co0293",
+    "label": "Compilation"
+  },
+  {
+    "name": "龟城叟集辑",
+    "id": "Co0294",
+    "label": "Compilation"
+  },
+  {
+    "name": "鬼谷子",
+    "id": "Co0295",
+    "label": "Compilation"
+  },
+  {
+    "name": "桂苑珠丛",
+    "id": "Co0296",
+    "label": "Compilation"
+  },
+  {
+    "name": "郭氏传家易说",
+    "id": "Co0297",
+    "label": "Compilation"
+  },
+  {
+    "name": "郭氏玄中记",
+    "id": "Co0298",
+    "label": "Compilation"
+  },
+  {
+    "name": "国朝词综",
+    "id": "Co0299",
+    "label": "Compilation"
+  },
+  {
+    "name": "国朝汉学师承记",
+    "id": "Co0300",
+    "label": "Compilation"
+  },
+  {
+    "name": "国清百录",
+    "id": "Co0301",
+    "label": "Compilation"
+  },
+  {
+    "name": "国语贾景伯注",
+    "id": "Co0302",
+    "label": "Compilation"
+  },
+  {
+    "name": "国语三君注辑存",
+    "id": "Co0303",
+    "label": "Compilation"
+  },
+  {
+    "name": "海昌经籍志略",
+    "id": "Co0304",
+    "label": "Compilation"
+  },
+  {
+    "name": "海昌艺文志",
+    "id": "Co0305",
+    "label": "Compilation"
+  },
+  {
+    "name": "海岛算经",
+    "id": "Co0306",
+    "label": "Compilation"
+  },
+  {
+    "name": "海宁渤海陈氏著录",
+    "id": "Co0307",
+    "label": "Compilation"
+  },
+  {
+    "name": "海虞艺文志",
+    "id": "Co0308",
+    "label": "Compilation"
+  },
+  {
+    "name": "韩非子佚文",
+    "id": "Co0309",
+    "label": "Compilation"
+  },
+  {
+    "name": "韩诗故",
+    "id": "Co0310",
+    "label": "Compilation"
+  },
+  {
+    "name": "韩诗辑",
+    "id": "Co0311",
+    "label": "Compilation"
+  },
+  {
+    "name": "韩诗内传考",
+    "id": "Co0312",
+    "label": "Compilation"
+  },
+  {
+    "name": "韩诗内传征",
+    "id": "Co0313",
+    "label": "Compilation"
+  },
+  {
+    "name": "韩诗外传校注",
+    "id": "Co0314",
+    "label": "Compilation"
+  },
+  {
+    "name": "韩诗外传校注拾遗",
+    "id": "Co0315",
+    "label": "Compilation"
+  },
+  {
+    "name": "韩诗外传遗文",
+    "id": "Co0316",
+    "label": "Compilation"
+  },
+  {
+    "name": "韩诗遗说",
+    "id": "Co0317",
+    "label": "Compilation"
+  },
+  {
+    "name": "韩诗遗说考",
+    "id": "Co0318",
+    "label": "Compilation"
+  },
+  {
+    "name": "韩诗遗说续考",
+    "id": "Co0319",
+    "label": "Compilation"
+  },
+  {
+    "name": "韩子粹言",
+    "id": "Co0320",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉氾胜之遗书",
+    "id": "Co0321",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉甘露石渠礼仪",
+    "id": "Co0322",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉官",
+    "id": "Co0323",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉官典职仪式选用",
+    "id": "Co0324",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉官解诂",
+    "id": "Co0325",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉官旧仪",
+    "id": "Co0326",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉官仪",
+    "id": "Co0327",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉晋春秋辑本",
+    "id": "Co0330",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉晋各家逸史",
+    "id": "Co0331",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉旧仪",
+    "id": "Co0332",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉礼器制度",
+    "id": "Co0333",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉乾象术",
+    "id": "Co0335",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉书古注辑存",
+    "id": "Co0336",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉书艺文志拾补",
+    "id": "Co0337",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉书音义",
+    "id": "Co0338",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉唐地理书钞",
+    "id": "Co0339",
+    "label": "Compilation"
+  },
+  {
+    "name": "汉唐方志辑佚",
+    "id": "Co0340",
+    "label": "Compilation"
   }
 ]
