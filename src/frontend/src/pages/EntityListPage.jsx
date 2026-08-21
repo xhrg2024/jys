@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
@@ -102,11 +102,11 @@ function EntityListPage() {
               ))}
             </div>
             {[1, 2].map(i => (
-              <React.Fragment key={i}>
+              <Fragment key={i}>
                 <div style={{ padding: "14px 12px" }}><div style={{ background: "#ebe5d8", borderRadius: 20, height: 32, width: 80 }} /></div>
                 <div style={{ padding: "14px 12px" }} />
                 <div style={{ padding: "14px 12px" }} />
-              </React.Fragment>
+              </Fragment>
             ))}
           </div>
         </div>

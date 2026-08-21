@@ -19,14 +19,16 @@ class SessionLogger:
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_q = question[:30].replace('/', '_').replace('\\', '_').replace(':', '_')
         self.path = LOG_DIR / f"{self.timestamp}_{safe_q}.log"
-        self._lines = []
         self._closed = False
+        # 先建一个空文件（"w" 截断），后续 _write 用追加模式逐行写，
+        # 避免每次写回整个 buffer 导致的 O(n²) 磁盘 IO。
+        with open(self.path, "w", encoding="utf-8") as f:
+            pass
 
     def _write(self, text):
-        self._lines.append(text)
-        # 每次写入都刷到磁盘，防止中途崩溃丢日志
-        with open(self.path, "w", encoding="utf-8") as f:
-            f.write("\n".join(self._lines))
+        # 逐行追加并刷到磁盘，防止中途崩溃丢日志；不再全量重写已写内容
+        with open(self.path, "a", encoding="utf-8") as f:
+            f.write(text + "\n")
 
     # ── 各阶段日志方法 ──
 

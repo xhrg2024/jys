@@ -59,12 +59,12 @@ export default function EvalPage() {
     fetch("/eval/questions").then(r => r.json()).then(d => {
       setQuestions(d.questions || []);
       if (d.questions?.length && !activeQid) setActiveQid(d.questions[0].id);
-    });
+    }).catch(() => {});
     fetch("/models").then(r => r.json()).then(d => {
       setProviders(d.providers || []);
       const first = (d.providers || []).find(p => p.configured);
       if (first?.models?.length) setSelectedModel(first.models[0].id);
-    });
+    }).catch(() => {});
     loadResults();
   }, []);
 
@@ -94,7 +94,7 @@ export default function EvalPage() {
         }
       });
       setScores(sc);
-    });
+    }).catch(() => {});
   };
 
   // 获取某题某模型的已有结果
@@ -148,55 +148,75 @@ export default function EvalPage() {
     const a = answers[mk];
     const s = scores[mk];
     if (!a || !s) return;
-    await fetch("/eval/save", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        question_id: activeQid, question: activeQ.question, model: a.model || selectedModel,
-        answer: a.answer, plan_log: a.plan_log, thinking: a.thinking,
-        scores: { C: s.C || 0, D: s.D || 0, A: s.A || 0, B: s.B || 0 },
-        notes: s.notes || "",
-      }),
-    });
-    loadResults();
+    try {
+      await fetch("/eval/save", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question_id: activeQid, question: activeQ.question, model: a.model || selectedModel,
+          answer: a.answer, plan_log: a.plan_log, thinking: a.thinking,
+          scores: { C: s.C || 0, D: s.D || 0, A: s.A || 0, B: s.B || 0 },
+          notes: s.notes || "",
+        }),
+      });
+      loadResults();
+    } catch (e) {
+      console.error("保存评分失败：", e);
+    }
   };
 
   // 重置单题单模型
   const handleReset = async () => {
     const mk = modelKey(activeQid, selectedModel);
-    await fetch(`/eval/results/${activeQid}?model=${encodeURIComponent(selectedModel)}`, { method: "DELETE" });
-    setAnswers(prev => { const n = { ...prev }; delete n[mk]; return n; });
-    setScores(prev => { const n = { ...prev }; delete n[mk]; return n; });
-    loadResults();
+    try {
+      await fetch(`/eval/results/${activeQid}?model=${encodeURIComponent(selectedModel)}`, { method: "DELETE" });
+      setAnswers(prev => { const n = { ...prev }; delete n[mk]; return n; });
+      setScores(prev => { const n = { ...prev }; delete n[mk]; return n; });
+      loadResults();
+    } catch (e) {
+      console.error("重置失败：", e);
+    }
   };
 
   const handleAddQuestion = async () => {
     if (!newQuestion.trim()) return;
-    const res = await fetch("/eval/questions", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: newQuestion.trim() }),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      setQuestions(prev => [...prev, data.question]);
-      setActiveQid(data.question.id);
-      setNewQuestion("");
+    try {
+      const res = await fetch("/eval/questions", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: newQuestion.trim() }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setQuestions(prev => [...prev, data.question]);
+        setActiveQid(data.question.id);
+        setNewQuestion("");
+      }
+    } catch (e) {
+      console.error("添加题目失败：", e);
     }
   };
 
   const handleDeleteQuestion = async (qid) => {
-    await fetch(`/eval/questions/${qid}`, { method: "DELETE" });
-    setQuestions(prev => prev.filter(q => q.id !== qid));
-    if (activeQid === qid) {
-      const remaining = questions.filter(q => q.id !== qid);
-      setActiveQid(remaining[0]?.id || null);
+    try {
+      await fetch(`/eval/questions/${qid}`, { method: "DELETE" });
+      setQuestions(prev => prev.filter(q => q.id !== qid));
+      if (activeQid === qid) {
+        const remaining = questions.filter(q => q.id !== qid);
+        setActiveQid(remaining[0]?.id || null);
+      }
+      loadResults();
+    } catch (e) {
+      console.error("删除题目失败：", e);
     }
-    loadResults();
   };
 
   const handleLoadSummary = async () => {
-    const res = await fetch("/eval/summary");
-    setSummary(await res.json());
-    setTab("summary");
+    try {
+      const res = await fetch("/eval/summary");
+      setSummary(await res.json());
+      setTab("summary");
+    } catch (e) {
+      console.error("加载汇总失败：", e);
+    }
   };
 
   // ── 当前题目各模型的结果汇总 ──

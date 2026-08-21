@@ -14,7 +14,10 @@ load_dotenv(dotenv_path)
 from neo4j import GraphDatabase
 
 URI = os.environ.get("NEO4J_URI", "bolt://localhost:7688")
-AUTH = (os.environ.get("NEO4J_USER", "neo4j"), os.environ.get("NEO4J_PASSWORD", "jys123456"))
+_NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD")
+if not _NEO4J_PASSWORD:
+    raise RuntimeError("未配置 NEO4J_PASSWORD：请在项目根目录 .env 中设置")
+AUTH = (os.environ.get("NEO4J_USER", "neo4j"), _NEO4J_PASSWORD)
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
 

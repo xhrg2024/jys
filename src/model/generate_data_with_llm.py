@@ -62,11 +62,14 @@ def build_prompt(ref, question, entity_name, intent_hint=""):
 def main():
     from openai import OpenAI
 
-    # ========== 在这里配置你的 API ==========
-    API_KEY = "sk-97e7395ce4d84d619c611b3d60462c76"
-    BASE_URL = "https://api.deepseek.com"
-    MODEL = "deepseek-chat"
-    # ==========================================
+    # ========== 从环境变量读取 API 配置 ==========
+    API_KEY = os.environ.get("OPENAI_API_KEY")
+    BASE_URL = os.environ.get("OPENAI_BASE_URL", "https://api.deepseek.com")
+    MODEL = os.environ.get("LLM_MODEL", "deepseek-chat")
+    # ============================================
+
+    if not API_KEY:
+        raise SystemExit("未配置 OPENAI_API_KEY：请在 .env 或环境变量中设置后重试")
 
     print("=" * 50)
     print("用大模型生成高质量训练数据")

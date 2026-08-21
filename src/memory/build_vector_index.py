@@ -19,7 +19,10 @@ from neo4j import GraphDatabase
 from sentence_transformers import SentenceTransformer
 
 URI = os.environ.get("NEO4J_URI", "bolt://localhost:7688")
-AUTH = (os.environ.get("NEO4J_USER", "neo4j"), os.environ.get("NEO4J_PASSWORD", "jys123456"))
+_NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD")
+if not _NEO4J_PASSWORD:
+    raise RuntimeError("未配置 NEO4J_PASSWORD：请在项目根目录 .env 中设置")
+AUTH = (os.environ.get("NEO4J_USER", "neo4j"), _NEO4J_PASSWORD)
 
 def main():
     # 1. 连接 Neo4j

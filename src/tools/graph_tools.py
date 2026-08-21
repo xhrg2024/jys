@@ -12,7 +12,10 @@ load_dotenv(dotenv_path, override=True)
 from neo4j import GraphDatabase
 
 URI = os.environ.get("NEO4J_URI", "bolt://localhost:7688")
-AUTH = (os.environ.get("NEO4J_USER", "neo4j"), os.environ.get("NEO4J_PASSWORD", "jys123456"))
+_NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD")
+if not _NEO4J_PASSWORD:
+    raise RuntimeError("未配置 NEO4J_PASSWORD：请在项目根目录 .env 中设置")
+AUTH = (os.environ.get("NEO4J_USER", "neo4j"), _NEO4J_PASSWORD)
 
 _driver = None
 # 属性中文映射（模块级，供 _format_entity 与 /reference/graph 共用）
@@ -31,6 +34,7 @@ KEY_CN = {
     # 学者相关
     "school": "学派", "academicLineage": "学术传承", "courtesyName": "字号",
     "courtesy name": "字号", "birthDeath": "生卒年", "nativePlace": "籍贯",
+    "birthplace": "籍贯", "lifespan": "生卒年",
     "academicPosition": "学术地位", "academicRole": "学术角色",
     "academicImpact": "学术影响", "author": "作者", "editor": "编者",
     "organizer": "编纂者", "pseudonym": "别号",
@@ -92,13 +96,19 @@ def _get_driver():
     return _driver
 
 
+class GraphDBError(Exception):
+    """Neo4j 图数据库不可用或查询失败（区别于「查无结果」的空列表）。"""
+
+
 def _run(cypher, **params):
-    with _get_driver().session() as session:
-        try:
+    try:
+        with _get_driver().session() as session:
             return list(session.run(cypher, **params))
-        except Exception as e:
-            print(f"[Neo4j] Cypher 执行失败: {e}")
-            return []
+    except GraphDBError:
+        raise
+    except Exception as e:
+        print(f"[Neo4j] Cypher 执行失败: {e}")
+        raise GraphDBError(f"Neo4j 数据库不可用或查询失败: {e}") from e
 
 
 def _format_entity(rec, prefix="e"):
@@ -131,6 +141,30 @@ def query_entity_by_name(name):
     for r in results:
         parts.append(_format_entity(r))
     return "；\n".join(parts)
+
+
+def query_entity_detail(name):
+    """按名称返回实体结构化详情：{id, name, label, properties}。
+    properties 的 key 已用 KEY_CN 映射为中文，值保留原始类型（含列表）。
+    供前端结构化渲染实体信息卡；查无结果返回 None。
+    """
+    results = _run("MATCH (e:Entity {name: $name}) RETURN e", name=name)
+    if not results:
+        return None
+    node = results[0]["e"]
+    d = dict(node)
+    name_val = d.pop("name", "")
+    eid = d.pop("id", "")
+    d.pop("embedding", None)
+    # 剔除内部/冗余字段（多标签合并产生的噪音）
+    for noise in ["mergedFromIds", "allDescriptions", "allCompilers",
+                  "allCompilationPeriods", "allLabels", "allPeriodValues",
+                  "allCompletionPeriods", "allEditionInfo"]:
+        d.pop(noise, None)
+    labels = [l for l in node.labels if l != "Entity"]
+    label = labels[0] if labels else "Entity"
+    props = {KEY_CN.get(k, k): v for k, v in d.items() if v}
+    return {"id": eid, "name": name_val, "label": label, "properties": props}
 
 
 def query_entity_relations(entity_id, limit=None):

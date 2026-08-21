@@ -15,8 +15,14 @@ load_dotenv(dotenv_path)
 from neo4j import GraphDatabase
 from sentence_transformers import SentenceTransformer
 
+# 复用图谱层的属性中文映射，保证向量检索返回的属性 key 与图谱一致
+from .graph_tools import KEY_CN
+
 URI = os.environ.get("NEO4J_URI", "bolt://localhost:7688")
-AUTH = (os.environ.get("NEO4J_USER", "neo4j"), os.environ.get("NEO4J_PASSWORD", "jys123456"))
+_NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD")
+if not _NEO4J_PASSWORD:
+    raise RuntimeError("未配置 NEO4J_PASSWORD：请在项目根目录 .env 中设置")
+AUTH = (os.environ.get("NEO4J_USER", "neo4j"), _NEO4J_PASSWORD)
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "embeddings", "bge-large-zh-v1.5")
 
 _model = None
@@ -115,8 +121,40 @@ def _format_entity_node(node, score=None):
     return body
 
 
+def _format_entity_compact(node, score=None):
+    """向量检索结果：返回实体名 + 类型标签 + 完整属性 + 相似度。
+
+    向量检索是"语义兜底"，且普通检索流程（非深度思考）也会调用；
+    若这里只返回实体名，普通流程不会再补查 kg_explore_entity 取属性，
+    导致 agent 拿到名字却没有实体内容。因此直接下发完整属性。
+    """
+    d = dict(node)
+    name = d.pop("name", "")
+    d.pop("id", "")
+    d.pop("embedding", None)
+    # 过滤内部/冗余字段（多标签合并产生的噪音）
+    for noise in ("mergedFromIds", "allDescriptions", "allCompilers",
+                  "allCompilationPeriods", "allLabels", "allPeriodValues",
+                  "allCompletionPeriods", "allEditionInfo"):
+        d.pop(noise, None)
+    type_labels = [lbl for lbl in node.labels if lbl != "Entity"]
+    type_str = type_labels[0] if type_labels else ""
+    props = []
+    for k, v in d.items():
+        if not v:
+            continue
+        zh = KEY_CN.get(k, k)
+        props.append(f"{zh}：{v}")
+    prop_str = "；".join(props)
+    head = f"{name}（{type_str}）" if type_str else name
+    body = f"{head}（{prop_str}）" if prop_str else head
+    if score is not None:
+        return f"{body} [向量相似度: {score:.2f}]"
+    return body
+
+
 def vector_search(query, k=5):
-    """语义搜索 top-k 相似实体，返回实体完整属性而非仅名称"""
+    """语义搜索 top-k 相似实体，仅返回实体名 + 类型 + 相似度（不返回完整属性）"""
     try:
         model = _get_model()
         vec = model.encode([query], normalize_embeddings=True)[0].tolist()
@@ -133,13 +171,16 @@ def vector_search(query, k=5):
             for r in results:
                 node = r["node"]
                 score = r["score"]
+                # 余弦相似度理论范围 [-1,1]（归一化向量为 [0,1]），
+                # 但索引开启 vector.quantization 后 ANN 近似分可能略超 1.0（如 1.01），夹回 [0,1]。
+                score = min(max(score, 0.0), 1.0)
                 if score < 0.60:  # 过滤低相关度结果
                     continue
-                hits.append(_format_entity_node(node, score))
+                hits.append(_format_entity_compact(node, score))
 
         if not hits:
             return "未找到语义相关实体。"
-        return "语义匹配结果（含属性）：\n" + "\n".join(hits)
+        return "语义匹配结果：\n" + "\n".join(hits)
     except Exception as e:
         print(f"[Vector] 向量搜索失败: {e}")
         return "向量搜索失败"

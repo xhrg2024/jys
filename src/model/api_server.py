@@ -15,30 +15,61 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=True)
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import iterate_in_threadpool
+from pydantic import BaseModel, Field
 from typing import Optional
 import json
 
-from model.generator import Generator, list_providers
+from model.generator import Generator, list_providers, MAX_QUESTION_LEN
 from tools import graph_tools, vector_tools, sql_tools
+from utils.report_generator import REPORT_DIR, generate_report_from_session
+from utils.graph_import import import_graph_incremental
 
-app = FastAPI(title="辑佚史智能体")
+# ========== 鉴权与跨域配置 ==========
+API_TOKEN = os.environ.get("API_TOKEN", "").strip()
 
-# CORS 配置
+# 无需鉴权的路径：根路径、健康检查、文档；静态资源由 StaticFiles 挂载自动绕过依赖
+_PUBLIC_PATHS = {"/", "/health", "/docs", "/openapi.json", "/redoc"}
+
+
+def _internal_error(e):
+    """把真实异常只写到服务端日志，对外返回通用 500。
+    避免把文件路径、DB 报错、堆栈等细节泄露给客户端（M5）。
+    """
+    print(f"[API] 内部错误 {type(e).__name__}: {e}")
+    return HTTPException(status_code=500, detail="服务器内部错误，请稍后重试")
+
+
+async def require_auth(request: Request):
+    """可选 Bearer Token 鉴权：
+    - 未配置 API_TOKEN：普通接口开放，/eval/* 禁用（403）
+    - 已配置 API_TOKEN：除健康检查/文档/静态资源外，均需 Authorization: Bearer <token>
+    """
+    path = request.url.path
+    if path in _PUBLIC_PATHS or path.startswith(("/assets/", "/favicon")):
+        return
+    if not API_TOKEN:
+        if path.startswith("/eval"):
+            raise HTTPException(status_code=403, detail="评估接口未启用：请在 .env 设置 API_TOKEN 后重启")
+        return
+    if request.headers.get("Authorization", "") != f"Bearer {API_TOKEN}":
+        raise HTTPException(status_code=401, detail="未授权：请提供有效的 Authorization: Bearer <token>")
+
+
+app = FastAPI(title="辑佚史智能体", dependencies=[Depends(require_auth)])
+
+# CORS 配置：默认仅同源（生产由 FastAPI 托管前端，无需跨域）；跨域需显式配置 CORS_ORIGINS
+CORS_ORIGINS = [o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.get("/")
-def root():
-    return {"message": "辑佚史智能体 API", "docs": "/docs"}
 
 
 generator = Generator()
@@ -47,9 +78,10 @@ generator = Generator()
 # ========== 问答接口 ==========
 
 class ChatRequest(BaseModel):
-    question: str
+    question: str = Field(..., max_length=MAX_QUESTION_LEN)  # 限长：防提示注入 + 成本放大
     use_api: Optional[bool] = None   # None=默认, True=API, False=本地
     model: Optional[str] = None      # 指定 API 模型，如 "deepseek-chat", "glm-4-plus"
+    deep: Optional[bool] = None      # 深度思考模式：RACE 定框架 + 多轮自主检索
 
 
 class ChatResponse(BaseModel):
@@ -69,27 +101,46 @@ def get_models():
 @app.post("/chat")
 def chat(req: ChatRequest):
     try:
-        answer, plan_log = generator.answer(
+        answer, plan_log, thinking = generator.answer(
             req.question, use_api=req.use_api, model_id=req.model
         )
         effective = generator.use_api if req.use_api is None else req.use_api
         mode = "api" if effective else "local"
-        thinking = getattr(generator, 'last_thinking', None)
+        effective_model = req.model or generator.model_id
         return ChatResponse(
             answer=answer, plan_log=plan_log, mode=mode,
-            model=generator.model_id, thinking=thinking,
+            model=effective_model, thinking=thinking,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"推理失败: {str(e)}")
+        raise _internal_error(e)
 
 
 @app.post("/chat/stream")
-def chat_stream(req: ChatRequest):
-    """SSE 流式问答接口：逐 token 推送思考过程和回答"""
-    def event_stream():
-        for event in generator.answer_stream(req.question, model_id=req.model):
-            yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+def chat_stream(req: ChatRequest, request: Request):
+    """SSE 流式问答接口：逐 token 推送思考过程和回答。
+    客户端断开（关页面/取消请求）后立即停止生成，避免模型继续烧 token。
+    """
+    async def event_stream():
+        gen = generator.answer_stream(req.question, model_id=req.model, deep=req.deep)
+        try:
+            # 在线程池中推进同步生成器（不阻塞事件循环），
+            # 每产出一个事件检查一次客户端是否还连着。
+            async for event in iterate_in_threadpool(gen):
+                if await request.is_disconnected():
+                    break
+                yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+        finally:
+            # 断开/异常/结束时关闭生成器，触发上游 LLM 连接关闭，避免继续生成烧 token
+            gen.close()
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # 禁用 Nginx 等反代的响应缓冲，保证逐 token 实时推送
+        },
+    )
 
 
 # ========== 实体接口 ==========
@@ -120,17 +171,19 @@ def get_entities(label: Optional[str] = None):
             })
         return {"entities": entities, "count": len(entities)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
 
 @app.get("/entity/{name}")
 def get_entity(name: str):
-    """按名称获取单个实体详情"""
+    """按名称获取单个实体结构化详情（properties 已中文映射）"""
     try:
-        result = graph_tools.query_entity_by_name(name)
-        return {"name": name, "info": result}
+        detail = graph_tools.query_entity_detail(name)
+        if detail is None:
+            return {"name": name, "id": None, "label": None, "properties": {}}
+        return detail
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
 
 @app.get("/entity/{name}/relations")
@@ -145,7 +198,7 @@ def get_entity_relations(name: str):
         result = graph_tools.query_entity_relations(entity_id)
         return {"entity": name, "relations": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
 
 # ========== 路径查询接口 ==========
@@ -157,13 +210,13 @@ def find_path(source: str, target: str):
         result = graph_tools.query_relation_between(source, target)
         return {"source": source, "target": target, "path": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
 
 # ========== 搜索接口 ==========
 
 @app.get("/search")
-def search_entities(q: str, limit: int = 10):
+def search_entities(q: str, limit: int = Query(10, ge=1, le=100)):
     """搜索实体（精确+模糊匹配）"""
     try:
         # 精确匹配
@@ -181,19 +234,19 @@ def search_entities(q: str, limit: int = 10):
             })
         return {"query": q, "results": entities, "count": len(entities)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
 
 # ========== 向量搜索接口 ==========
 
 @app.get("/vector_search")
-def vector_search_api(q: str, k: int = 5):
+def vector_search_api(q: str, k: int = Query(5, ge=1, le=50)):
     """语义搜索实体"""
     try:
         result = vector_tools.vector_search(q, k=k)
         return {"query": q, "result": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
 
 # ========== 统计接口 ==========
@@ -219,13 +272,13 @@ def get_stats():
             "entity_types": types,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
 
 # ========== 图谱数据接口 ==========
 
 @app.get("/graph")
-def get_graph(name: Optional[str] = None, depth: int = 1, limit: int = 50):
+def get_graph(name: Optional[str] = None, depth: int = Query(1, ge=1, le=5), limit: int = Query(50, ge=1, le=200)):
     """
     获取知识图谱数据
     - name: 中心节点名称（不传则返回随机子图）
@@ -309,7 +362,7 @@ def get_graph(name: Optional[str] = None, depth: int = 1, limit: int = 50):
 
         return {"nodes": nodes, "edges": edges}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
 
 # ========== SQL 查询接口 ==========
@@ -321,7 +374,7 @@ def sql_search_document(title: str):
         result = sql_tools.query_document_by_title(title)
         return {"query": title, "result": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
 
 @app.get("/sql/author")
@@ -331,7 +384,7 @@ def sql_search_author(name: str):
         result = sql_tools.query_author_by_name(name)
         return {"query": name, "result": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
 
 @app.get("/sql/document_detail")
@@ -341,17 +394,17 @@ def sql_document_detail(title: str):
         result = sql_tools.query_document_with_authors(title)
         return {"query": title, "result": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
 
 @app.get("/sql/text_search")
-def sql_text_search(keyword: str, limit: int = 10):
+def sql_text_search(keyword: str, limit: int = Query(10, ge=1, le=50)):
     """全文关键词搜索"""
     try:
         result = sql_tools.query_full_text_by_keyword(keyword, limit=limit)
         return {"query": keyword, "result": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
 
 @app.get("/sql/stats")
@@ -361,7 +414,7 @@ def sql_stats():
         stats = sql_tools.get_stats()
         return stats
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
 
 @app.get("/health")
@@ -369,7 +422,68 @@ def health():
     return {"status": "ok"}
 
 
+# ========== JSON 知识图谱导入 ==========
+
+class GraphImportRequest(BaseModel):
+    entities: list
+    relations: list
+
+
+@app.post("/import/graph")
+def import_graph(req: GraphImportRequest):
+    """增量导入 JSON 知识图谱（data.json 格式），并重算涉及实体的 embedding。
+    按 id MERGE 去重，不清空现有数据。
+    """
+    try:
+        return import_graph_incremental(req.entities, req.relations)
+    except Exception as e:
+        raise _internal_error(e)
+
+
+# ========== 深度思考分析报告生成 ==========
+
+class ReportGenerateRequest(BaseModel):
+    session_id: str
+
+
+@app.post("/report/generate")
+def generate_report(req: ReportGenerateRequest):
+    """根据已保存的深度思考会话数据，按需生成 Word 报告并直接返回下载。
+    仅在用户点击「生成报告」时触发，避免每次深度思考都落盘 docx。
+    """
+    safe_id = os.path.basename(req.session_id)  # 防路径穿越
+    try:
+        path = generate_report_from_session(safe_id)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="报告数据不存在或已过期")
+    except Exception as e:
+        raise _internal_error(e)
+    return FileResponse(
+        path,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        filename=f"{safe_id}.docx",
+    )
+
+
 # ========== 参考资料接口 ==========
+
+def _entity_props(entity_node):
+    """从实体节点提取 (name, props)：name 为实体名，props 为中文 key 的属性列表。"""
+    d = dict(entity_node)
+    d.pop("id", None)
+    name = d.pop("name", "")
+    d.pop("embedding", None)
+    noise = {"mergedFromIds", "allDescriptions", "allCompilers",
+             "allCompilationPeriods", "allLabels", "allPeriodValues",
+             "allCompletionPeriods", "allEditionInfo"}
+    props = []
+    for k, v in d.items():
+        if not v or k in noise:
+            continue
+        zh = graph_tools.KEY_CN.get(k, k) if hasattr(graph_tools, 'KEY_CN') else k
+        props.append({"key": zh, "value": str(v)})
+    return name, props
+
 
 @app.get("/reference/graph")
 def reference_graph(entity_name: Optional[str] = None, entity_id: Optional[str] = None, depth: int = 2):
@@ -402,20 +516,7 @@ def reference_graph(entity_name: Optional[str] = None, entity_id: Optional[str] 
         entity_type = biz_label[0] if biz_label else "Entity"
 
         # 提取属性列表（中文key）
-        props = []
-        d = dict(entity_node)
-        d.pop("id", None)
-        name = d.pop("name", "")
-        d.pop("embedding", None)
-        # 噪音字段
-        noise = {"mergedFromIds", "allDescriptions", "allCompilers",
-                 "allCompilationPeriods", "allLabels", "allPeriodValues",
-                 "allCompletionPeriods", "allEditionInfo"}
-        for k, v in d.items():
-            if not v or k in noise:
-                continue
-            zh = graph_tools.KEY_CN.get(k, k) if hasattr(graph_tools, 'KEY_CN') else k
-            props.append({"key": zh, "value": str(v)})
+        name, props = _entity_props(entity_node)
 
         # 图谱数据（多跳邻居）：BFS 标记 hop 层级，并限制每节点邻居数，避免"线缠在一起"
         import random
@@ -494,7 +595,74 @@ def reference_graph(entity_name: Optional[str] = None, entity_id: Optional[str] 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
+
+
+@app.get("/reference/relation")
+def reference_relation(source: Optional[str] = None, target: Optional[str] = None):
+    """获取图谱一条关系的参考资料：两端实体各自完整属性 + 关系信息 + 仅含两节点的子图。
+    供前端点击边后展示「两个节点各自信息 + 这条线代表的信息」，力导向图只显示这两个节点与这条边。
+    """
+    if not source or not target:
+        raise HTTPException(status_code=400, detail="需要提供 source 与 target（实体 id）")
+    try:
+        from tools.graph_tools import _run
+        a_recs = _run("MATCH (e:Entity {id: $id}) RETURN e", id=source)
+        b_recs = _run("MATCH (e:Entity {id: $id}) RETURN e", id=target)
+        if not a_recs or not b_recs:
+            raise HTTPException(status_code=404, detail="未找到关系两端的实体")
+
+        def _node_struct(node):
+            nid = node.get("id", "")
+            biz = [l for l in node.labels if l != "Entity"]
+            label = biz[0] if biz else "Entity"
+            name, props = _entity_props(node)
+            return {
+                "id": nid, "name": name, "label": label,
+                "entity_name": name, "entity_type": label,
+                "properties": props,
+            }
+
+        # 关系信息：优先 source→target 方向，若不存在则取反向
+        rel = _run(
+            "MATCH (a:Entity {id: $s})-[r]->(b:Entity {id: $t}) "
+            "RETURN type(r) AS type, r.description AS desc",
+            s=source, t=target
+        )
+        if not rel:
+            rel = _run(
+                "MATCH (a:Entity {id: $t})-[r]->(b:Entity {id: $s}) "
+                "RETURN type(r) AS type, r.description AS desc",
+                s=source, t=target
+            )
+        rel_type = rel[0]["type"] if rel else ""
+        rel_desc = (rel[0].get("desc") or "") if rel else ""
+
+        source_struct = _node_struct(a_recs[0]["e"])
+        target_struct = _node_struct(b_recs[0]["e"])
+
+        nodes = [
+            {"id": source_struct["id"], "name": source_struct["name"],
+             "label": source_struct["label"], "is_center": False, "hop": 1},
+            {"id": target_struct["id"], "name": target_struct["name"],
+             "label": target_struct["label"], "is_center": False, "hop": 1},
+        ]
+        edges = [{
+            "source": source_struct["id"], "target": target_struct["id"],
+            "type": rel_type, "description": rel_desc,
+        }]
+
+        return {
+            "kind": "relation",
+            "source": source_struct,
+            "target": target_struct,
+            "relation": {"type": rel_type, "description": rel_desc},
+            "graph": {"nodes": nodes, "edges": edges},
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise _internal_error(e)
 
 
 @app.get("/reference/sql")
@@ -606,7 +774,7 @@ def reference_sql(title: Optional[str] = None, author_name: Optional[str] = None
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
 
 # ========== 评估接口 ==========
@@ -690,16 +858,15 @@ def eval_run(body: dict):
     question = body.get("question", "")
     model_id = body.get("model")
     try:
-        answer, plan_log = generator.answer(question, use_api=True, model_id=model_id)
-        thinking = getattr(generator, 'last_thinking', None)
+        answer, plan_log, thinking = generator.answer(question, use_api=True, model_id=model_id)
         return {
             "answer": answer,
             "plan_log": plan_log,
-            "model": generator.model_id,
+            "model": model_id or generator.model_id,
             "thinking": thinking,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"调用失败: {str(e)}")
+        raise _internal_error(e)
 
 
 @app.post("/eval/save")
@@ -771,7 +938,17 @@ def get_eval_summary():
     return {"summary": summary, "total_results": len(results)}
 
 
+# ========== 前端静态资源（生产构建产物 dist/） ==========
+# 挂载在最后，确保所有 /api 风格路由已注册、优先匹配；StaticFiles 子应用自动绕过鉴权依赖
+_DIST_DIR = Path(__file__).resolve().parents[2] / "src" / "frontend" / "dist"
+if _DIST_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=str(_DIST_DIR), html=True), name="frontend")
+else:
+    print("[warn] 未找到前端构建产物 src/frontend/dist/，仅提供 API 服务（开发请用 npm run dev）")
+
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("API_PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    host = os.environ.get("API_HOST", "127.0.0.1")
+    uvicorn.run(app, host=host, port=port)

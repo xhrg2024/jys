@@ -13,6 +13,7 @@ import GlobalBrowsePage from "./pages/GlobalBrowsePage";
 import ResearchSection from "./pages/ResearchSection";
 import DataDownloadPage from "./pages/DataDownloadPage";
 import EvalPage from "./pages/EvalPage";
+import ImportPage from "./pages/ImportPage";
 
 /* ─────────────── MAIN APP ─────────────── */
 export default function App() {
@@ -33,6 +34,7 @@ export default function App() {
   const isResearchPage = page.startsWith("research");
   const isDownloadPage = page === "data-download";
   const isEvalPage = page === "eval";
+  const isImportPage = page === "import";
 
   const renderResourceContent = () => {
     const tab = resourceTab;
@@ -71,6 +73,8 @@ export default function App() {
           <DataDownloadPage navigate={navigate} />
         ) : isEvalPage ? (
           <EvalPage />
+        ) : isImportPage ? (
+          <ImportPage navigate={navigate} />
         ) : isResearchPage ? (
           <ResearchSection navigate={navigate} />
         ) : (

@@ -2,6 +2,13 @@ import { useState, useEffect } from "react";
 import C from "../constants/colors";
 import KnowledgeGraph from "../components/KnowledgeGraph";
 
+// 实体类型 label → 中文（展示用）
+const LABEL_CN = {
+  Scholar: "学者", Compilation: "辑本", Time: "时期", Method: "方法",
+  Methodology: "方法", Academic: "学术", Leishu: "类书", Entity: "实体",
+};
+const fmtVal = (v) => (Array.isArray(v) ? v.filter(Boolean).join("、") : String(v ?? ""));
+
 function GlobalBrowsePage({ navigate }) {
   const [entities, setEntities] = useState([]);
   const [filteredEntities, setFilteredEntities] = useState([]);
@@ -14,6 +21,7 @@ function GlobalBrowsePage({ navigate }) {
   const [graphNodes, setGraphNodes] = useState([]);
   const [graphEdges, setGraphEdges] = useState([]);
   const [graphLoading, setGraphLoading] = useState(false);
+  const [selectedRelation, setSelectedRelation] = useState(null);
 
   // 获取所有实体
   useEffect(() => {
@@ -43,7 +51,7 @@ function GlobalBrowsePage({ navigate }) {
   const loadGraph = (entityName) => {
     setGraphLoading(true);
     const url = entityName
-      ? `/graph?name=${encodeURIComponent(entityName)}&depth=1&limit=30`
+      ? `/graph?name=${encodeURIComponent(entityName)}&depth=2&limit=60`
       : `/graph?limit=20`;
     fetch(url)
       .then(res => res.json())
@@ -65,6 +73,7 @@ function GlobalBrowsePage({ navigate }) {
 
   const handleSelectEntity = async (entity) => {
     setSelectedEntity(entity);
+    setSelectedRelation(null); // 切换实体时清空已选关系
     // 加载该实体的图谱
     loadGraph(entity.name);
     try {
@@ -171,11 +180,13 @@ function GlobalBrowsePage({ navigate }) {
               <KnowledgeGraph
                 nodes={graphNodes}
                 edges={graphEdges}
+                layout="force"
                 onNodeClick={(node) => {
                   if (node) {
                     handleSelectEntity({ name: node.name, id: node.id, labels: [node.label] });
                   }
                 }}
+                onEdgeClick={(edge) => { if (edge) setSelectedRelation(edge); }}
                 selected={selectedEntity?.id}
               />
             </div>
@@ -185,12 +196,42 @@ function GlobalBrowsePage({ navigate }) {
         <div style={{ width: 280, background: C.white, borderRadius: 12, border: `1px solid ${C.border}`, padding: 16, overflow: "auto", maxHeight: 500 }}>
           {entityInfo ? (
             <>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: C.text, margin: "0 0 12px", fontFamily: "'Noto Serif SC', serif" }}>
-                {selectedEntity?.name}
-              </h3>
-              <div style={{ fontSize: 12, color: C.text, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>
-                {entityInfo.info}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: C.text, margin: 0, fontFamily: "'Noto Serif SC', serif" }}>
+                  {entityInfo.name || selectedEntity?.name}
+                </h3>
+                {entityInfo.label && (
+                  <span style={{ fontSize: 10, color: C.brownBtn, background: "rgba(138,69,32,0.08)", padding: "1px 8px", borderRadius: 10, border: "1px solid rgba(138,69,32,0.2)" }}>
+                    {LABEL_CN[entityInfo.label] || entityInfo.label}
+                  </span>
+                )}
               </div>
+              {entityInfo.properties && Object.keys(entityInfo.properties).length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {Object.entries(entityInfo.properties).map(([k, v]) => (
+                    <div key={k} style={{ background: "#faf7f0", borderRadius: 6, padding: "6px 10px", border: `1px solid ${C.borderL}` }}>
+                      <div style={{ fontSize: 10.5, color: C.textL, marginBottom: 2 }}>{k}</div>
+                      <div style={{ fontSize: 12, color: C.text, lineHeight: 1.5 }}>{fmtVal(v)}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: 12, color: C.textL }}>暂无属性信息</div>
+              )}
+
+              {selectedRelation && (
+                <div style={{ marginTop: 12, background: "rgba(138,69,32,0.04)", borderRadius: 8, border: "1px solid rgba(138,69,32,0.2)", padding: 10 }}>
+                  <div style={{ fontSize: 10.5, color: C.textL, marginBottom: 4 }}>关系详情</div>
+                  <div style={{ fontSize: 12.5, color: C.text, fontWeight: 600, lineHeight: 1.5 }}>
+                    {selectedRelation.fromName}
+                    <span style={{ color: C.brownBtn, margin: "0 4px" }}>—{selectedRelation.type || "相关"}→</span>
+                    {selectedRelation.toName}
+                  </div>
+                  {selectedRelation.description && (
+                    <div style={{ fontSize: 11.5, color: C.textM, marginTop: 4, lineHeight: 1.6 }}>{selectedRelation.description}</div>
+                  )}
+                </div>
+              )}
             </>
           ) : (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: C.textL, fontSize: 13 }}>

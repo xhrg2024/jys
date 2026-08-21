@@ -19,7 +19,7 @@ pip install -r requirements.txt
 # 1. 启动 Neo4j
 cd neo4j-community-5.26.5 && ./bin/neo4j start
 
-neo4j密码 jys123456
+neo4j密码（见 .env 的 NEO4J_PASSWORD）
 
 查看状态
 ~/jys-agent/neo4j/neo4j-community-5.26.5/bin/neo4j status
@@ -167,7 +167,7 @@ mysql -u root -p < "250905.sql"
 
 mysql -u root -p
 
-CREATE USER 'jys_agent'@'localhost' IDENTIFIED BY 'jys123456';
+CREATE USER 'jys_agent'@'localhost' IDENTIFIED BY '<你的密码>';
 GRANT SELECT ON leishu_yongle.* TO 'jys_agent'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
@@ -182,7 +182,7 @@ ssh -R 3307:localhost:3306 wj@162.105.19.120
 DB_HOST = "localhost"
 DB_PORT = 3307
 DB_USER = "jys_agent"
-DB_PASSWORD = "jys123456"
+DB_PASSWORD = "<你的密码>"
 DB_NAME = "leishu_yongle"
 
 ```

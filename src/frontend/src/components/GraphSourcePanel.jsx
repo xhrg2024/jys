@@ -5,7 +5,7 @@ import C from "../constants/colors";
  * 图谱参考资料面板：实体属性卡片 + 2跳邻居网状图。
  * props.data = { entity_name, entity_type, properties: [{key, value}], graph: {nodes, edges} }
  */
-function GraphSourcePanel({ data, sourceData, onNodeClick, trail, onTrailClick }) {
+function GraphSourcePanel({ data, sourceData, onNodeClick, onEdgeClick, trail, onTrailClick }) {
   if (!data) return null;
 
   const { entity_name, entity_type, properties, graph } = data;
@@ -116,6 +116,7 @@ function GraphSourcePanel({ data, sourceData, onNodeClick, trail, onTrailClick }
               layout="force"
               height="100%"
               onNodeClick={(node) => node && onNodeClick && onNodeClick(node)}
+              onEdgeClick={(edge) => edge && onEdgeClick && onEdgeClick(edge)}
             />
           ) : (
             <div style={{

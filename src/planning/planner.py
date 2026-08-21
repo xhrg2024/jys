@@ -230,8 +230,10 @@ class Planner:
                 # 日志：完整工具结果（不截断）
                 if logger:
                     logger.log_tool_result(name, result)
-                # 纯"未找到"结果不作为可引用来源（仍保留在日志中供排查）
-                if "未找到" in result:
+                # 纯"未找到"结果不作为可引用来源（仍保留在日志中供排查）。
+                # 图谱负结果用「未在知识图谱中找到」，不含「未找到」二字，需单独过滤，
+                # 否则负结果漏进 prompt 浪费上下文。「向量搜索失败」是硬错误信号，不过滤。
+                if "未找到" in result or "未在知识图谱中找到" in result:
                     continue
                 # 按工具名前缀分类到 graph / vector / sql
                 if name.startswith("kg_"):
@@ -239,7 +241,20 @@ class Planner:
                 elif name == "vector_search":
                     vector_results.append(result)
                 else:
-                    sql_results.append(f"[{name}] {result}")
+                    # SQL 工具：把关键参数内嵌进前缀（如 [search_full_text:校勘]、
+                    # [browse_documents:综合性类书,明]），供 _merge 生成尾注/复用缓存时提取。
+                    args = tr.get("args") or {}
+                    if name in ("search_full_text", "search_titles") and args.get("keyword"):
+                        sql_results.append(f"[{name}:{args['keyword']}] {result}")
+                    elif name == "browse_documents":
+                        cat = args.get("category") or ""
+                        dyn = args.get("dynasty") or ""
+                        if cat or dyn:
+                            sql_results.append(f"[{name}:{cat},{dyn}] {result}")
+                        else:
+                            sql_results.append(f"[{name}] {result}")
+                    else:
+                        sql_results.append(f"[{name}] {result}")
             print(f"[Planner] Tool-Calling: "
                   f"{len(graph_results)} graph, {len(sql_results)} sql, {len(vector_results)} vector")
 
@@ -347,7 +362,12 @@ class Planner:
     # ── 多跳查询 (5.2) ──
 
     def _multi_hop(self, seed_entities, max_hops=3):
-        """从种子实体出发，迭代查询多跳邻域。遇到环路或最大跳数停止。"""
+        """从种子实体出发，迭代查询多跳邻域。遇到环路或最大跳数停止。
+
+        批量查询：每一跳只发 2 次 Cypher（本层属性 + 本层关系/邻居），
+        而非每实体 3 次往返——否则 frontier 按「每实体 3 邻居」指数扩张时，
+        会放大成 ~78 次 N+1 查询。
+        """
         visited_ids = set()
         all_results = []
         frontier = [(e["id"], e["name"]) for e in seed_entities if e.get("id")]
@@ -355,28 +375,55 @@ class Planner:
         for hop in range(max_hops):
             if not frontier:
                 break
-            next_frontier = []
-            for eid, ename in frontier:
-                if eid in visited_ids:
-                    continue
+            # 去掉本层已访问过的实体（只处理首次出现的）
+            frontier = [(eid, ename) for eid, ename in frontier if eid not in visited_ids]
+            if not frontier:
+                break
+            ids = [eid for eid, _ in frontier]
+            for eid, _ in frontier:
                 visited_ids.add(eid)
 
-                # 查实体属性
-                entity_text = graph_tools.query_entity_by_name(ename)
-                if entity_text and entity_text not in all_results:
-                    all_results.append(entity_text)
+            # 1) 批量查本层实体属性（按 id 精确定位，避免同名实体歧义）
+            prop_recs = graph_tools._run("MATCH (e) WHERE e.id IN $ids RETURN e", ids=ids)
+            for rec in prop_recs:
+                text = graph_tools._format_entity(rec)
+                if text and text not in all_results:
+                    all_results.append(text)
 
-                # 查一跳关系（自然语言，供 C 段显示，限制数量）
-                rel_text = graph_tools.query_entity_relations(eid, limit=10)
-                if rel_text and rel_text not in all_results:
-                    all_results.append(rel_text)
+            # 2) 批量查关系 + 邻居（一次往返同时拿到关系文本和下一跳候选）
+            rel_recs = graph_tools._run(
+                "MATCH (e)-[r]-(n) WHERE e.id IN $ids "
+                "RETURN e.id AS eid, e.name AS entity, type(r) AS rel_type, "
+                "r.description AS desc, n.name AS neighbor, n.id AS nid",
+                ids=ids,
+            )
+            rel_by_entity = {}
+            next_candidates = {}
+            for r in rel_recs:
+                eid = r["eid"]
+                desc = f"（{r['desc']}）" if r["desc"] else ""
+                rel_by_entity.setdefault(eid, []).append(
+                    f"{r['entity']} → {r['rel_type']} → {r['neighbor']}{desc}"
+                )
+                if r["nid"] and r["nid"] not in visited_ids:
+                    next_candidates.setdefault(eid, []).append((r["nid"], r["neighbor"]))
 
-                # 结构化查邻居（精确 ID，供下一跳），每实体最多扩展 3 个邻居
-                neighbors = graph_tools.get_neighbor_struct(eid)
-                for nname, nid in neighbors[:3]:
-                    if nid not in visited_ids:
+            # 本层关系文本（每实体最多 10 条，供 C 段显示）
+            for eid, _ in frontier:
+                lines = rel_by_entity.get(eid, [])[:10]
+                if lines:
+                    text = "\n".join(lines)
+                    if text not in all_results:
+                        all_results.append(text)
+
+            # 下一跳：每实体最多扩展 3 个邻居（保持原语义，限制 frontier 指数增长）
+            next_frontier = []
+            seen_next = set()
+            for eid, _ in frontier:
+                for nid, nname in next_candidates.get(eid, [])[:3]:
+                    if nid not in seen_next and nid not in visited_ids:
+                        seen_next.add(nid)
                         next_frontier.append((nid, nname))
-
             frontier = next_frontier
 
         return all_results
@@ -469,9 +516,10 @@ class Planner:
         # 如果实体链路没找到文献，用关键词兜底
         if not results:
             results.extend(self._sql_keyword_fallback(question))
-        # 朝代文献浏览
+        # 朝代文献浏览：仅匹配多字朝代名（「明代」「清代」…），
+        # 跳过单字「明/元/唐/汉」等，避免在「说明」「公元」「荒唐」「汉子」等词中确定性误命中。
         for name in DYNASTY_TO_DB:
-            if name in question:
+            if len(name) > 1 and name in question:
                 res = self._search_dynasty(name)
                 if res:
                     results.append(f"[SQL {name}文献] {res}")
@@ -673,11 +721,14 @@ class Planner:
     def _extract_author_name(text):
         """从SQL作者查询结果中提取作者姓名。"""
         import re
+        # 去掉工具前缀（如 [search_author]），否则 re.match 锚定位置 0 会被前缀挡住，
+        # 导致 author_name 提取失败 → 尾注退化为「数据库」、结构化卡片不生成。
+        clean = re.sub(r'^\s*\[[a-z_]+(?::[^\]]*)?\]\s*', '', text)
         # 格式: "作者「姓名」..." 或 "姓名（机构）"
-        m = re.search(r'作者[「「]([^」」]+)[」」]', text)
+        m = re.search(r'作者[「「]([^」」]+)[」」]', clean)
         if m:
             return m.group(1)
-        m = re.match(r'([一-鿿·]{2,4})[（(]', text)
+        m = re.match(r'([一-鿿·]{2,4})[（(]', clean)
         if m:
             return m.group(1)
         return None
@@ -741,32 +792,53 @@ class Planner:
             # ── 结构化元数据提取 ──
             source_type = "graph"
             tool_name = None
+            tool_keyword = ""
+            is_text_search = False
+            is_browse = False
+            browse_cat = None
+            browse_dyn = None
             entity_name = None
             doc_title = None
             author_name = None
             label = "图谱"
 
-            # 提取工具名
-            tool_m = re.match(r'\[([a-z_]+)\]', clean_text)
+            # 提取工具名（可选带检索词后缀，如 [search_full_text:校勘]）
+            tool_m = re.match(r'\[([a-z_]+)(?::([^\]]*))?\]', clean_text)
             if tool_m:
                 tool_name = tool_m.group(1)
+                tool_keyword = tool_m.group(2) or ""
 
             # 按工具名分类
             if tool_name and tool_name.startswith("kg_"):
                 source_type = "graph"
                 label = "图谱"
                 entity_name = self._extract_entity_name(clean_text)
-            elif tool_name and tool_name in ("search_document", "search_full_text",
-                                               "search_titles", "browse_documents"):
+            elif tool_name == "search_document":
                 source_type = "sql"
                 label = "数据库"
                 doc_title = self._extract_doc_title(clean_text)
+            elif tool_name == "browse_documents":
+                source_type = "sql"
+                label = "数据库"
+                is_browse = True
+                # 前缀 [browse_documents:类别,朝代] 内嵌了筛选条件，供复用检索阶段缓存
+                if tool_keyword:
+                    _bw = tool_keyword.split(",")
+                    browse_cat = _bw[0] or None
+                    browse_dyn = _bw[1] if len(_bw) > 1 and _bw[1] else None
+            elif tool_name in ("search_full_text", "search_titles"):
+                # 关键词/文段搜索，非文献实体：不设 doc_title，避免把片段里的《书》误当实体
+                source_type = "sql"
+                label = "数据库"
+                is_text_search = True
             elif tool_name == "search_author":
                 source_type = "sql"
                 label = "数据库"
                 author_name = self._extract_author_name(clean_text)
             elif tool_name == "vector_search":
-                source_type = "vector"
+                # 向量检索命中的是 Neo4j 的 Entity 节点，本质就是知识图谱实体。
+                # 按 graph 类型下发，前端即可复用「实体属性卡片 + 力导向图」展示。
+                source_type = "graph"
                 label = "向量检索"
                 # 向量结果可能也包含实体名
                 entity_name = self._extract_entity_name(clean_text)
@@ -775,22 +847,24 @@ class Planner:
                 if "[SQL" in clean_text or "[search_" in clean_text:
                     source_type = "sql"
                     label = "数据库"
-                    doc_title = self._extract_doc_title(clean_text)
-                    if not doc_title:
-                        author_name = self._extract_author_name(clean_text)
+                    # 文段搜索（全文/标题）优先识别，避免把片段里的《书》误当成文献实体
+                    kw_m = re.search(r'(?:全文搜索|标题搜索):?([^\]\]]*)', clean_text)
+                    if kw_m:
+                        is_text_search = True
+                        tool_keyword = kw_m.group(1).strip()
+                    else:
+                        doc_title = self._extract_doc_title(clean_text)
+                        if not doc_title:
+                            author_name = self._extract_author_name(clean_text)
                 elif "相似度" in clean_text or "向量" in clean_text:
-                    source_type = "vector"
+                    # 向量检索命中 = 知识图谱实体，按 graph 下发以复用图表面板展示
+                    source_type = "graph"
                     label = "向量检索"
                     entity_name = self._extract_entity_name(clean_text)
                 else:
                     source_type = "graph"
                     label = "图谱"
                     entity_name = self._extract_entity_name(clean_text)
-
-            # 对于 SQL 搜索结果（非具体文献），不设 doc_title
-            if tool_name == "search_full_text" and not doc_title:
-                # 全文搜索结果是关键词搜索，entity_name 设为搜索词
-                pass
 
             # 提取来源描述（前端 tooltip 展示用，截断加省略号）
             desc = clean_text.replace("\n", " ")
@@ -812,18 +886,57 @@ class Planner:
             if author_name:
                 entry["author_name"] = author_name
 
+            # 尾注标签（论文式参考文献列表）：按来源类别生成「知识图谱/数据库 —— 实体/相关文段」。
+            ref_label = ""
+            if source_type == "graph":
+                ref_label = f"知识图谱 —— 实体 {entity_name}" if entity_name else "知识图谱"
+            elif source_type == "sql":
+                if is_text_search:
+                    ref_label = "数据库 —— 相关文段" + (f" “{tool_keyword}”" if tool_keyword else "")
+                elif is_browse:
+                    ref_label = "数据库 —— 文献列表"
+                elif doc_title:
+                    ref_label = f"数据库 —— 实体 《{doc_title}》"
+                elif author_name:
+                    ref_label = f"数据库 —— 实体 {author_name}"
+                else:
+                    ref_label = "数据库"
+            if ref_label:
+                entry["ref_label"] = ref_label
+
             # SQL 来源：把检索阶段已生成的完整结果一并下发，
             # 前端点击角标时直接复用，无需再实时查 SQL（耗时）。
             if source_type == "sql":
-                detail = re.sub(r'^\[[a-z_]+\]\s*', '', clean_text)
+                detail = re.sub(r'^\[[a-z_]+(?::[^\]]*)?\]\s*', '', clean_text)
                 entry["detail_text"] = detail
+                # 结构化数据（供前端渲染）：文献/作者/全文/标题
+                # 优先复用，避免前端把整段纯文本倒出来。
+                try:
+                    if tool_name == "search_document" and doc_title:
+                        entry["detail"] = sql_tools.get_document_structured(doc_title)
+                    elif tool_name == "search_author" and author_name:
+                        entry["detail"] = sql_tools.get_author_structured(author_name)
+                    elif tool_name == "browse_documents":
+                        entry["detail"] = sql_tools.get_documents_structured(category=browse_cat, dynasty=browse_dyn)
+                    elif is_text_search and tool_keyword:
+                        # 全文/标题搜索：有检索词时生成结构化卡片数据
+                        if tool_name == "search_titles":
+                            entry["detail"] = sql_tools.get_titles_structured(tool_keyword)
+                        else:
+                            entry["detail"] = sql_tools.get_full_text_structured(tool_keyword)
+                except Exception:
+                    pass  # 结构化失败则回退 detail_text
 
             source_index[str(idx)] = entry
             combined += f"[{idx}] {clean_text}\n\n"
 
-        # 安全兜底：极端情况下超过 18000 字时做软截断
+        # 安全兜底：极端情况下超过 18000 字时做软截断。
+        # 截断后必须同步裁剪 source_index，否则被裁掉的 [15] 等条目仍留在 source_index 里，
+        # 模型照旧引用却对不上号（空引用）。
         if len(combined) > MAX_CHARS_REF * 3:
             combined = combined[:MAX_CHARS_REF * 3] + "\n（上下文已达上限，部分结果未展示）"
+            kept_ids = set(re.findall(r'\[(\d+)\]', combined))
+            source_index = {k: v for k, v in source_index.items() if k in kept_ids}
 
         return combined.strip(), source_index
 
@@ -975,8 +1088,11 @@ class Planner:
         return cls._entity_names
 
     @classmethod
-    def _clean_answer(cls, text):
-        """清理模型输出：只做安全的格式修正，不碰实体名内容。"""
+    def _clean_answer(cls, text, max_ref=None):
+        """清理模型输出：只做安全的格式修正，不碰实体名内容。
+        max_ref: 参考信息条目数（source_index 长度）。用于剔除超出范围的幻觉引用编号；
+                 为 None 时不剔除（避免误删合法引用）。
+        """
         import re
         # 0. 繁转简
         try:
@@ -1016,17 +1132,18 @@ class Planner:
         text = re.sub(r'[（(]\s*[,，;；:\s]*\s*[)）]', '', text)
         # 6. 过滤错误的编号标记：只允许 [数字] 格式，移除 [补][续][甲] 等非法标记
         text = re.sub(r'\[(?!\d+\])([^\[\]]+)\]', '', text)
-        # 7. 修正数字过大的编号（最大不超过参考信息条目数，超过则移除）
+        # 7. 剔除超出参考信息条目数的幻觉引用编号（[N+1]+ 均为编造）。
+        #    上限来自实际 source_index 长度，而非硬编码 20，避免误删合法的 [21]+ 引用。
         import re as _re
         all_nums = _re.findall(r'\[(\d+)\]', text)
         for num in all_nums:
-            if int(num) > 20:  # 超过20的编号视为无效
+            if max_ref is not None and int(num) > max_ref:
                 text = text.replace(f'[{num}]', '')
         return text.strip()
 
     @classmethod
-    def postprocess(cls, answer):
+    def postprocess(cls, answer, max_ref=None):
         if not answer or len(answer.strip()) < 5:
             return "抱歉，根据现有参考信息无法回答该问题。"
-        answer = cls._clean_answer(answer)
+        answer = cls._clean_answer(answer, max_ref=max_ref)
         return answer

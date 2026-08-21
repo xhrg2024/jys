@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 import C from "../constants/colors";
 import GraphSourcePanel from "./GraphSourcePanel";
+import RelationSourcePanel from "./RelationSourcePanel";
 import SqlSourcePanel from "./SqlSourcePanel";
 
 /**
  * 参考资料右侧栏 — 固定定位滑入面板。
- * 根据 sourceData.source_type 分发到图表面板或 SQL 表格面板。
+ * 根据 sourceData.source_type 分发到图表面板或 SQL 表格面板；detailData.kind==="relation" 时分发到关系面板。
  */
-function ReferenceSidebar({ open, citationNum, sourceData, detailData, loading, onClose, onNodeClick, trail, onTrailClick }) {
+function ReferenceSidebar({ open, citationNum, sourceData, detailData, loading, onClose, onNodeClick, onEdgeClick, trail, onTrailClick }) {
   // Escape 键关闭
   useEffect(() => {
     if (!open) return;
@@ -56,9 +57,13 @@ function ReferenceSidebar({ open, citationNum, sourceData, detailData, loading, 
       );
     }
 
+    if (detailData?.kind === "relation") {
+      return <RelationSourcePanel data={detailData} onNodeClick={onNodeClick} onEdgeClick={onEdgeClick} trail={trail} onTrailClick={onTrailClick} />;
+    }
+
     switch (sourceType) {
       case "graph":
-        return <GraphSourcePanel data={detailData} sourceData={sourceData} onNodeClick={onNodeClick} trail={trail} onTrailClick={onTrailClick} />;
+        return <GraphSourcePanel data={detailData} sourceData={sourceData} onNodeClick={onNodeClick} onEdgeClick={onEdgeClick} trail={trail} onTrailClick={onTrailClick} />;
       case "sql":
         return <SqlSourcePanel data={detailData} sourceData={sourceData} />;
       default:

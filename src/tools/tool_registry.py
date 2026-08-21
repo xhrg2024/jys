@@ -325,6 +325,9 @@ def execute(function_name, arguments):
         return f"未知工具: {function_name}"
     try:
         return DISPATCH[function_name](arguments)
+    except (sql_tools.DatabaseError, graph_tools.GraphDBError) as e:
+        # 数据库不可用是硬错误：明确上报，而不是让 LLM 误以为「查无结果」
+        return f"数据库不可用，检索失败: {e}"
     except Exception as e:
         return f"工具执行出错: {e}"
 
@@ -361,6 +364,28 @@ def execute_tool_calls(tool_calls):
             except json.JSONDecodeError:
                 args = {}
         result = execute(name, args)
-        results.append({"name": name, "result": result})
+        results.append({"name": name, "args": args, "result": result})
+        print(f"  🔧 {name}: {result[:80]}...")
+    return results
+
+
+def execute_tool_calls_with_ids(tool_calls):
+    """批量执行多个工具调用，保留每个调用的 tool_call_id（用于 OpenAI tool 消息回填）。
+    tool_calls: OpenAI 格式的 tool_calls 列表，
+        每项为 {"id": str, "function": {"name": str, "arguments": dict|str}}
+    Returns: [{"id": str, "name": str, "args": dict, "result": str}, ...]
+    """
+    results = []
+    for tc in tool_calls:
+        func = tc.get("function", tc) if isinstance(tc, dict) else {}
+        name = func.get("name", "")
+        args = func.get("arguments", {})
+        if isinstance(args, str):
+            try:
+                args = json.loads(args)
+            except json.JSONDecodeError:
+                args = {}
+        result = execute(name, args)
+        results.append({"id": tc.get("id", ""), "name": name, "args": args, "result": result})
         print(f"  🔧 {name}: {result[:80]}...")
     return results

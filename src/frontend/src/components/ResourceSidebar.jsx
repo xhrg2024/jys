@@ -4,7 +4,7 @@ import C from "../constants/colors";
 function ResourceSidebar({ tab, setTab, navigate }) {
   const items = [
     { key: "overview", label: "数据概览" },
-    { key: "explore",  label: "实体探索" },
+    { key: "explore",  label: "实体与关系探索" },
     { key: "path",     label: "路径查询" },
     { key: "global",   label: "全局浏览" },
   ];

@@ -102,7 +102,7 @@ function layoutRadial(nodes, width, height) {
   return results;
 }
 
-function KnowledgeGraph({ onNodeClick, selected, nodes: propNodes, edges: propEdges, layout = "radial", height: propHeight }) {
+function KnowledgeGraph({ onNodeClick, onEdgeClick, selected, nodes: propNodes, edges: propEdges, layout = "radial", height: propHeight }) {
   const nodes = propNodes || [];
   const edges = propEdges || [];
   const svgW = 660;
@@ -120,8 +120,7 @@ function KnowledgeGraph({ onNodeClick, selected, nodes: propNodes, edges: propEd
 
   // d3-force 仿真实例与节点拖拽状态（供拖拽节点手动调整位置）
   const simulationRef = useRef(null);
-  const nodeDragRef = useRef(null);       // { node, moved, startX, startY }
-  const suppressClickRef = useRef(false); // 拖拽后抑制 click，避免误触发节点跳转
+  const nodeDragRef = useRef(null);       // { node, clickTarget, moved, startX, startY, offsetX, offsetY }
 
   // 力布局结果
   const [forcePositions, setForcePositions] = useState(null);
@@ -208,7 +207,9 @@ function KnowledgeGraph({ onNodeClick, selected, nodes: propNodes, edges: propEd
 
   // 鼠标按下 - 开始拖动
   const handleMouseDown = useCallback((e) => {
-    if (e.target.tagName === "circle" || e.target.tagName === "text") return;
+    // 节点(circle/text)、边(line)及其标签(rect)上按下时不平移视图，交由各自的交互处理
+    const tag = e.target.tagName;
+    if (tag === "circle" || tag === "text" || tag === "line" || tag === "rect") return;
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
   }, []);
@@ -224,44 +225,60 @@ function KnowledgeGraph({ onNodeClick, selected, nodes: propNodes, edges: propEd
     };
   }, [viewBox]);
 
-  // ── 节点拖拽：把节点钉到指针位置并加热仿真，其他节点随力实时避让 ──
+  // ── 节点拖拽（延迟判定，彻底区分「点击」与「拖动」）──
+  // 按下时不立刻钉住节点：只有指针位移超过阈值才进入拖动。点击时松开直接触发 onNodeClick，
+  // 从根本上消除「点击被误判为拖动」的问题（旧实现按下即钉节点，且靠 onClick+suppressClickRef 抑制，易误触发）。
   const handleNodeDragStart = useCallback((e, n) => {
     e.stopPropagation();
     e.preventDefault();
     const sim = simulationRef.current;
-    if (!sim) return;
-    const target = sim.nodes().find((d) => d.id === n.id);
-    if (!target) return;
+    const target = sim ? sim.nodes().find((d) => d.id === n.id) : null;
     const p = toSvgCoords(e.clientX, e.clientY);
-    if (!p) return;
-    target.fx = p.x;
-    target.fy = p.y;
-    nodeDragRef.current = { node: target, moved: false, startX: p.x, startY: p.y };
-    suppressClickRef.current = false;
-    sim.alphaTarget(0.3).restart();
+    nodeDragRef.current = {
+      node: target,
+      clickTarget: n,
+      moved: false,
+      startX: e.clientX,
+      startY: e.clientY,
+      // 抓取点相对节点中心的偏移：拖动时保持按住的那一点，避免节点中心突然跳到指针位置
+      offsetX: target && p ? target.x - p.x : 0,
+      offsetY: target && p ? target.y - p.y : 0,
+    };
   }, [toSvgCoords]);
 
   const handleNodeDragMove = useCallback((e) => {
     const drag = nodeDragRef.current;
     if (!drag) return;
+    if (!drag.moved) {
+      // 6px 屏幕阈值以内视为点击抖动，不做任何处理
+      if (Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) <= 6) return;
+      drag.moved = true;
+      simulationRef.current?.alphaTarget(0.3).restart();
+    }
+    if (!drag.node) return;
     const p = toSvgCoords(e.clientX, e.clientY);
     if (!p) return;
-    if (Math.hypot(p.x - drag.startX, p.y - drag.startY) > 4) {
-      drag.moved = true;
-      suppressClickRef.current = true;
-    }
-    drag.node.fx = p.x;
-    drag.node.fy = p.y;
+    drag.node.fx = p.x + drag.offsetX;
+    drag.node.fy = p.y + drag.offsetY;
   }, [toSvgCoords]);
 
-  const handleNodeDragEnd = useCallback(() => {
+  const finishNodeDrag = useCallback((shouldClick) => {
     const drag = nodeDragRef.current;
     if (!drag) return;
-    drag.node.fx = null;
-    drag.node.fy = null;
+    if (drag.node) {
+      drag.node.fx = null;
+      drag.node.fy = null;
+    }
+    // 未构成拖动 → 视为点击，触发节点跳转
+    if (shouldClick && !drag.moved && drag.clickTarget) {
+      onNodeClick && onNodeClick(drag.clickTarget);
+    }
     nodeDragRef.current = null;
     simulationRef.current?.alphaTarget(0);
-  }, []);
+  }, [onNodeClick]);
+
+  const handleNodeDragEnd = useCallback(() => finishNodeDrag(true), [finishNodeDrag]);
+  const handleNodeDragCancel = useCallback(() => finishNodeDrag(false), [finishNodeDrag]);
 
   // 鼠标移动 - 拖动视图
   const handleMouseMove = useCallback((e) => {
@@ -329,6 +346,8 @@ function KnowledgeGraph({ onNodeClick, selected, nodes: propNodes, edges: propEd
 
     return {
       key: i,
+      source: e.source,
+      target: e.target,
       x1: from.x + (dx / d) * from.r,
       y1: from.y + (dy / d) * from.r,
       x2: to.x - (dx / d) * to.r,
@@ -355,44 +374,47 @@ function KnowledgeGraph({ onNodeClick, selected, nodes: propNodes, edges: propEd
       onMouseDown={handleMouseDown}
       onMouseMove={(e) => { handleNodeDragMove(e); handleMouseMove(e); }}
       onMouseUp={() => { handleNodeDragEnd(); handleMouseUp(); }}
-      onMouseLeave={() => { handleNodeDragEnd(); handleMouseUp(); }}
+      onMouseLeave={() => { handleNodeDragCancel(); handleMouseUp(); }}
       onWheel={handleWheel}
     >
-      {/* 绘制边 */}
+      {/* 绘制边（含宽透明热区，便于点击细线） */}
       {edgeLines.map((e) => (
-        <g key={e.key}>
+        <g key={e.key} onClick={() => onEdgeClick && onEdgeClick(e)}>
+          {/* 宽透明点击热区 */}
+          <line
+            x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}
+            stroke="transparent" strokeWidth={14}
+            style={{ cursor: "pointer" }}
+            onMouseEnter={() => setHoveredEdge(e.key)}
+            onMouseLeave={() => setHoveredEdge(null)}
+          />
+          {/* 可见细线（不拦截指针事件） */}
           <line
             x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}
             stroke={hoveredEdge === e.key ? C.brownBtn : "#a89880"}
             strokeWidth={hoveredEdge === e.key ? 2.2 : 1.1}
             opacity={hoveredEdge === e.key ? 1 : 0.45}
-            onMouseEnter={() => setHoveredEdge(e.key)}
-            onMouseLeave={() => setHoveredEdge(null)}
-            style={{ cursor: "pointer" }}
+            pointerEvents="none"
           />
-          {/* 边上的标签背景（通用 RELATES 类型不显示标签，避免重叠） */}
+          {/* 边上的标签（不拦截指针事件，悬停/点击统一由热区承担） */}
           {e.label ? (
-            <rect
-              x={e.mx - 22} y={e.my - 10} width={44} height={16}
-              fill="white" rx={4} opacity={0.9}
-              stroke={hoveredEdge === e.key ? C.brownBtn : "transparent"}
-              strokeWidth={1}
-            />
-          ) : null}
-          {/* 边上的关系类型 */}
-          {e.label ? (
-            <text
-              x={e.mx} y={e.my + 2}
-              textAnchor="middle" fontSize={9}
-              fill={hoveredEdge === e.key ? C.brownBtn : C.textM}
-              fontFamily="'Noto Serif SC', serif"
-              fontWeight={hoveredEdge === e.key ? "600" : "400"}
-              onMouseEnter={() => setHoveredEdge(e.key)}
-              onMouseLeave={() => setHoveredEdge(null)}
-              style={{ cursor: "pointer" }}
-            >
-              {truncate(e.label, 8)}
-            </text>
+            <g pointerEvents="none">
+              <rect
+                x={e.mx - 22} y={e.my - 10} width={44} height={16}
+                fill="white" rx={4} opacity={0.9}
+                stroke={hoveredEdge === e.key ? C.brownBtn : "transparent"}
+                strokeWidth={1}
+              />
+              <text
+                x={e.mx} y={e.my + 2}
+                textAnchor="middle" fontSize={9}
+                fill={hoveredEdge === e.key ? C.brownBtn : C.textM}
+                fontFamily="'Noto Serif SC', serif"
+                fontWeight={hoveredEdge === e.key ? "600" : "400"}
+              >
+                {truncate(e.label, 8)}
+              </text>
+            </g>
           ) : null}
         </g>
       ))}
@@ -403,10 +425,6 @@ function KnowledgeGraph({ onNodeClick, selected, nodes: propNodes, edges: propEd
         return (
         <g
           key={n.id}
-          onClick={() => {
-            if (suppressClickRef.current) { suppressClickRef.current = false; return; }
-            onNodeClick && onNodeClick(n);
-          }}
           onMouseDown={(e) => handleNodeDragStart(e, n)}
           onMouseEnter={() => setHoveredNode(n.id)}
           onMouseLeave={() => setHoveredNode(null)}
