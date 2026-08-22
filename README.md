@@ -1,195 +1,97 @@
-# jys-agent — 辑佚史智能体
+# 辑佚史智能体（jys-agent）
 
-## 依赖
+基于 Neo4j 知识图谱 + 大模型的辑佚学问答智能体。后端 FastAPI 同时托管 API 与前端静态资源，单进程即可部署。
 
-- Python 3.10+
-- Neo4j 5.x
-- PyTorch 2.x + CUDA 12.x
-- 模型：Qwen2.5-7B-Instruct
+## 环境要求
+
+| 组件 | 版本 | 说明 |
+|------|------|------|
+| Python | 3.9+ | 后端 |
+| Node.js | 18+ | 前端构建 |
+| Neo4j | 5.x | 图数据库（本地 7687 端口） |
+| MySQL | 5.7+ | 可选，用于 SQL 工具检索 |
+| tmux | 任意 | 后台运行脚本依赖 |
 
 ## 安装
 
 ```bash
+# 1. 后端依赖
 pip install -r requirements.txt
+
+# 2. 前端依赖
+cd src/frontend && npm install && cd ../..
 ```
 
-## 启动
+## 配置
 
 ```bash
-# 1. 启动 Neo4j
-cd neo4j-community-5.26.5 && ./bin/neo4j start
+cp .env.example .env
+# 编辑 .env，至少填入：
+#   NEO4J_PASSWORD    Neo4j 密码（必填）
+#   API_PORT / API_HOST  服务端口与监听地址（对外访问改为 0.0.0.0）
+#   需要外部模型时填入对应厂商的 *_API_KEY
+```
 
-neo4j密码（见 .env 的 NEO4J_PASSWORD）
+## 启动 / 停止
 
-查看状态
-~/jys-agent/neo4j/neo4j-community-5.26.5/bin/neo4j status
+```bash
+bash start.sh    # 构建前端 + 启动后端（后台 tmux 会话 jys-api）
+bash status.sh   # 查看运行状态
+bash stop.sh     # 停止服务
+```
 
-本地ssh隧道
-ssh -L 7474:localhost:7474 -L 7687:localhost:7687 wj@162.105.19.120
+启动后访问 `http://<API_HOST>:<API_PORT>`（默认 `http://127.0.0.1:8000`）。
 
-服务器
- ./bin/cypher-shell -u neo4j -p neo4j
+> 前端生产构建产物为 `src/frontend/dist/`，由后端 `StaticFiles` 托管，无需单独启动前端。开发调试前端可 `cd src/frontend && npm run dev`（走 vite 代理）。
 
-# 2. 导入数据
+## 数据初始化
+
+首次部署需将知识图谱数据写入 Neo4j 并建立向量索引：
+
+```bash
+# 1. 导入 data/data.json 到 Neo4j（清空重建，仅初始化用）
 python src/memory/build_graph.py
 
-# 3. 启动推理服务
-python src/model/generator.py
+# 2. 为实体生成 embedding 并建立向量索引
+python src/memory/build_vector_index.py
 ```
 
+运行中的增量更新走前端「图谱导入」页或 `POST /import/graph`（按 id MERGE 合并，并重算 embedding），不会清空现有数据。
 
-工具层
-图查询  Cypher 查询 Neo4j，结果转为自然语言   graph_tools.py
-向量检索工具  将问句向量化，在 Neo4j 向量索引中检索相似实体。 vector_tools.py
-工具调用机制  定义 tool schemas，调度执行，结果回传。 tool_registry.py
+## 目录结构
 
-推理接口封装
-model_loader.py  单例加载 Qwen + QA LoRA，常驻显存   //暂时ban掉loRA
-generator.py    全链路：感知→规划→检索→模型生成→后处理
-
-
-
-前端
-
+```
 src/
-├── App.jsx                        # 主入口，路由/导航逻辑
-│
-├── constants/
-│   ├── colors.js                  # 设计 Token（C 对象）
-│   └── graphData.js               # 知识图谱节点 & 边数据（NODES, EDGES）
-│
-├── components/                    # 可复用共享组件
-│   ├── TopNav.jsx                 # 顶部导航栏
-│   ├── ResourceSidebar.jsx        # 资源浏览左侧边栏
-│   ├── KnowledgeGraph.jsx         # 知识图谱 SVG（多页复用）
-│   └── EntityCard.jsx             # 实体详情卡片（多页复用）
-│
-└── pages/                         # 各页面
-    ├── DataOverviewPage.jsx        # 数据概览
-    ├── EntityListPage.jsx          # 辑佚者列表
-    ├── EntityExplorePage.jsx       # 实体探索
-    ├── PathQueryPage.jsx           # 路径查询
-    ├── GlobalBrowsePage.jsx        # 全局浏览
-    ├── ResearchSection.jsx         # 智能研究（Landing + Chat + Report）
-    └── DataDownloadPage.jsx        # 数据下载
-拆分原则说明：
+├── model/          # 后端：api_server.py（FastAPI 入口）、generator.py（推理链路）
+├── tools/          # 工具层：图查询 / 向量检索 / SQL 检索 / 工具调度
+├── utils/          # 报告生成、图谱导入、会话日志等
+├── memory/         # 数据构建：build_graph.py、build_vector_index.py
+├── planning/       # 规划
+├── perception/     # 感知
+├── evaluation/     # 评测
+└── frontend/       # React + Vite 前端
+data/data.json      # 知识图谱源数据
+reports/            # 生成的报告（运行时自动创建）
+logs/               # 日志（运行时自动创建）
+```
 
-constants/ 将全局共享的颜色 token 和图数据从组件中分离，避免重复定义
-components/ 收录在多个页面中复用的 KnowledgeGraph、EntityCard、TopNav、ResourceSidebar
-pages/ 每个页面对应一个文件，职责清晰
-App.jsx 仅保留路由状态和渲染逻辑，不含任何 UI 细节
+## 常用命令
 
+```bash
+tmux attach -t jys-api        # 查看后端日志（退出按 Ctrl+B 再 D）
+tmux kill-session -t jys-api  # 强制关闭
 
-npm run dev
+# 健康检查
+curl http://127.0.0.1:8000/health
 
-npm install
-
-npm run dev -- --host 0.0.0.0
-
-2. 启动 API（tmux 保持后台运行）
-
-tmux new -s jys-api  创建jys-api会话
-
-# 如果之前用 tmux new -s jys-api 创建过，重新进入：
-tmux attach -t jys-api
-
-python src/model/api_server.py
-Ctrl+B 然后 D 退出 tmux，服务继续跑。
-
-Ctrl+B 然后 D — 退出但保持后台运行
-tmux ls — 查看当前有哪些会话
-tmux kill-session -t jys-api — 彻底关闭某个会话
-
-3. 测试
-
-curl -X POST http://localhost:8000/chat \
+# 问答接口
+curl -X POST http://127.0.0.1:8000/chat \
   -H "Content-Type: application/json" \
   -d '{"question":"《玉函山房辑佚书》有多少卷？"}'
-
-
-# tmux挂后台
-# API 后台（已有的）
-tmux new -d -s jys-api
-tmux send-keys -t jys-api "cd ~/jys-agent && python src/model/api_server.py" Enter
-
-# 前端后台
-tmux new -d -s jys-frontend
-
-tmux send-keys -t jys-frontend "cd ~/jys-agent/src/frontend && npm run dev -- --host 0.0.0.0" Enter
-
-# 查看状态
-tmux ls
-
-# 随时看日志
-tmux attach -t jys-api      # Ctrl+B D 退出
-tmux attach -t jys-frontend
-
-服务	端口	管理
-Neo4j	7474/7687	手动启动
-API	8000	tmux attach -t jys-api
-前端	5173	tmux attach -t jys-frontend
-
-
-前后端同步启动
-bash start.sh
-
-查看状态
-bash status.sh
-
-停止服务
-
-bash stop.sh
-
-# SSH 隧道一行连所有：
-ssh -L 5173:localhost:5173 -L 8000:localhost:8000 -L 7474:localhost:7474 wj@162.105.19.120
-
-
-高位端口启动
-npx vite --port 15173 --host 0.0.0.0
-ssh -L 15173:localhost:15173 wj@162.105.19.120
-
-纯Qwen,无LoRA
-训练阶段做的事：喂给模型几百条"RACE 格式输入 → 带来源标注的专业答案"的数据对，让模型学会：
-
-看到 【参考信息】 就知道从这里找证据
-自动生成 （来源：XXX） 格式的标注
-稳定输出学术中文，不乱编、不串字
-
-deepseek生成问答对
-事实问答：约 500 条（覆盖所有实体）
-
-
-mysql数据库配置
-
-本地 ssh隧穿
 ```
-mysql -u root -p < "250905.sql"
 
-mysql -u root -p
+## 注意事项
 
-CREATE USER 'jys_agent'@'localhost' IDENTIFIED BY '<你的密码>';
-GRANT SELECT ON leishu_yongle.* TO 'jys_agent'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
-
-```
-ssh隧道
-ssh -R 3307:localhost:3306 wj@162.105.19.120
-保持隧道开启
-
-服务器sql_tools.py配置
-```
-DB_HOST = "localhost"
-DB_PORT = 3307
-DB_USER = "jys_agent"
-DB_PASSWORD = "<你的密码>"
-DB_NAME = "leishu_yongle"
-
-```
-bash start.sh
-
-
-
-ssh -L 15173:localhost:15173 -L 8000:localhost:8000 wj@162.105.19.120
-
-http://localhost:15173
+- `.env` 含真实密钥，已被 `.gitignore` 忽略，请勿提交。
+- `API_TOKEN` 留空时普通接口开放、评测页 `/eval/*` 禁用；设置后需在请求头带 `Authorization: Bearer <token>`。
+- 默认监听 `127.0.0.1`（仅本机）；需局域网/服务器外部访问时把 `API_HOST` 改为 `0.0.0.0`，或通过 SSH 隧道转发。
