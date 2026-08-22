@@ -70,19 +70,17 @@ def main():
     # 6. 建向量索引
     print("创建向量索引...")
     with driver.session() as session:
-        # 先删旧索引（如果存在）
-        try:
-            session.run("DROP INDEX entity_vector_index")
-        except:
-            pass
-        session.run(f"""
-            CREATE VECTOR INDEX entity_vector_index
-            FOR (e:Entity) ON e.embedding
+        # 先删旧索引（IF EXISTS 避免「不存在」时抛异常）
+        session.run("DROP INDEX `entity_vector_index` IF EXISTS")
+        cypher = f"""
+            CREATE VECTOR INDEX entity_vector_index IF NOT EXISTS
+            FOR (e:Entity) ON (e.embedding)
             OPTIONS {{indexConfig: {{
                 `vector.dimensions`: {dim},
                 `vector.similarity_function`: 'cosine'
             }}}}
-        """)
+        """
+        session.run(cypher)  # type: ignore[arg-type]  # dim 为整数，无注入风险
         print("向量索引创建完成")
 
     # 7. 验证

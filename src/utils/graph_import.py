@@ -61,9 +61,12 @@ def import_graph_incremental(entities, relations):
             # 内部字段由本模块显式维护，避免 JSON 里同名字段覆盖/污染
             for k in ("id", "name", "embedding"):
                 props.pop(k, None)
-            counters = session.run(
+            cypher = (
                 f"MERGE (n:Entity {{id: $id}}) "
-                f"SET n:{label} SET n.name = $text, n += $props",
+                f"SET n:{label} SET n.name = $text, n += $props"
+            )
+            counters = session.run(
+                cypher,  # type: ignore[arg-type]  # label 经 _safe_label 校验，无注入风险
                 id=str(eid), text=e.get("text", ""), props=props,
             ).consume().counters
             stats["entities_created"] += counters.nodes_created
