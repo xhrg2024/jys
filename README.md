@@ -92,6 +92,5 @@ curl -X POST http://127.0.0.1:8000/chat \
 
 ## 注意事项
 
-- `.env` 含真实密钥，已被 `.gitignore` 忽略，请勿提交。
 - `API_TOKEN` 留空时普通接口开放、评测页 `/eval/*` 禁用；设置后需在请求头带 `Authorization: Bearer <token>`。
 - 默认监听 `127.0.0.1`（仅本机）；需局域网/服务器外部访问时把 `API_HOST` 改为 `0.0.0.0`，或通过 SSH 隧道转发。
