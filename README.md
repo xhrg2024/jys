@@ -46,15 +46,20 @@ bash stop.sh     # 停止服务
 
 ## 数据初始化
 
-首次部署需将知识图谱数据写入 Neo4j 并建立向量索引：
+首次部署需准备 embedding 模型、导入图谱数据并建立向量索引：
 
 ```bash
+# 0. 下载本地 embedding 模型（约 1.3GB，未纳入 git，首次部署必须下载）
+python scripts/download_embedding_model.py
+
 # 1. 导入 data/data.json 到 Neo4j（清空重建，仅初始化用）
 python src/memory/build_graph.py
 
 # 2. 为实体生成 embedding 并建立向量索引
 python src/memory/build_vector_index.py
 ```
+
+> `embeddings/bge-large-zh-v1.5/` 已被 `.gitignore` 忽略（大体积权重不进版本库），部署时用 `scripts/download_embedding_model.py` 从 ModelScope / HuggingFace 下载，或手动放置该目录。
 
 运行中的增量更新走前端「图谱导入」页或 `POST /import/graph`（按 id MERGE 合并，并重算 embedding），不会清空现有数据。
 
