@@ -130,7 +130,6 @@ function formatToolArgs(args) {
 
 function ResearchSection({ navigate }) {
   const [chatState, setChatState] = useState("landing");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);   // [{role, content}]
   const [loading, setLoading] = useState(false);
@@ -141,9 +140,108 @@ function ResearchSection({ navigate }) {
   const [expandedThink, setExpandedThink] = useState({});
   const [expandedRetrieval, setExpandedRetrieval] = useState({});
   const [deepMode, setDeepMode] = useState(false);   // 深度思考模式开关
+  // 会话历史
+  const [sessions, setSessions] = useState([]);      // [{id, title, updated_at, message_count}]
+  const [currentSessionId, setCurrentSessionId] = useState(null);
   const composingRef = useRef(false);
   const chatEndRef = useRef(null);
   const streamRef = useRef({ thinking: "", content: "", retrieval: [] });  // 避免 StrictMode 双重调用
+  const messagesRef = useRef([]);  // 同步 messages，供 handleSend 读取完整快照
+
+  // ── 会话历史工具 ──
+  const serializeMsg = (m) => ({
+    role: m.role,
+    content: m.content || "",
+    thinking: m.thinking || "",
+    retrieval: m.retrieval || [],
+    plan_log: m.plan_log || null,
+  });
+
+  const getSessionTitle = (msgs) => {
+    const firstUser = msgs.find(m => m.role === "user");
+    return firstUser && firstUser.content ? firstUser.content.slice(0, 30) : "未命名对话";
+  };
+
+  const formatTime = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    const now = new Date();
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    if (d.toDateString() === now.toDateString()) return `今天 ${hh}:${mm}`;
+    return `${d.getMonth() + 1}/${d.getDate()} ${hh}:${mm}`;
+  };
+
+  const loadSessions = async () => {
+    try {
+      const res = await fetch("/sessions");
+      const data = await res.json();
+      setSessions(data.sessions || []);
+    } catch (e) {
+      console.error("加载会话列表失败:", e);
+    }
+  };
+
+  const saveSession = async (fullMessages) => {
+    if (!fullMessages || fullMessages.length === 0) return;
+    const sid = currentSessionId || `s_${Date.now()}`;
+    const title = getSessionTitle(fullMessages);
+    try {
+      const res = await fetch("/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: sid, title, messages: fullMessages }),
+      });
+      const data = await res.json();
+      if (data.id) {
+        setCurrentSessionId(data.id);
+        loadSessions();
+      }
+    } catch (e) {
+      console.error("保存会话失败:", e);
+    }
+  };
+
+  const handleNewChat = () => {
+    setMessages([]);
+    setCurrentSessionId(null);
+    setChatState("landing");
+    setInput("");
+    setExpandedThink({});
+    setExpandedRetrieval({});
+  };
+
+  const openSession = async (sid) => {
+    try {
+      const res = await fetch(`/sessions/${encodeURIComponent(sid)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setMessages(data.messages || []);
+      setCurrentSessionId(data.id);
+      setChatState("chat");
+      setExpandedThink({});
+      setExpandedRetrieval({});
+    } catch (e) {
+      console.error("加载会话失败:", e);
+    }
+  };
+
+  const deleteSession = async (sid) => {
+    try {
+      await fetch(`/sessions/${encodeURIComponent(sid)}`, { method: "DELETE" });
+      if (currentSessionId === sid) {
+        setMessages([]);
+        setCurrentSessionId(null);
+        setChatState("landing");
+      }
+      loadSessions();
+    } catch (e) {
+      console.error("删除会话失败:", e);
+    }
+  };
+
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
+  useEffect(() => { loadSessions(); }, []);
 
   // 参考资料右侧栏状态
   const [refPanel, setRefPanel] = useState({
@@ -188,6 +286,7 @@ function ResearchSection({ navigate }) {
     setChatState("chat");
     setInput("");
 
+    const baseMessages = messagesRef.current; // 发送前完整消息快照（流式结束后持久化用）
     const msgIdx = Date.now();
     streamRef.current = { thinking: "", content: "", retrieval: [] };
     setMessages(prev => [...prev, { role: "user", content: q }]);
@@ -206,6 +305,9 @@ function ResearchSection({ navigate }) {
         return updated;
       });
     };
+
+    let finalContent = "";   // 本轮 assistant 最终正文（流式结束后持久化用）
+    let finalPlanLog = null;
 
     try {
       const res = await fetch("/chat/stream", {
@@ -251,8 +353,8 @@ function ResearchSection({ navigate }) {
               flushUpdate();
               // 按正文首次出现顺序重排引用编号，避免 [2][3][1] 这类乱序
               const si = evt.plan_log?.source_index;
-              let finalContent = streamRef.current.content;
-              let finalPlanLog = evt.plan_log || null;
+              finalContent = streamRef.current.content;
+              finalPlanLog = evt.plan_log || null;
               if (si && finalContent) {
                 const rn = renumberCitations(finalContent, si);
                 finalContent = rn.text;
@@ -260,7 +362,8 @@ function ResearchSection({ navigate }) {
               }
               updateMsg({ _streaming: false, content: finalContent, plan_log: finalPlanLog, retrieval: streamRef.current.retrieval });
             } else if (evt.type === "error") {
-              updateMsg({ content: "请求失败：" + evt.message, _streaming: false });
+              finalContent = "请求失败：" + evt.message;
+              updateMsg({ content: finalContent, _streaming: false });
             }
             // 节流：每 60ms 最多更新一次 UI，避免闪烁
             // agent_step 也纳入节流，保证深度模式下「调用工具过程」实时呈现
@@ -272,9 +375,17 @@ function ResearchSection({ navigate }) {
       }
       flushUpdate();
     } catch (e) {
-      updateMsg({ content: "请求失败：" + e.message, _streaming: false });
+      finalContent = "请求失败：" + e.message;
+      updateMsg({ content: finalContent, _streaming: false });
     }
     setLoading(false);
+
+    // 持久化本次问答（发送前快照 + 本轮 user/assistant）
+    saveSession([
+      ...baseMessages.map(serializeMsg),
+      { role: "user", content: q },
+      { role: "assistant", content: finalContent, thinking: streamRef.current.thinking, retrieval: streamRef.current.retrieval, plan_log: finalPlanLog },
+    ]);
   };
 
   // 角标点击 → 打开右侧参考资料面板
@@ -438,35 +549,54 @@ function ResearchSection({ navigate }) {
 
   return (
     <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-      {/* Sidebar */}
+      {/* 历史记录侧栏 */}
       <div style={{
-        width: sidebarCollapsed ? 52 : 200, background: theme.sidebar, flexShrink: 0,
+        width: 220, background: theme.sidebar, flexShrink: 0,
         borderRight: `1px solid ${theme.border}`, display: "flex", flexDirection: "column",
-        transition: "width .2s",
+        overflow: "hidden",
       }}>
-        <div style={{ padding: "12px", display: "flex", justifyContent: sidebarCollapsed ? "center" : "flex-end" }}>
-          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={theme.textM} strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
-            </svg>
+        {/* 顶部：新开对话 */}
+        <div style={{ padding: 12 }}>
+          <button onClick={handleNewChat} style={{
+            width: "100%", padding: "10px 0", borderRadius: 8, cursor: "pointer",
+            border: `1px solid ${theme.border}`, background: theme.brownBtn,
+            color: "#fff", fontSize: 13.5, fontWeight: 600, fontFamily: "inherit",
+          }}>
+            ＋ 新开对话
           </button>
         </div>
-        {[
-          { icon: "?", label: "智能问答", action: () => {} },
-          { icon: "↓", label: "数据下载", action: () => navigate("data-download") },
-          { icon: "⊙", label: "关系探索", action: () => navigate("resources-explore") },
-        ].map(item => (
-          <div key={item.label} onClick={item.action} style={{
-            padding: sidebarCollapsed ? "16px 0" : "14px 24px", display: "flex",
-            alignItems: "center", gap: 10, cursor: "pointer",
-            justifyContent: sidebarCollapsed ? "center" : "flex-start",
-          }}>
-            <span style={{ fontSize: sidebarCollapsed ? 18 : 15, color: theme.textM, fontFamily: "monospace" }}>{item.icon}</span>
-            {!sidebarCollapsed && <span style={{ fontSize: 13.5, color: theme.text }}>{item.label}</span>}
-          </div>
-        ))}
-        <div style={{ flex: 1 }} />
+        {/* 历史列表 */}
+        <div style={{ flex: 1, overflow: "auto", padding: "0 8px 12px" }}>
+          {sessions.length === 0 ? (
+            <div style={{ color: theme.textL, fontSize: 12, textAlign: "center", padding: "24px 0" }}>
+              暂无历史记录
+            </div>
+          ) : (
+            sessions.map(s => (
+              <div key={s.id} onClick={() => openSession(s.id)} style={{
+                padding: "10px 12px", borderRadius: 8, cursor: "pointer",
+                background: s.id === currentSessionId ? theme.sidebarAct : "transparent",
+                marginBottom: 4, transition: "background .15s",
+              }}>
+                <div style={{
+                  fontSize: 13, color: theme.text, fontWeight: s.id === currentSessionId ? 600 : 400,
+                  lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis",
+                  display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+                }}>
+                  {s.title || "未命名对话"}
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
+                  <span style={{ fontSize: 11, color: theme.textL }}>{formatTime(s.updated_at)}</span>
+                  <span
+                    onClick={(e) => { e.stopPropagation(); deleteSession(s.id); }}
+                    style={{ fontSize: 11, color: theme.textL, cursor: "pointer", padding: "0 2px" }}
+                    title="删除会话"
+                  >✕</span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Main */}

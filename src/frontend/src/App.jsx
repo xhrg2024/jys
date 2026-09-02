@@ -12,8 +12,8 @@ import PathQueryPage from "./pages/PathQueryPage";
 import GlobalBrowsePage from "./pages/GlobalBrowsePage";
 import ResearchSection from "./pages/ResearchSection";
 import DataDownloadPage from "./pages/DataDownloadPage";
-import EvalPage from "./pages/EvalPage";
 import ImportPage from "./pages/ImportPage";
+import AboutPage from "./pages/AboutPage";
 
 /* ─────────────── MAIN APP ─────────────── */
 export default function App() {
@@ -33,8 +33,8 @@ export default function App() {
   const isResourcePage = page.startsWith("resources") || page === "entity-list" || resourceTab === "entity-list";
   const isResearchPage = page.startsWith("research");
   const isDownloadPage = page === "data-download";
-  const isEvalPage = page === "eval";
   const isImportPage = page === "import";
+  const isAboutPage = page === "about";
 
   const renderResourceContent = () => {
     const tab = resourceTab;
@@ -71,10 +71,10 @@ export default function App() {
           <HomePage navigate={navigate} />
         ) : isDownloadPage ? (
           <DataDownloadPage navigate={navigate} />
-        ) : isEvalPage ? (
-          <EvalPage />
         ) : isImportPage ? (
           <ImportPage navigate={navigate} />
+        ) : isAboutPage ? (
+          <AboutPage navigate={navigate} />
         ) : isResearchPage ? (
           <ResearchSection navigate={navigate} />
         ) : (

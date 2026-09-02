@@ -12,3 +12,4 @@ models/Qwen2.5-7B-Instruct/*
 embeddings/bge-large-zh-v1.5/*
 lora_checkpoints/*
 logs/*
+data/sessions/

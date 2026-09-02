@@ -23,6 +23,8 @@ from starlette.concurrency import iterate_in_threadpool
 from pydantic import BaseModel, Field
 from typing import Optional
 import json
+import re
+from datetime import datetime
 
 from model.generator import Generator, list_providers, MAX_QUESTION_LEN
 from tools import graph_tools, vector_tools, sql_tools
@@ -46,15 +48,13 @@ def _internal_error(e):
 
 async def require_auth(request: Request):
     """可选 Bearer Token 鉴权：
-    - 未配置 API_TOKEN：普通接口开放，/eval/* 禁用（403）
+    - 未配置 API_TOKEN：普通接口开放
     - 已配置 API_TOKEN：除健康检查/文档/静态资源外，均需 Authorization: Bearer <token>
     """
     path = request.url.path
     if path in _PUBLIC_PATHS or path.startswith(("/assets/", "/favicon")):
         return
     if not API_TOKEN:
-        if path.startswith("/eval"):
-            raise HTTPException(status_code=403, detail="评估接口未启用：请在 .env 设置 API_TOKEN 后重启")
         return
     if request.headers.get("Authorization", "") != f"Bearer {API_TOKEN}":
         raise HTTPException(status_code=401, detail="未授权：请提供有效的 Authorization: Bearer <token>")
@@ -251,9 +251,37 @@ def vector_search_api(q: str, k: int = Query(5, ge=1, le=50)):
 
 # ========== 统计接口 ==========
 
+def _prop_dist(key, label=None):
+    """某属性（标量字符串）在所有实体（或指定 label 下）的取值分布，降序。"""
+    if label:
+        cypher = (
+            f"MATCH (e:Entity:{label}) WHERE e.{key} IS NOT NULL "
+            f"RETURN e.{key} AS v, count(*) AS count ORDER BY count DESC"
+        )
+    else:
+        cypher = (
+            f"MATCH (e:Entity) WHERE e.{key} IS NOT NULL "
+            f"RETURN e.{key} AS v, count(*) AS count ORDER BY count DESC"
+        )
+    rows = graph_tools._run(cypher)
+    return {r["v"]: r["count"] for r in rows}
+
+
+# 各实体类型下钻时展示的属性分布（标量字符串属性）
+TYPE_ATTRS = {
+    "Compilation": ["compilationPeriod", "contentType", "compilationStyle", "completionPeriod", "compiler"],
+    "Scholar": ["school", "birthplace", "periodName"],
+    "Leishu": ["compilationPeriod", "contentType", "compiler"],
+    "Time": ["periodName"],
+    "Method": ["methodName", "methodEvaluation"],
+    "Academic": ["schoolName", "origin"],
+    "Methodology": ["methodName"],
+}
+
+
 @app.get("/stats")
 def get_stats():
-    """获取知识图谱统计信息"""
+    """获取知识图谱统计信息（含多维度分布，供数据概览页可视化）"""
     try:
         entity_count = graph_tools._run("MATCH (e:Entity) RETURN count(e) AS count")[0]["count"]
         relation_count = graph_tools._run("MATCH ()-[r]->() RETURN count(r) AS count")[0]["count"]
@@ -266,11 +294,44 @@ def get_stats():
         )
         types = {r["label"]: r["count"] for r in type_stats}
 
+        # 关系类型分布（语义类型存于 r.type 属性）
+        rel_stats = graph_tools._run(
+            "MATCH ()-[r:RELATES]->() "
+            "RETURN r.type AS t, count(*) AS count ORDER BY count DESC"
+        )
+        relation_types = {r["t"]: r["count"] for r in rel_stats}
+
         return {
             "entity_count": entity_count,
             "relation_count": relation_count,
             "entity_types": types,
+            "relation_types": relation_types,
+            "school_dist": _prop_dist("school"),
+            "birthplace_dist": _prop_dist("birthplace"),
+            "compilation_period_dist": _prop_dist("compilationPeriod"),
+            "content_type_dist": _prop_dist("contentType"),
+            "compiler_dist": _prop_dist("compiler"),
         }
+    except Exception as e:
+        raise _internal_error(e)
+
+
+@app.get("/stats/type/{label}")
+def get_type_stats(label: str):
+    """按实体类型下钻的统计：该类型实体数 + 各属性取值分布（供类型详情概览）"""
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", label):
+        raise HTTPException(status_code=400, detail="非法的实体类型")
+    try:
+        count_row = graph_tools._run(
+            f"MATCH (e:Entity:{label}) RETURN count(e) AS count"
+        )
+        count = count_row[0]["count"] if count_row else 0
+        attrs = {}
+        for key in TYPE_ATTRS.get(label, []):
+            dist = _prop_dist(key, label=label)
+            if dist:
+                attrs[key] = dist
+        return {"label": label, "count": count, "attrs": attrs}
     except Exception as e:
         raise _internal_error(e)
 
@@ -438,6 +499,97 @@ def import_graph(req: GraphImportRequest):
         return import_graph_incremental(req.entities, req.relations)
     except Exception as e:
         raise _internal_error(e)
+
+
+# ========== 会话历史（前端「历史记录」持久化） ==========
+
+SESSIONS_DIR = Path(__file__).resolve().parents[2] / "data" / "sessions"
+SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _safe_session_id(sid):
+    """会话 id 仅保留字母数字与 -_，防路径穿越。"""
+    return "".join(c for c in str(sid) if c.isalnum() or c in "-_")
+
+
+def _session_path(sid):
+    return SESSIONS_DIR / f"{_safe_session_id(sid)}.json"
+
+
+def _load_session(sid):
+    p = _session_path(sid)
+    if not p.exists():
+        return None
+    with open(p, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _save_session(data):
+    with open(_session_path(data["id"]), "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _list_sessions():
+    sessions = []
+    for p in SESSIONS_DIR.glob("*.json"):
+        try:
+            with open(p, "r", encoding="utf-8") as f:
+                d = json.load(f)
+            sessions.append({
+                "id": d.get("id"),
+                "title": d.get("title", ""),
+                "created_at": d.get("created_at", ""),
+                "updated_at": d.get("updated_at", ""),
+                "message_count": len(d.get("messages", [])),
+            })
+        except Exception:
+            continue
+    sessions.sort(key=lambda s: s.get("updated_at", ""), reverse=True)
+    return sessions
+
+
+@app.get("/sessions")
+def list_sessions():
+    """会话历史列表（按更新时间倒序）"""
+    return {"sessions": _list_sessions()}
+
+
+@app.post("/sessions")
+def upsert_session(body: dict):
+    """创建或更新会话（前端持有完整消息后整体写回，幂等）。返回会话 id。"""
+    sid = str(body.get("id") or "").strip()
+    if not sid:
+        sid = f"s_{int(datetime.now().timestamp() * 1000)}"
+    sid = _safe_session_id(sid)
+    existing = _load_session(sid)
+    created_at = existing.get("created_at") if existing else (body.get("created_at") or datetime.now().isoformat())
+    data = {
+        "id": sid,
+        "title": (str(body.get("title") or "")).strip()[:60],
+        "created_at": created_at,
+        "updated_at": datetime.now().isoformat(),
+        "messages": body.get("messages") or [],
+    }
+    _save_session(data)
+    return {"id": sid, "created_at": created_at, "updated_at": data["updated_at"]}
+
+
+@app.get("/sessions/{sid}")
+def get_session(sid: str):
+    """获取单个会话完整内容（含消息）"""
+    d = _load_session(sid)
+    if d is None:
+        raise HTTPException(status_code=404, detail="会话不存在")
+    return d
+
+
+@app.delete("/sessions/{sid}")
+def delete_session(sid: str):
+    """删除会话"""
+    p = _session_path(sid)
+    if p.exists():
+        p.unlink()
+    return {"ok": True}
 
 
 # ========== 深度思考分析报告生成 ==========
@@ -775,167 +927,6 @@ def reference_sql(title: Optional[str] = None, author_name: Optional[str] = None
         raise
     except Exception as e:
         raise _internal_error(e)
-
-
-# ========== 评估接口 ==========
-
-import re
-import uuid
-from datetime import datetime
-
-EVAL_DATA_DIR = Path(__file__).resolve().parents[2] / "data"
-EVAL_RESULTS_FILE = EVAL_DATA_DIR / "eval_results_manual.json"
-EVAL_QUESTIONS_FILE = EVAL_DATA_DIR / "test_questions.md"
-
-
-def _load_eval_results():
-    if EVAL_RESULTS_FILE.exists():
-        with open(EVAL_RESULTS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {"results": [], "custom_questions": []}
-
-
-def _save_eval_results(data):
-    with open(EVAL_RESULTS_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-
-def _parse_questions_from_md():
-    """从 test_questions.md 解析题目列表"""
-    questions = []
-    if not EVAL_QUESTIONS_FILE.exists():
-        return questions
-    with open(EVAL_QUESTIONS_FILE, "r", encoding="utf-8") as f:
-        content = f.read()
-    # 解析形如 "### N. 问题内容" 的标题
-    pattern = r'###\s+(\d+)\.\s+(.+?)(?=\n-|\n\n|$)'
-    matches = re.findall(pattern, content)
-    for num, text in matches:
-        questions.append({
-            "id": f"q{num}",
-            "question": text.strip(),
-        })
-    return questions
-
-
-@app.get("/eval/questions")
-def get_eval_questions():
-    """获取所有评估题目（预设 + 自定义）"""
-    preset = _parse_questions_from_md()
-    data = _load_eval_results()
-    custom = data.get("custom_questions", [])
-    return {"questions": preset + custom}
-
-
-@app.post("/eval/questions")
-def add_eval_question(body: dict):
-    """添加自定义题目 {question: str}"""
-    data = _load_eval_results()
-    custom = data.get("custom_questions", [])
-    new_q = {
-        "id": f"custom_{uuid.uuid4().hex[:6]}",
-        "question": body.get("question", "").strip(),
-    }
-    custom.append(new_q)
-    data["custom_questions"] = custom
-    _save_eval_results(data)
-    return {"ok": True, "question": new_q}
-
-
-@app.delete("/eval/questions/{qid}")
-def delete_eval_question(qid: str):
-    """删除自定义题目及关联结果"""
-    data = _load_eval_results()
-    data["custom_questions"] = [q for q in data.get("custom_questions", []) if q["id"] != qid]
-    data["results"] = [r for r in data.get("results", []) if r.get("question_id") != qid]
-    _save_eval_results(data)
-    return {"ok": True}
-
-
-@app.post("/eval/run")
-def eval_run(body: dict):
-    """对指定题目调用 API 并返回结果 {question_id, question, model}"""
-    question = body.get("question", "")
-    model_id = body.get("model")
-    try:
-        answer, plan_log, thinking = generator.answer(question, use_api=True, model_id=model_id)
-        return {
-            "answer": answer,
-            "plan_log": plan_log,
-            "model": model_id or generator.model_id,
-            "thinking": thinking,
-        }
-    except Exception as e:
-        raise _internal_error(e)
-
-
-@app.post("/eval/save")
-def eval_save(body: dict):
-    """保存评分结果"""
-    data = _load_eval_results()
-    entry = {
-        "id": uuid.uuid4().hex[:8],
-        "question_id": body.get("question_id", ""),
-        "question": body.get("question", ""),
-        "model": body.get("model", ""),
-        "answer": body.get("answer", ""),
-        "plan_log": body.get("plan_log", {}),
-        "thinking": body.get("thinking", ""),
-        "scores": body.get("scores", {}),   # {C: int, D: int, A: int, B: int}
-        "notes": body.get("notes", ""),
-        "timestamp": datetime.now().isoformat(),
-    }
-    data.setdefault("results", []).append(entry)
-    _save_eval_results(data)
-    return {"ok": True, "id": entry["id"]}
-
-
-@app.get("/eval/results")
-def get_eval_results():
-    """获取所有评分结果"""
-    data = _load_eval_results()
-    return {"results": data.get("results", [])}
-
-
-@app.delete("/eval/results/{qid}")
-def reset_eval_result(qid: str, model: Optional[str] = None):
-    """重置某题的评分结果，可指定模型"""
-    data = _load_eval_results()
-    if model:
-        data["results"] = [r for r in data.get("results", [])
-                           if not (r.get("question_id") == qid and r.get("model") == model)]
-    else:
-        data["results"] = [r for r in data.get("results", []) if r.get("question_id") != qid]
-    _save_eval_results(data)
-    return {"ok": True}
-
-
-@app.get("/eval/summary")
-def get_eval_summary():
-    """获取汇总统计（按模型分组）"""
-    data = _load_eval_results()
-    results = data.get("results", [])
-    # 按模型分组
-    models = {}
-    for r in results:
-        m = r.get("model", "unknown")
-        if m not in models:
-            models[m] = {"count": 0, "C": [], "D": [], "A": [], "B": [], "results": []}
-        s = r.get("scores", {})
-        models[m]["count"] += 1
-        for k in ["C", "D", "A", "B"]:
-            if k in s:
-                models[m][k].append(s[k])
-        models[m]["results"].append(r)
-    # 算均分
-    summary = {}
-    for m, v in models.items():
-        avg = {}
-        for k in ["C", "D", "A", "B"]:
-            vals = v[k]
-            avg[k] = round(sum(vals) / len(vals), 2) if vals else 0
-        summary[m] = {"count": v["count"], "avg_scores": avg, "results": v["results"]}
-    return {"summary": summary, "total_results": len(results)}
 
 
 # ========== 前端静态资源（生产构建产物 dist/） ==========

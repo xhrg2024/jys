@@ -73,7 +73,6 @@ src/
 ├── memory/         # 数据构建：build_graph.py、build_vector_index.py
 ├── planning/       # 规划
 ├── perception/     # 感知
-├── evaluation/     # 评测
 └── frontend/       # React + Vite 前端
 data/data.json      # 知识图谱源数据
 reports/            # 生成的报告（运行时自动创建）
@@ -97,5 +96,5 @@ curl -X POST http://127.0.0.1:8000/chat \
 
 ## 注意事项
 
-- `API_TOKEN` 留空时普通接口开放、评测页 `/eval/*` 禁用；设置后需在请求头带 `Authorization: Bearer <token>`。
+- `API_TOKEN` 留空时普通接口开放；设置后需在请求头带 `Authorization: Bearer <token>`。
 - 默认监听 `127.0.0.1`（仅本机）；需局域网/服务器外部访问时把 `API_HOST` 改为 `0.0.0.0`，或通过 SSH 隧道转发。
