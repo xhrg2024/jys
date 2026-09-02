@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 import json
 import re
+import mimetypes
 from datetime import datetime
 
 from model.generator import Generator, list_providers, MAX_QUESTION_LEN
@@ -931,6 +932,16 @@ def reference_sql(title: Optional[str] = None, author_name: Optional[str] = None
 
 # ========== 前端静态资源（生产构建产物 dist/） ==========
 # 挂载在最后，确保所有 /api 风格路由已注册、优先匹配；StaticFiles 子应用自动绕过鉴权依赖
+# 修正 Windows 下 mimetypes 对前端构建产物扩展名的误判：否则 .js 被以 text/plain 返回，
+# 浏览器对 <script type="module"> 强制要求 JavaScript MIME，会拒绝执行 → 页面空白。
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("application/javascript", ".mjs")
+mimetypes.add_type("text/css", ".css")
+mimetypes.add_type("image/svg+xml", ".svg")
+mimetypes.add_type("application/json", ".json")
+mimetypes.add_type("font/woff2", ".woff2")
+mimetypes.add_type("font/woff", ".woff")
+
 _DIST_DIR = Path(__file__).resolve().parents[2] / "src" / "frontend" / "dist"
 if _DIST_DIR.is_dir():
     app.mount("/", StaticFiles(directory=str(_DIST_DIR), html=True), name="frontend")
