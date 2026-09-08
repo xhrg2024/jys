@@ -206,10 +206,11 @@ def get_entity_relations(name: str):
 
 @app.get("/path")
 def find_path(source: str, target: str):
-    """查询两个实体间的最短路径"""
+    """查询两个实体间的最短路径（文本 + 结构化 nodes/edges，供前端可视化）"""
     try:
         result = graph_tools.query_relation_between(source, target)
-        return {"source": source, "target": target, "path": result}
+        paths = graph_tools.query_path_struct(source, target)
+        return {"source": source, "target": target, "path": result, "paths": paths}
     except Exception as e:
         raise _internal_error(e)
 

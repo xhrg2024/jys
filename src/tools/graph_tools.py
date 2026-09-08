@@ -18,6 +18,21 @@ if not _NEO4J_PASSWORD:
 AUTH = (os.environ.get("NEO4J_USER", "neo4j"), _NEO4J_PASSWORD)
 
 _driver = None
+
+# 路径查询黑名单：这些实体在路径遍历中作为中间节点时被屏蔽，避免高连通度的"枢纽"节点
+# （如"辑佚"方法类实体）让任意两个实体之间都出现平凡路径。
+# 仅影响 /path 的跳转遍历（起点/终点不受影响）；对黑名单节点本身直接检索其关系不受影响。
+# 可通过环境变量 PATH_BLACKLIST（英文逗号分隔）覆盖，默认屏蔽「辑佚」。
+_PATH_BLACKLIST_DEFAULT = "辑佚"
+PATH_BLACKLIST = [
+    n.strip()
+    for n in os.environ.get("PATH_BLACKLIST", _PATH_BLACKLIST_DEFAULT).split(",")
+    if n.strip()
+]
+
+# 路径查询改用无向 BFS（见 _find_paths），无跳数上限，黑名单中间节点在遍历时直接剪枝，
+# 避免 Cypher 变长路径 `ORDER BY len` 带来的全路径枚举指数爆炸。
+
 # 属性中文映射（模块级，供 _format_entity 与 /reference/graph 共用）
 KEY_CN = {
     # 辑本相关
@@ -195,29 +210,147 @@ def get_neighbor_struct(entity_id):
     return [(r["name"], r["nid"]) for r in results]
 
 
-def query_relation_between(name_a, name_b):
-    """查两实体间最短路径（最多 3 条，按长度升序）"""
-    results = _run(
-        "MATCH p=(a {name: $a})-[*..4]-(b {name: $b}) "
-        "RETURN [n IN nodes(p) | n.name] AS path, "
-        "[r IN relationships(p) | type(r)] AS rels, "
-        "length(p) AS len "
-        "ORDER BY len "
-        "LIMIT 3",
-        a=name_a, b=name_b
+def _load_undirected_graph():
+    """载入全图无向邻接（当前小图，一次载入），供 BFS 做无跳数上限的最短路径搜索。
+    node_meta: id -> (name, label)；adj: id -> [(neighbor_id, rel_type, description)]。
+    注：图较大时应改为按层增量查询邻居，避免一次载入全图。
+    """
+    rows = _run(
+        "MATCH (a:Entity)-[r]-(b:Entity) "
+        "RETURN a.id AS aid, a.name AS an, "
+        "[l IN labels(a) WHERE l <> 'Entity'][0] AS al, "
+        "b.id AS bid, b.name AS bn, "
+        "[l IN labels(b) WHERE l <> 'Entity'][0] AS bl, "
+        "type(r) AS rt, r.description AS desc"
     )
-    if not results:
-        return f"「{name_a}」和「{name_b}」之间未找到关联路径。"
+    node_meta = {}
+    adj = {}
 
+    def ensure(nid, name, label):
+        if nid not in node_meta:
+            node_meta[nid] = (name, label or "Entity")
+            adj.setdefault(nid, [])
+
+    for r in rows:
+        ensure(r["aid"], r["an"], r["al"])
+        ensure(r["bid"], r["bn"], r["bl"])
+        desc = r["desc"] or ""
+        adj[r["aid"]].append((r["bid"], r["rt"], desc))
+        adj[r["bid"]].append((r["aid"], r["rt"], desc))
+    return node_meta, adj
+
+
+def _find_paths(name_a, name_b, blacklist, max_paths=3):
+    """无向 BFS 求避开黑名单中间节点的最短若干条路径（无跳数上限）。
+    返回 [{"length": L, "nodes": [{id,name,label}], "edges": [{source,target,type,description}]}]。
+    查无结果返回 None。起点/终点不受黑名单影响。
+    """
+    from collections import deque
+    node_meta, adj = _load_undirected_graph()
+
+    start_ids = [i for i, (n, _) in node_meta.items() if n == name_a]
+    target_ids = set(i for i, (n, _) in node_meta.items() if n == name_b)
+    if not start_ids or not target_ids:
+        return None
+    black_set = set(blacklist)
+
+    dist = {sid: 0 for sid in start_ids}
+    parents = {sid: [] for sid in start_ids}
+    queue = deque(start_ids)
+    found_targets = []
+    min_target_dist = None
+
+    while queue:
+        cur = queue.popleft()
+        # BFS 按层扩展；处理完最浅目标所在层即可停止
+        if min_target_dist is not None and dist[cur] > min_target_dist:
+            break
+        if cur in target_ids:
+            found_targets.append(cur)
+            min_target_dist = dist[cur]
+            continue
+        for nbr, rt, desc in adj.get(cur, []):
+            name_nbr = node_meta.get(nbr, ("", "Entity"))[0]
+            # 黑名单剪枝：仅当 nbr 为中间节点（非起点、非终点）时生效
+            if name_nbr in black_set and nbr not in target_ids and nbr not in start_ids:
+                continue
+            nd = dist[cur] + 1
+            if nbr not in dist:
+                dist[nbr] = nd
+                parents.setdefault(nbr, []).append(cur)
+                queue.append(nbr)
+            elif dist[nbr] == nd:
+                # 等长的另一条最短路
+                parents[nbr].append(cur)
+
+    if not found_targets:
+        return None
+
+    # 回溯所有最短路（限 max_paths 条）
+    def backtrack(node, acc):
+        full = [node] + acc
+        if node in start_ids:
+            return [full]
+        out = []
+        for p in parents.get(node, []):
+            out.extend(backtrack(p, full))
+        return out
+
+    path_ids_list = []
+    seen = set()
+    for t in found_targets:
+        for p in backtrack(t, []):
+            # 同名实体（如多个"惠栋"）会回溯出名字相同、仅 id 不同的重复路径，按名字序列去重
+            sig = tuple(node_meta[pid][0] for pid in p)
+            if sig in seen:
+                continue
+            seen.add(sig)
+            path_ids_list.append(p)
+            if len(path_ids_list) >= max_paths:
+                break
+        if len(path_ids_list) >= max_paths:
+            break
+
+    paths = []
+    for pids in path_ids_list:
+        nodes = [{"id": pid, "name": node_meta[pid][0], "label": node_meta[pid][1]} for pid in pids]
+        edges = []
+        for i in range(len(pids) - 1):
+            a, b = pids[i], pids[i + 1]
+            rt, desc = "RELATES", ""
+            for nbr, r_type, r_desc in adj.get(a, []):
+                if nbr == b:
+                    rt, desc = r_type, r_desc
+                    break
+            edges.append({"source": a, "target": b, "type": rt, "description": desc})
+        paths.append({"length": len(edges), "nodes": nodes, "edges": edges})
+    return paths
+
+
+def query_relation_between(name_a, name_b):
+    """查两实体间最短路径（最多 3 条，按长度升序），文本形式。
+    中间节点命中 PATH_BLACKLIST 的路径会被跳过（起点/终点不受影响）。
+    """
+    paths = _find_paths(name_a, name_b, PATH_BLACKLIST)
+    if not paths:
+        return f"「{name_a}」和「{name_b}」之间未找到关联路径。"
     all_paths = []
-    for idx, r in enumerate(results):
+    for idx, p in enumerate(paths):
+        names = [n["name"] for n in p["nodes"]]
         steps = []
-        for i in range(len(r["path"]) - 1):
-            steps.append(f"{r['path'][i]} → {r['rels'][i]} → {r['path'][i+1]}")
+        for i in range(len(names) - 1):
+            steps.append(f"{names[i]} → {p['edges'][i]['type']} → {names[i+1]}")
         path_str = "，".join(steps)
-        label = f"路径{idx+1}" if len(results) > 1 else "路径"
-        all_paths.append(f"{label}（{r['len']}跳）：{path_str}")
+        label = f"路径{idx+1}" if len(paths) > 1 else "路径"
+        all_paths.append(f"{label}（{p['length']}跳）：{path_str}")
     return "\n".join(all_paths)
+
+
+def query_path_struct(name_a, name_b):
+    """查两实体间最短路径（最多 3 条，按长度升序），返回结构化 nodes/edges 供前端可视化。
+    中间节点命中 PATH_BLACKLIST 的路径会被跳过（起点/终点不受影响）。查无结果返回 None。
+    """
+    return _find_paths(name_a, name_b, PATH_BLACKLIST)
 
 
 def query_by_label(label, limit=None):

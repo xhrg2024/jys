@@ -102,10 +102,27 @@ function layoutRadial(nodes, width, height) {
   return results;
 }
 
+// ─── 线性布局（路径链）：按 hop 顺序从左到右一字排开，垂直居中 ─────
+function layoutLinear(nodes, width, height) {
+  const sorted = [...nodes].sort((a, b) => (a.hop ?? 0) - (b.hop ?? 0));
+  const n = sorted.length;
+  const cy = height / 2;
+  const padX = 90;
+  const spacing = n > 1 ? (width - padX * 2) / (n - 1) : 0;
+  return sorted.map((node, i) => ({
+    ...node,
+    x: n > 1 ? padX + i * spacing : width / 2,
+    y: cy,
+    r: 30,
+    isCenter: false,
+  }));
+}
+
 function KnowledgeGraph({ onNodeClick, onEdgeClick, selected, nodes: propNodes, edges: propEdges, layout = "radial", height: propHeight }) {
   const nodes = propNodes || [];
   const edges = propEdges || [];
-  const svgW = 660;
+  // 线性（路径）布局时按节点数动态加宽画布，保证长路径不拥挤；其余布局固定 660
+  const svgW = layout === "linear" ? Math.max(660, nodes.length * 150 + 120) : 660;
   // height 为数字时直接使用；字符串（如 "100%"）时使用默认 480（viewBox 需要数值坐标，CSS height:100% 已处理拉伸）
   const numericHeight = typeof propHeight === "number" ? propHeight : 480;
 
@@ -115,6 +132,11 @@ function KnowledgeGraph({ onNodeClick, onEdgeClick, selected, nodes: propNodes, 
   // 视图状态（支持拖动和缩放）
   const [viewBox, setViewBox] = useState({ x: 0, y: 0, w: svgW, h: numericHeight });
   const [isDragging, setIsDragging] = useState(false);
+
+  // 画布尺寸变化（如线性路径节点数变化）时重置视图，保证新图完整可见
+  useEffect(() => {
+    setViewBox({ x: 0, y: 0, w: svgW, h: numericHeight });
+  }, [svgW, numericHeight]);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const svgRef = useRef(null);
 
@@ -178,17 +200,21 @@ function KnowledgeGraph({ onNodeClick, onEdgeClick, selected, nodes: propNodes, 
 
   // 计算最终节点位置（含颜色、半径等）
   const nodePositions = (() => {
+    const maxHop = nodes.reduce((m, n) => Math.max(m, n.hop ?? 0), 0);
     const applyStyle = (n) => {
       const colors = NODE_COLORS[n.label] || NODE_COLORS.Entity;
       const hop = typeof n.hop === "number" ? n.hop : (n.is_center ? 0 : 1);
-      const isCenter = n.is_center === true || n.hop === 0;
-      const r = isCenter ? 42 : hop === 1 ? 30 : 24;
-      const vi = Math.min(Math.max(hop, 0), 2);
+      const isCenter = layout !== "linear" && (n.is_center === true || n.hop === 0);
+      const r = layout === "linear" ? 30 : isCenter ? 42 : hop === 1 ? 30 : 24;
+      // 线性（路径）布局下所有节点同等醒目，不做按 hop 渐隐；起点/终点加粗描边突出
+      const vi = layout === "linear" ? 0 : Math.min(Math.max(hop, 0), 2);
+      const isEndpoint = layout === "linear" && maxHop > 0 && (hop === 0 || hop === maxHop);
       return {
         ...n,
         isCenter,
+        isEndpoint,
         r,
-        fill: fillForHop(colors, hop),
+        fill: layout === "linear" ? colors.fill : fillForHop(colors, hop),
         stroke: colors.stroke,
         tc: colors.tc,
         strokeOpacity: HOP_VISUAL.stroke[vi],
@@ -197,6 +223,9 @@ function KnowledgeGraph({ onNodeClick, onEdgeClick, selected, nodes: propNodes, 
     };
     if (layout === "force" && forcePositions) {
       return forcePositions.map((n) => applyStyle({ ...n, x: n.x, y: n.y }));
+    }
+    if (layout === "linear") {
+      return layoutLinear(nodes, svgW, numericHeight).map(applyStyle);
     }
     return layoutRadial(nodes, svgW, numericHeight).map(applyStyle);
   })();
@@ -434,7 +463,7 @@ function KnowledgeGraph({ onNodeClick, onEdgeClick, selected, nodes: propNodes, 
             cx={n.x} cy={n.y} r={n.r}
             fill={n.fill}
             stroke={selected === n.id ? C.brownBtn : n.stroke}
-            strokeWidth={n.isCenter ? 3 : 2}
+            strokeWidth={n.isCenter || n.isEndpoint ? 3 : 2}
             strokeOpacity={n.strokeOpacity}
             filter={n.isCenter ? "url(#glow)" : "none"}
           />
