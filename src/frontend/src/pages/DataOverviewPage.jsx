@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import {
-  BarChart, Bar, XAxis, YAxis, Cell, ResponsiveContainer,
-  PieChart, Pie, Tooltip, CartesianGrid, LabelList,
+  Cell, ResponsiveContainer,
+  PieChart, Pie, Tooltip,
 } from "recharts";
 import C from "../constants/colors";
 import TypeOverview from "../components/TypeOverview";
-import { PALETTE, ChartTooltip, HBars, toChart, fmt } from "../components/OverviewCharts";
+import { PALETTE, ChartTooltip, HBars, toChart, fmt, PERIOD_ORDER } from "../components/OverviewCharts";
 
 /* 实体类型 → 中文名 */
 const LABEL_CN = {
@@ -58,20 +58,31 @@ const REL_DESC = {
   methodEvaluation: "方法评价关系",
 };
 
-/* 辑佚史时间轴：主要朝代按历史顺序，match 用于把杂乱的时期取值归并 */
-const PERIOD_ORDER = [
-  { label: "先秦", years: "—前221", match: /先秦|春秋|战国|周朝|西周|东周/ },
-  { label: "两汉", years: "前202–220", match: /两汉|西汉|东汉|汉/ },
-  { label: "魏晋南北朝", years: "220–589", match: /魏晋|三国|南北朝|北魏|南朝|北朝|两晋|十六国/ },
-  { label: "隋唐", years: "581–907", match: /隋|唐/ },
-  { label: "五代十国", years: "907–960", match: /五代|十国/ },
-  { label: "宋代", years: "960–1279", match: /宋/ },
-  { label: "辽金", years: "916–1234", match: /辽|金/ },
-  { label: "元代", years: "1271–1368", match: /元/ },
-  { label: "明代", years: "1368–1644", match: /明/ },
-  { label: "清代", years: "1644–1912", match: /清|乾隆|康熙|雍正|嘉庆|道光|咸丰|同治|光绪|宣统|1[78]\d\d/ },
-  { label: "近现代", years: "1912–", match: /民国|近现代|现代|当代|19\d\d|20\d\d/ },
-];
+/* 内容类型 → 名词解释 */
+const CONTENT_TYPE_DESC = {
+  丛书: "汇集多种著作、冠以总名统一编印的典籍丛刊",
+  类书: "采辑群书资料、按类编排以备检索的工具书",
+  诗文总集: "汇录多人诗文的合集",
+  医书: "医学典籍",
+  方志: "记述一方沿革、地理、人物、风土的地方志",
+  正史: "官方修撰的纪传体史书（如二十四史）",
+  方志辑佚: "从地方志中辑出的佚文",
+  笔记: "随笔杂录、以记录见闻为主的著述",
+  目录考证: "对典籍目录的考订与辨正",
+  书目: "图书目录",
+  帛书: "书写于缣帛上的古代文献",
+  史部辑佚: "史部类的辑佚成果",
+  竹简: "书写于竹简上的古代文献",
+  文学总集: "文学作品的总汇",
+  诗集: "诗歌作品的结集",
+  敦煌残卷: "敦煌藏经洞出土的文献写本残卷",
+  史志目录: "史书《艺文志》《经籍志》所载书目",
+  目录: "图书目录",
+  唐诗选本: "唐代诗歌的选编本",
+  音义书: "注音释义的训诂类著作",
+  理学文集: "理学家的文集",
+  编年史: "按年月次序编撰的史书",
+};
 
 function buildTimeline(dist) {
   const buckets = PERIOD_ORDER.map(p => ({ label: p.label, years: p.years, count: 0 }));
@@ -219,8 +230,8 @@ function DataOverviewPage({ navigate, setResourceTab }) {
     .map(([label, count]) => ({ label, name: LABEL_CN[label] || label, count }))
     .sort((a, b) => b.count - a.count);
   const relationTypes = toChart(stats?.relation_types, REL_CN);
-  const periods = toChart(stats?.compilation_period_dist);
   const contentTypes = toChart(stats?.content_type_dist);
+  const contentTypeTotal = contentTypes.reduce((s, e) => s + e.count, 0);
   const schools = toChart(stats?.school_dist).slice(0, 10);
   const birthplaces = toChart(stats?.birthplace_dist).slice(0, 10);
   const compilers = toChart(stats?.compiler_dist).slice(0, 10);
@@ -339,7 +350,7 @@ function DataOverviewPage({ navigate, setResourceTab }) {
         <Section title="关系类型分布">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
             <ChartCard>
-              <HBars data={relationTypes} color={C.nodeTeal} total={stats?.relation_count || 0} />
+              <HBars data={relationTypes} usePalette total={stats?.relation_count || 0} />
             </ChartCard>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, justifyContent: "center" }}>
               {relationTypes.map((r, i) => {
@@ -361,32 +372,29 @@ function DataOverviewPage({ navigate, setResourceTab }) {
         </Section>
       )}
 
-      {/* 辑佚时期 + 内容类型 */}
-      {(periods.length > 0 || contentTypes.length > 0) && (
+      {/* 内容类型 */}
+      {contentTypes.length > 0 && (
         <Section title="辑本画像">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-            {periods.length > 0 && (
-              <ChartCard title="辑佚时期分布" note="辑本所归属的历史时期">
-                <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={periods} margin={{ top: 20, right: 12, left: -10, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={C.borderL} vertical={false} />
-                    <XAxis dataKey="name" tick={{ fontSize: 12, fill: C.textM }} />
-                    <YAxis tick={{ fontSize: 11, fill: C.textM }} />
-                    <Tooltip content={<ChartTooltip total={periods.reduce((s, e) => s + e.count, 0)} />} cursor={{ fill: C.borderL }} />
-                    <Bar dataKey="count" radius={[3, 3, 0, 0]} maxBarSize={44}>
-                      {periods.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
-                      <LabelList dataKey="count" position="top" style={{ fill: C.textM, fontSize: 11 }} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            )}
-            {contentTypes.length > 0 && (
-              <ChartCard title="内容类型分布" note="辑本的内容体裁分类">
-                <HBars data={contentTypes.slice(0, 12)} color={C.nodeBeig}
-                  total={contentTypes.reduce((s, e) => s + e.count, 0)} />
-              </ChartCard>
-            )}
+            <ChartCard title="内容类型分布" note="辑本的内容体裁分类">
+              <HBars data={contentTypes.slice(0, 12)} usePalette total={contentTypeTotal} />
+            </ChartCard>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, justifyContent: "center" }}>
+              {contentTypes.slice(0, 12).map((c, i) => {
+                const pct = contentTypeTotal ? ((c.count / contentTypeTotal) * 100).toFixed(1) : "0";
+                return (
+                  <div key={c.name} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13 }}>
+                    <span style={{ width: 9, height: 9, borderRadius: 2, background: PALETTE[i % PALETTE.length], flexShrink: 0 }} />
+                    <span style={{ width: 88, color: C.text, flexShrink: 0 }}>{c.name}</span>
+                    <span style={{ flex: 1, color: C.textL, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontStyle: "italic" }}
+                      title={CONTENT_TYPE_DESC[c.raw] || ""}>
+                      {CONTENT_TYPE_DESC[c.raw] || "—"}
+                    </span>
+                    <span style={{ color: C.textM, flexShrink: 0 }}>{c.count} · {pct}%</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </Section>
       )}

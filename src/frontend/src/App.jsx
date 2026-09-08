@@ -2,46 +2,40 @@ import { useState } from "react";
 import C from "./constants/colors";
 
 import TopNav from "./components/TopNav";
-import ResourceSidebar from "./components/ResourceSidebar";
+import WorkspacePage from "./components/WorkspacePage";
 
 import HomePage from "./pages/HomePage";
-import DataOverviewPage from "./pages/DataOverviewPage";
-import EntityListPage from "./pages/EntityListPage";
-import EntityExplorePage from "./pages/EntityExplorePage";
-import PathQueryPage from "./pages/PathQueryPage";
-import ResearchSection from "./pages/ResearchSection";
 import DataDownloadPage from "./pages/DataDownloadPage";
-import ImportPage from "./pages/ImportPage";
 import AboutPage from "./pages/AboutPage";
 
 /* ─────────────── MAIN APP ─────────────── */
 export default function App() {
   const [page, setPage] = useState("home");
-  const [resourceTab, setResourceTab] = useState("overview");
+  const [workspaceTab, setWorkspaceTab] = useState("chat");   // 资源浏览 / 智能对话 / 图谱导入
+  const [resourceTab, setResourceTab] = useState("overview");  // 资源浏览内部的子页
 
   const navigate = (target) => {
-    setPage(target);
-    if (target === "resources-overview") setResourceTab("overview");
-    if (target === "resources-explore") setResourceTab("explore");
-    if (target === "resources-path") setResourceTab("path");
-    if (target === "entity-list") setResourceTab("entity-list");
+    if (target === "home") { setPage("home"); return; }
+    if (target === "data-download") { setPage("data-download"); return; }
+    if (target === "about") { setPage("about"); return; }
+    // 智能研究工作台（资源浏览 / 智能对话 / 图谱导入）
+    setPage("research");
+    if (target === "import") {
+      setWorkspaceTab("import");
+    } else if (target === "research-home" || target === "research-chat" || target === "research") {
+      setWorkspaceTab("chat");
+    } else {
+      setWorkspaceTab("browse");
+      if (target === "resources-explore") setResourceTab("explore");
+      else if (target === "resources-path") setResourceTab("path");
+      else if (target === "entity-list") setResourceTab("entity-list");
+      else setResourceTab("overview");
+    }
   };
 
   const isHomePage = page === "home";
-  const isResourcePage = page.startsWith("resources") || page === "entity-list" || resourceTab === "entity-list";
-  const isResearchPage = page.startsWith("research");
   const isDownloadPage = page === "data-download";
-  const isImportPage = page === "import";
   const isAboutPage = page === "about";
-
-  const renderResourceContent = () => {
-    const tab = resourceTab;
-    if (tab === "overview") return <DataOverviewPage navigate={navigate} setResourceTab={setResourceTab} />;
-    if (tab === "entity-list") return <EntityListPage />;
-    if (tab === "explore") return <EntityExplorePage navigate={navigate} />;
-    if (tab === "path") return <PathQueryPage navigate={navigate} />;
-    return null;
-  };
 
   return (
     <div style={{
@@ -68,23 +62,16 @@ export default function App() {
           <HomePage navigate={navigate} />
         ) : isDownloadPage ? (
           <DataDownloadPage navigate={navigate} />
-        ) : isImportPage ? (
-          <ImportPage navigate={navigate} />
         ) : isAboutPage ? (
           <AboutPage navigate={navigate} />
-        ) : isResearchPage ? (
-          <ResearchSection navigate={navigate} />
         ) : (
-          <>
-            <ResourceSidebar
-              tab={resourceTab}
-              setTab={(t) => { setResourceTab(t); setPage("resources-overview"); }}
-              navigate={navigate}
-            />
-            <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-              {renderResourceContent()}
-            </div>
-          </>
+          <WorkspacePage
+            navigate={navigate}
+            workspaceTab={workspaceTab}
+            setWorkspaceTab={setWorkspaceTab}
+            resourceTab={resourceTab}
+            setResourceTab={setResourceTab}
+          />
         )}
       </div>
     </div>

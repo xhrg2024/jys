@@ -13,29 +13,29 @@ const LIGHT_C = {
   inputBg: C.bg,             // 输入框背景
 };
 
-// 深色沉浸主题：深度思考模式开启时，整体切换为墨色/深蓝紫风格
+// 深度思考主题：整体保持浅色暖调，但色相压向棕褐（偏棕而非偏黄）
 const DARK_C = {
   ...C,
-  bg: "#17141f",            // 主背景：深墨
-  sidebar: "#120f1a",       // 侧栏：更深
-  sidebarAct: "#2a2438",
-  sidebarHov: "#211c2e",
-  white: "#201c2e",         // 卡片/气泡底：深紫灰
-  brown: "#c48a6a",
-  brownBtn: "#c4a240",      // 强调金
-  brownDk: "#d9b878",
-  border: "#342e44",
-  borderL: "#2a2538",
-  text: "#e7e1d3",          // 主文字：米白
-  textM: "#b3a99b",
-  textL: "#857c6e",
-  gold: "#c4a240",
-  thinkBg: "#221e30",
-  retrievalBg: "#1d1930",
-  thinkText: "#a49bb8",
-  previewText: "#8d86a0",
-  citeColor: "#e0b64a",
-  inputBg: "#14111d",
+  bg: "#e6d5bc",            // 主背景：浅棕
+  sidebar: "#d7c0a1",       // 侧栏棕
+  sidebarAct: "#c3a885",
+  sidebarHov: "#cbb593",
+  white: "#f3ead8",         // 卡片/气泡底：暖白偏棕
+  brown: "#5f2b16",
+  brownBtn: "#6f3518",      // 强调棕
+  brownDk: "#45200c",
+  border: "#c9b491",
+  borderL: "#ddcdb0",
+  text: "#291b10",          // 主文字深棕
+  textM: "#5a3d27",
+  textL: "#8c7255",
+  gold: "#a88130",
+  thinkBg: "#ecddc3",
+  retrievalBg: "#e5d9c0",
+  thinkText: "#6d583c",
+  previewText: "#7b6749",
+  citeColor: "#6f3518",
+  inputBg: "#e6d5bc",
 };
 
 function renderMessageWithCitations(text, sourceIndex, onCitationClick, citeColor = "#8a4520") {
@@ -140,6 +140,7 @@ function ResearchSection({ navigate }) {
   const [expandedThink, setExpandedThink] = useState({});
   const [expandedRetrieval, setExpandedRetrieval] = useState({});
   const [deepMode, setDeepMode] = useState(false);   // 深度思考模式开关
+  const [historyOpen, setHistoryOpen] = useState(false);   // 对话历史滑出面板（默认隐藏）
   // 会话历史
   const [sessions, setSessions] = useState([]);      // [{id, title, updated_at, message_count}]
   const [currentSessionId, setCurrentSessionId] = useState(null);
@@ -548,57 +549,7 @@ function ResearchSection({ navigate }) {
   ];
 
   return (
-    <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-      {/* 历史记录侧栏 */}
-      <div style={{
-        width: 220, background: theme.sidebar, flexShrink: 0,
-        borderRight: `1px solid ${theme.border}`, display: "flex", flexDirection: "column",
-        overflow: "hidden",
-      }}>
-        {/* 顶部：新开对话 */}
-        <div style={{ padding: 12 }}>
-          <button onClick={handleNewChat} style={{
-            width: "100%", padding: "10px 0", borderRadius: 8, cursor: "pointer",
-            border: `1px solid ${theme.border}`, background: theme.brownBtn,
-            color: "#fff", fontSize: 13.5, fontWeight: 600, fontFamily: "inherit",
-          }}>
-            ＋ 新开对话
-          </button>
-        </div>
-        {/* 历史列表 */}
-        <div style={{ flex: 1, overflow: "auto", padding: "0 8px 12px" }}>
-          {sessions.length === 0 ? (
-            <div style={{ color: theme.textL, fontSize: 12, textAlign: "center", padding: "24px 0" }}>
-              暂无历史记录
-            </div>
-          ) : (
-            sessions.map(s => (
-              <div key={s.id} onClick={() => openSession(s.id)} style={{
-                padding: "10px 12px", borderRadius: 8, cursor: "pointer",
-                background: s.id === currentSessionId ? theme.sidebarAct : "transparent",
-                marginBottom: 4, transition: "background .15s",
-              }}>
-                <div style={{
-                  fontSize: 13, color: theme.text, fontWeight: s.id === currentSessionId ? 600 : 400,
-                  lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis",
-                  display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
-                }}>
-                  {s.title || "未命名对话"}
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-                  <span style={{ fontSize: 11, color: theme.textL }}>{formatTime(s.updated_at)}</span>
-                  <span
-                    onClick={(e) => { e.stopPropagation(); deleteSession(s.id); }}
-                    style={{ fontSize: 11, color: theme.textL, cursor: "pointer", padding: "0 2px" }}
-                    title="删除会话"
-                  >✕</span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
+    <div style={{ flex: 1, display: "flex", overflow: "hidden", position: "relative" }}>
       {/* Main */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: theme.bg }}>
         {/* 页内顶栏：右上角承载「深度思考」切换按钮 */}
@@ -607,12 +558,22 @@ function ResearchSection({ navigate }) {
           padding: "10px 24px", borderBottom: `1px solid ${theme.border}`,
           background: theme.white, flexShrink: 0,
         }}>
-          <div style={{
-            fontSize: 14, fontWeight: 600, color: theme.text,
-            fontFamily: "'Noto Serif SC', serif", letterSpacing: 1,
-          }}>
-            智能问答
-            {deepMode && <span style={{ color: theme.citeColor, marginLeft: 8 }}>· 深度思考</span>}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button
+              onClick={() => setHistoryOpen(v => !v)}
+              title="对话历史"
+              style={{
+                background: "none", border: "none", cursor: "pointer",
+                fontSize: 18, color: theme.textM, padding: "2px 6px", lineHeight: 1,
+              }}
+            >☰</button>
+            <div style={{
+              fontSize: 14, fontWeight: 600, color: theme.text,
+              fontFamily: "'Noto Serif SC', serif", letterSpacing: 1,
+            }}>
+              智能问答
+              {deepMode && <span style={{ color: theme.citeColor, marginLeft: 8 }}>· 深度思考</span>}
+            </div>
           </div>
           {/* 深度思考切换按钮（专门的滑动开关） */}
           <button
@@ -623,7 +584,7 @@ function ResearchSection({ navigate }) {
               padding: "6px 14px", borderRadius: 20, cursor: "pointer",
               border: `1px solid ${deepMode ? theme.citeColor : theme.border}`,
               background: deepMode ? theme.citeColor : "transparent",
-              color: deepMode ? "#17141f" : theme.textM,
+              color: deepMode ? "#fff" : theme.textM,
               fontSize: 12.5, fontWeight: 600, fontFamily: "inherit",
               transition: "all .15s",
             }}>
@@ -863,6 +824,77 @@ function ResearchSection({ navigate }) {
           </div>
         </div>
       </div>
+
+      {/* 对话历史滑出面板（覆盖式，不改变页面布局） */}
+      {historyOpen && (
+        <>
+          {/* 右侧未被覆盖部分的模糊蒙版 */}
+          <div
+            onClick={() => setHistoryOpen(false)}
+            style={{
+              position: "absolute", top: 0, bottom: 0, left: 220, right: 0, zIndex: 50,
+              background: "rgba(0,0,0,0.18)", backdropFilter: "blur(3px)",
+            }}
+          />
+          {/* 历史面板 */}
+          <div style={{
+            position: "absolute", top: 0, bottom: 0, left: 0, width: 220, zIndex: 60,
+            background: theme.sidebar, borderRight: `1px solid ${theme.border}`,
+            display: "flex", flexDirection: "column", overflow: "hidden",
+            boxShadow: "4px 0 20px rgba(0,0,0,0.12)",
+            animation: "historyIn 0.22s ease-out",
+          }}>
+            <style>{`
+              @keyframes historyIn {
+                from { transform: translateX(-100%); }
+                to { transform: translateX(0); }
+              }
+            `}</style>
+            {/* 顶部：新开对话 */}
+            <div style={{ padding: 12 }}>
+              <button onClick={() => { handleNewChat(); setHistoryOpen(false); }} style={{
+                width: "100%", padding: "10px 0", borderRadius: 8, cursor: "pointer",
+                border: `1px solid ${theme.border}`, background: theme.brownBtn,
+                color: "#fff", fontSize: 13.5, fontWeight: 600, fontFamily: "inherit",
+              }}>
+                ＋ 新开对话
+              </button>
+            </div>
+            {/* 历史列表 */}
+            <div style={{ flex: 1, overflow: "auto", padding: "0 8px 12px" }}>
+              {sessions.length === 0 ? (
+                <div style={{ color: theme.textL, fontSize: 12, textAlign: "center", padding: "24px 0" }}>
+                  暂无历史记录
+                </div>
+              ) : (
+                sessions.map(s => (
+                  <div key={s.id} onClick={() => { openSession(s.id); setHistoryOpen(false); }} style={{
+                    padding: "10px 12px", borderRadius: 8, cursor: "pointer",
+                    background: s.id === currentSessionId ? theme.sidebarAct : "transparent",
+                    marginBottom: 4, transition: "background .15s",
+                  }}>
+                    <div style={{
+                      fontSize: 13, color: theme.text, fontWeight: s.id === currentSessionId ? 600 : 400,
+                      lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis",
+                      display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+                    }}>
+                      {s.title || "未命名对话"}
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
+                      <span style={{ fontSize: 11, color: theme.textL }}>{formatTime(s.updated_at)}</span>
+                      <span
+                        onClick={(e) => { e.stopPropagation(); deleteSession(s.id); }}
+                        style={{ fontSize: 11, color: theme.textL, cursor: "pointer", padding: "0 2px" }}
+                        title="删除会话"
+                      >✕</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* 参考资料右侧栏 */}
       <ReferenceSidebar

@@ -4,10 +4,7 @@ import C from "../constants/colors";
 function TopNav({ page, navigate }) {
   const items = [
     { label: "首页", key: "home" },
-    { label: "资源浏览", key: "resources-overview" },
-    { label: "智能研究", key: "research-home" },
-    { label: "图谱导入", key: "import" },
-    { label: "关于我们", key: "about" },
+    { label: "智能研究", key: "research" },
   ];
   return (
     <nav style={{
@@ -16,10 +13,7 @@ function TopNav({ page, navigate }) {
     }}>
       {items.map(item => {
         const active = (item.label === "首页" && page === "home") ||
-          (item.label === "资源浏览" && page.startsWith("resources")) ||
-          (item.label === "智能研究" && page.startsWith("research")) ||
-          (item.label === "图谱导入" && page === "import") ||
-          (item.label === "关于我们" && page === "about");
+          (item.label === "智能研究" && page === "research");
         return (
           <div key={item.label} onClick={() => navigate(item.key)} style={{
             flex: 1, display: "flex", alignItems: "center", justifyContent: "center",

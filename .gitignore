@@ -13,3 +13,4 @@ embeddings/bge-large-zh-v1.5/*
 lora_checkpoints/*
 logs/*
 data/sessions/
+reports/*

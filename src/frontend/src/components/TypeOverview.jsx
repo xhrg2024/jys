@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import C from "../constants/colors";
-import { HBars, toChart, fmt } from "./OverviewCharts";
+import { HBars, toChart, fmt, groupPeriods } from "./OverviewCharts";
 
 /* 属性键 → 中文 */
 const ATTR_CN = {
@@ -19,8 +19,12 @@ const ATTR_COLOR = {
   schoolName: C.nodePurp, origin: C.nodeTeal,
 };
 
+/* 需要按朝代归并的时期字段 */
+const PERIOD_KEYS = new Set(["compilationPeriod", "completionPeriod", "periodName"]);
+
 function AttrBlock({ attrKey, dist }) {
-  const entries = toChart(dist);            // 全量降序
+  const grouped = PERIOD_KEYS.has(attrKey) ? groupPeriods(dist) : dist;
+  const entries = toChart(grouped);            // 全量降序
   const total = entries.reduce((s, e) => s + e.count, 0);
   const top = entries.slice(0, 15);
   const shown = entries.length - top.length; // 被截断的其余取值数
