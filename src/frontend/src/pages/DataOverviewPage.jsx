@@ -244,7 +244,7 @@ function DataOverviewPage({ navigate, setResourceTab }) {
   return (
     <div style={{ flex: 1, overflow: "auto", padding: "28px 36px 48px" }}>
       <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 6, fontFamily: "'Noto Serif SC', serif" }}>
-        数据概览
+        全局浏览
       </h2>
       <hr style={{ border: "none", borderTop: `1px solid ${C.border}`, marginBottom: 24 }} />
 

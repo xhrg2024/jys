@@ -3,10 +3,9 @@ import C from "../constants/colors";
 /* ─────────────── SHARED: RESOURCE SIDEBAR ─────────────── */
 function ResourceSidebar({ tab, setTab, navigate }) {
   const items = [
-    { key: "overview", label: "数据概览" },
-    { key: "explore",  label: "实体与关系探索" },
+    { key: "overview", label: "全局浏览" },
+    { key: "explore",  label: "实体探索" },
     { key: "path",     label: "路径查询" },
-    { key: "global",   label: "全局浏览" },
   ];
   return (
     <aside style={{ width: 200, background: C.sidebar, flexShrink: 0, display: "flex", flexDirection: "column", borderRight: `1px solid ${C.border}` }}>

@@ -9,7 +9,6 @@ import DataOverviewPage from "./pages/DataOverviewPage";
 import EntityListPage from "./pages/EntityListPage";
 import EntityExplorePage from "./pages/EntityExplorePage";
 import PathQueryPage from "./pages/PathQueryPage";
-import GlobalBrowsePage from "./pages/GlobalBrowsePage";
 import ResearchSection from "./pages/ResearchSection";
 import DataDownloadPage from "./pages/DataDownloadPage";
 import ImportPage from "./pages/ImportPage";
@@ -25,7 +24,6 @@ export default function App() {
     if (target === "resources-overview") setResourceTab("overview");
     if (target === "resources-explore") setResourceTab("explore");
     if (target === "resources-path") setResourceTab("path");
-    if (target === "resources-global") setResourceTab("global");
     if (target === "entity-list") setResourceTab("entity-list");
   };
 
@@ -42,7 +40,6 @@ export default function App() {
     if (tab === "entity-list") return <EntityListPage />;
     if (tab === "explore") return <EntityExplorePage navigate={navigate} />;
     if (tab === "path") return <PathQueryPage navigate={navigate} />;
-    if (tab === "global") return <GlobalBrowsePage navigate={navigate} />;
     return null;
   };
 
