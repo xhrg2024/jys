@@ -4,6 +4,12 @@ import KnowledgeGraph from "../components/KnowledgeGraph";
 import EntityInfoCard from "../components/EntityInfoCard";
 import RelationDetailCard from "../components/RelationDetailCard";
 
+// 实体类型 label → 中文（展示用）
+const LABEL_CN = {
+  Scholar: "学者", Compilation: "辑本", Time: "时期", Method: "方法",
+  Methodology: "方法", Academic: "学术", Leishu: "类书", Entity: "实体",
+};
+
 function EntityExplorePage({ navigate }) {
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -33,17 +39,20 @@ function EntityExplorePage({ navigate }) {
     setSelectedRelation(null); // 切换实体时清空已选关系
     setLoading(true);
     setGraphLoading(true);
-    // 实体结构化详情
+    const eid = entity.id;
+    // 实体结构化详情：优先按 id 精确定位，避免同名实体歧义（如"永乐大典"类书版/辑本版）
     try {
-      const infoRes = await fetch(`/entity/${encodeURIComponent(entity.name)}`);
+      const idParam = eid ? `?entity_id=${encodeURIComponent(eid)}` : "";
+      const infoRes = await fetch(`/entity/${encodeURIComponent(entity.name)}${idParam}`);
       const infoData = await infoRes.json();
       setEntityInfo(infoData);
     } catch (err) {
       console.error("获取实体信息失败:", err);
     }
-    // 力导向图数据（中心节点 + 两跳邻居）
+    // 力导向图数据（中心节点 + 两跳邻居）：优先按 id
     try {
-      const graphRes = await fetch(`/graph?name=${encodeURIComponent(entity.name)}&depth=2&limit=60`);
+      const gid = eid ? `entity_id=${encodeURIComponent(eid)}` : `name=${encodeURIComponent(entity.name)}`;
+      const graphRes = await fetch(`/graph?${gid}&depth=2&limit=60`);
       const graphData = await graphRes.json();
       setGraphNodes(graphData.nodes || []);
       setGraphEdges(graphData.edges || []);
@@ -92,12 +101,24 @@ function EntityExplorePage({ navigate }) {
               onClick={() => handleSelectEntity(entity)}
               style={{
                 padding: "10px 12px", borderRadius: 8, cursor: "pointer",
-                background: selectedEntity?.name === entity.name ? "rgba(138,69,32,0.1)" : "transparent",
+                background: selectedEntity?.id === entity.id ? "rgba(138,69,32,0.1)" : "transparent",
                 marginBottom: 4, transition: "background .15s",
               }}
             >
               <div style={{ fontSize: 14, color: C.text, fontWeight: 500 }}>{entity.name}</div>
-              <div style={{ fontSize: 11, color: C.textL }}>{entity.labels.join(", ")}</div>
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
+                {(entity.labels || []).map((l) => (
+                  <span
+                    key={l}
+                    style={{
+                      fontSize: 10, color: C.brownBtn, background: "rgba(138,69,32,0.08)",
+                      padding: "1px 8px", borderRadius: 10, border: `1px solid rgba(138,69,32,0.2)`,
+                    }}
+                  >
+                    {LABEL_CN[l] || l}
+                  </span>
+                ))}
+              </div>
             </div>
           ))}
         </div>

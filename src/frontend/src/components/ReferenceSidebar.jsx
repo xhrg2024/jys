@@ -3,6 +3,7 @@ import C from "../constants/colors";
 import GraphSourcePanel from "./GraphSourcePanel";
 import RelationSourcePanel from "./RelationSourcePanel";
 import SqlSourcePanel from "./SqlSourcePanel";
+import VectorSourcePanel from "./VectorSourcePanel";
 
 /**
  * 参考资料右侧栏 — 固定定位滑入面板。
@@ -59,6 +60,10 @@ function ReferenceSidebar({ open, citationNum, sourceData, detailData, loading, 
 
     if (detailData?.kind === "relation") {
       return <RelationSourcePanel data={detailData} onNodeClick={onNodeClick} onEdgeClick={onEdgeClick} trail={trail} onTrailClick={onTrailClick} />;
+    }
+
+    if (detailData?.kind === "vector") {
+      return <VectorSourcePanel entities={detailData.entities} onNodeClick={onNodeClick} />;
     }
 
     switch (sourceType) {

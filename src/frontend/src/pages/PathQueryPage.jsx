@@ -43,7 +43,8 @@ function PathQueryPage({ navigate }) {
     setSelectedEntity({ name: node.name, id: node.id, label: node.label });
     setSelectedRelation(null);
     try {
-      const res = await fetch(`/entity/${encodeURIComponent(node.name)}`);
+      const idParam = node.id ? `?entity_id=${encodeURIComponent(node.id)}` : "";
+      const res = await fetch(`/entity/${encodeURIComponent(node.name)}${idParam}`);
       const data = await res.json();
       setEntityInfo(data);
     } catch (err) {

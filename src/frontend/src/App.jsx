@@ -3,6 +3,7 @@ import C from "./constants/colors";
 
 import TopNav from "./components/TopNav";
 import WorkspacePage from "./components/WorkspacePage";
+import { AuthProvider } from "./context/AuthContext";
 
 import HomePage from "./pages/HomePage";
 import DataDownloadPage from "./pages/DataDownloadPage";
@@ -38,6 +39,7 @@ export default function App() {
   const isAboutPage = page === "about";
 
   return (
+    <AuthProvider>
     <div style={{
       fontFamily: "'Noto Serif SC', 'Noto Sans SC', 'PingFang SC', sans-serif",
       background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column",
@@ -75,5 +77,6 @@ export default function App() {
         )}
       </div>
     </div>
+    </AuthProvider>
   );
 }

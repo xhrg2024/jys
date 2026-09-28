@@ -31,6 +31,7 @@ from model.generator import Generator, list_providers, MAX_QUESTION_LEN
 from tools import graph_tools, vector_tools, sql_tools
 from utils.report_generator import REPORT_DIR, generate_report_from_session
 from utils.graph_import import import_graph_incremental
+from utils import user_auth
 
 # ========== 鉴权与跨域配置 ==========
 API_TOKEN = os.environ.get("API_TOKEN", "").strip()
@@ -59,6 +60,17 @@ async def require_auth(request: Request):
         return
     if request.headers.get("Authorization", "") != f"Bearer {API_TOKEN}":
         raise HTTPException(status_code=401, detail="未授权：请提供有效的 Authorization: Bearer <token>")
+
+
+def get_current_user(request: Request) -> str:
+    """从 X-User-Token 头解析登录用户；未登录/失效抛 401。
+    仅用于按用户隔离对话历史，与全局 API_TOKEN（Authorization 头）正交。
+    """
+    token = request.headers.get("X-User-Token", "")
+    user = user_auth.username_for_token(token)
+    if not user:
+        raise HTTPException(status_code=401, detail="未登录或登录已过期")
+    return user
 
 
 app = FastAPI(title="辑佚史智能体", dependencies=[Depends(require_auth)])
@@ -176,12 +188,12 @@ def get_entities(label: Optional[str] = None):
 
 
 @app.get("/entity/{name}")
-def get_entity(name: str):
-    """按名称获取单个实体结构化详情（properties 已中文映射）"""
+def get_entity(name: str, entity_id: Optional[str] = None):
+    """按 id（优先）或名称获取单个实体结构化详情（properties 已中文映射）"""
     try:
-        detail = graph_tools.query_entity_detail(name)
+        detail = graph_tools.query_entity_detail(name=name, entity_id=entity_id)
         if detail is None:
-            return {"name": name, "id": None, "label": None, "properties": {}}
+            return {"name": name, "id": entity_id, "label": None, "properties": {}}
         return detail
     except Exception as e:
         raise _internal_error(e)
@@ -341,24 +353,22 @@ def get_type_stats(label: str):
 # ========== 图谱数据接口 ==========
 
 @app.get("/graph")
-def get_graph(name: Optional[str] = None, depth: int = Query(1, ge=1, le=5), limit: int = Query(50, ge=1, le=200)):
+def get_graph(name: Optional[str] = None, entity_id: Optional[str] = None,
+              depth: int = Query(1, ge=1, le=5), limit: int = Query(50, ge=1, le=200)):
     """
     获取知识图谱数据
-    - name: 中心节点名称（不传则返回随机子图）
+    - name/entity_id: 中心节点（优先按 entity_id 精确定位；仅给 name 时同名实体取邻居最多者）
     - depth: 展开深度（1-3跳）
     """
     try:
-        if name:
-            # 以指定节点为中心查询
-            # 第一步：找到中心节点
-            center_result = graph_tools._run(
-                "MATCH (e:Entity {name: $name}) RETURN e.id AS id, e.name AS name, labels(e) AS labels",
-                name=name
-            )
-            if not center_result:
+        center_id = None
+        if name or entity_id:
+            # 以指定节点为中心查询：优先按 id 精确匹配，避免同名实体歧义
+            center = graph_tools.resolve_entity(name=name, entity_id=entity_id)
+            if center is None:
                 return {"nodes": [], "edges": [], "center": None}
 
-            center_id = center_result[0]["id"]
+            center_id = center["e"].get("id", "")
             all_node_ids = {center_id}
 
             # 第二步：多跳扩展
@@ -403,7 +413,7 @@ def get_graph(name: Optional[str] = None, depth: int = Query(1, ge=1, le=5), lim
                     "id": r["id"],
                     "name": r["name"],
                     "label": [l for l in r["labels"] if l != "Entity"][0] if len(r["labels"]) > 1 else "Entity",
-                    "is_center": r["id"] == (center_id if name else None),
+                    "is_center": r["id"] == center_id,
                 })
 
         # 第四步：获取所有边
@@ -503,7 +513,48 @@ def import_graph(req: GraphImportRequest):
         raise _internal_error(e)
 
 
-# ========== 会话历史（前端「历史记录」持久化） ==========
+# ========== 用户认证（注册/登录/登出，仅用于隔离对话历史） ==========
+
+class AuthRequest(BaseModel):
+    username: str
+    password: str
+
+
+@app.post("/auth/register")
+def auth_register(req: AuthRequest):
+    """注册并自动登录，返回 token。用户名已存在/非法返回 409。"""
+    try:
+        user = user_auth.register_user(req.username, req.password)
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    token = user_auth.issue_token(user)
+    return {"token": token, "username": user}
+
+
+@app.post("/auth/login")
+def auth_login(req: AuthRequest):
+    """登录，返回 token。"""
+    user = user_auth.login_user(req.username, req.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
+    token = user_auth.issue_token(user)
+    return {"token": token, "username": user}
+
+
+@app.post("/auth/logout")
+def auth_logout(request: Request, user: str = Depends(get_current_user)):
+    """作废当前 token（登出）。"""
+    user_auth.revoke_token(request.headers.get("X-User-Token", ""))
+    return {"ok": True}
+
+
+@app.get("/auth/me")
+def auth_me(user: str = Depends(get_current_user)):
+    """校验存量 token 是否仍有效，返回当前用户名。"""
+    return {"username": user}
+
+
+# ========== 会话历史（前端「历史记录」持久化，按用户隔离） ==========
 
 SESSIONS_DIR = Path(__file__).resolve().parents[2] / "data" / "sessions"
 SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
@@ -531,12 +582,14 @@ def _save_session(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def _list_sessions():
+def _list_sessions(user=None):
     sessions = []
     for p in SESSIONS_DIR.glob("*.json"):
         try:
             with open(p, "r", encoding="utf-8") as f:
                 d = json.load(f)
+            if user is not None and d.get("user") != user:
+                continue
             sessions.append({
                 "id": d.get("id"),
                 "title": d.get("title", ""),
@@ -551,22 +604,26 @@ def _list_sessions():
 
 
 @app.get("/sessions")
-def list_sessions():
-    """会话历史列表（按更新时间倒序）"""
-    return {"sessions": _list_sessions()}
+def list_sessions(user: str = Depends(get_current_user)):
+    """当前用户的会话历史列表（按更新时间倒序）"""
+    return {"sessions": _list_sessions(user)}
 
 
 @app.post("/sessions")
-def upsert_session(body: dict):
-    """创建或更新会话（前端持有完整消息后整体写回，幂等）。返回会话 id。"""
+def upsert_session(body: dict, user: str = Depends(get_current_user)):
+    """创建或更新当前用户的会话（前端持有完整消息后整体写回，幂等）。返回会话 id。"""
     sid = str(body.get("id") or "").strip()
     if not sid:
         sid = f"s_{int(datetime.now().timestamp() * 1000)}"
     sid = _safe_session_id(sid)
     existing = _load_session(sid)
+    # 归属校验：已有会话必须属于当前用户，否则视作不存在（防越权覆盖）
+    if existing and existing.get("user") != user:
+        raise HTTPException(status_code=404, detail="会话不存在")
     created_at = existing.get("created_at") if existing else (body.get("created_at") or datetime.now().isoformat())
     data = {
         "id": sid,
+        "user": user,
         "title": (str(body.get("title") or "")).strip()[:60],
         "created_at": created_at,
         "updated_at": datetime.now().isoformat(),
@@ -577,17 +634,20 @@ def upsert_session(body: dict):
 
 
 @app.get("/sessions/{sid}")
-def get_session(sid: str):
-    """获取单个会话完整内容（含消息）"""
+def get_session(sid: str, user: str = Depends(get_current_user)):
+    """获取当前用户单个会话完整内容（含消息）"""
     d = _load_session(sid)
-    if d is None:
+    if d is None or d.get("user") != user:
         raise HTTPException(status_code=404, detail="会话不存在")
     return d
 
 
 @app.delete("/sessions/{sid}")
-def delete_session(sid: str):
-    """删除会话"""
+def delete_session(sid: str, user: str = Depends(get_current_user)):
+    """删除当前用户的会话"""
+    d = _load_session(sid)
+    if d is None or d.get("user") != user:
+        raise HTTPException(status_code=404, detail="会话不存在")
     p = _session_path(sid)
     if p.exists():
         p.unlink()
@@ -601,11 +661,14 @@ class ReportGenerateRequest(BaseModel):
 
 
 @app.post("/report/generate")
-def generate_report(req: ReportGenerateRequest):
+def generate_report(req: ReportGenerateRequest, user: str = Depends(get_current_user)):
     """根据已保存的深度思考会话数据，按需生成 Word 报告并直接返回下载。
     仅在用户点击「生成报告」时触发，避免每次深度思考都落盘 docx。
     """
     safe_id = os.path.basename(req.session_id)  # 防路径穿越
+    sess = _load_session(safe_id)
+    if sess is None or sess.get("user") != user:
+        raise HTTPException(status_code=404, detail="报告数据不存在或已过期")
     try:
         path = generate_report_from_session(safe_id)
     except FileNotFoundError:

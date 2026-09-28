@@ -41,6 +41,7 @@ export default defineConfig(({ mode }) => {
         '/sql': { target: apiTarget, changeOrigin: true },
         '/report': { target: apiTarget, changeOrigin: true },
         '/import': { target: apiTarget, changeOrigin: true },
+        '/sessions': { target: apiTarget, changeOrigin: true },
       }
     }
   }

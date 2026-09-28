@@ -695,6 +695,10 @@ class Planner:
         """从图谱/向量工具结果中提取主实体名称。"""
         import re
         clean = re.sub(r'\s*\[.*?\]\s*', '', text)
+        # 列表类结果（kg_list_by_type：「类型"…"包含以下实体」）不是单个实体，
+        # 直接返回 None，避免把列表里第一个带括号的实体（如「康熙四十八年（1709）」）误当主实体。
+        if "包含以下实体" in clean:
+            return None
         # 跳过常见的标题行（如"语义匹配结果（含属性）"）
         skip_patterns = ['语义匹配结果', '知识图谱检索结果', '搜索', '查询', '类型']
         # 实体格式: ChineseName（prop1；prop2...）
@@ -707,6 +711,30 @@ class Planner:
         if m:
             return m.group(1)
         return None
+
+    @staticmethod
+    def _extract_vector_entities(text, top_k=5):
+        """从 vector_search 语义匹配结果中提取排名靠前的实体（含类型与相似度）。
+        返回 [{"name", "type", "similarity"}...]（按相似度降序，最多 top_k 个）。
+        """
+        import re
+        entities = []
+        for line in text.split("\n"):
+            line = line.strip()
+            if not line or "向量相似度" not in line:
+                continue
+            # 每行形如: 实体名（Type）（属性…） [向量相似度: 0.91]
+            m = re.match(r'^([一-鿿\w·]{1,30})[（(]([A-Za-z]+)[)）]', line)
+            if not m:
+                continue
+            sm = re.search(r'向量相似度\s*:\s*([\d.]+)', line)
+            entities.append({
+                "name": m.group(1),
+                "type": m.group(2),
+                "similarity": float(sm.group(1)) if sm else 0.0,
+            })
+        entities.sort(key=lambda e: -e["similarity"])
+        return entities[:top_k]
 
     @staticmethod
     def _extract_doc_title(text):
@@ -735,7 +763,7 @@ class Planner:
 
     def _merge(self, graph_results, vector_results, sql_results=None):
         """去重、排序、截断、格式化为 C 段文本。
-        排序策略：知识图谱(kg_* + 语义检索，合并为一个来源) → SQL（每条一个来源）
+        排序策略：知识图谱(kg_* + 语义检索)在前、SQL 在后，每个去重后的独立结果各自编号 [N]。
         返回 (context_text, source_index)
         source_index 每个条目为 dict: {desc, source_type, tool_name, entity_name?, doc_title?}
         同时兼容旧版字符串格式，desc 字段供现有 tooltip 使用。
@@ -745,12 +773,22 @@ class Planner:
         parts = []
         seen = set()
 
-        # ── 知识图谱检索（kg_* 工具）+ 语义检索（vector_search）合并为【一个来源】──
-        # 同一实体经 kg_explore_entity / kg_find_entities 等多次命中不应被拆成多个角标；
-        # 语义检索本质上也属于知识图谱检索，一并并入该来源。
+        # ── 知识图谱检索（kg_* 工具）+ 语义检索（vector_search）──
+        # 每个「去重后的独立检索结果」都作为独立来源、单独编号 [N]。
+        # 只有字符串完全相同的重复结果才被 seen 去重；
+        # 不再把全部图谱结果合并成一个来源——否则 source_index 只剩 [1]，模型只能引 [1]。
         kg_items = []
+        seen_entity = set()
         for r in graph_results:
             if r and r not in seen:
+                # 同一实体经 kg_explore_entity / kg_find_entities 等多次命中只保留第一个，
+                # 避免同一实体拆成多个编号（如「清代辑佚四阶段」同时出现在 [3] 和 [5]）。
+                # 列表类结果（kg_list_by_type）经 _extract_entity_name 返回 None，不参与去重。
+                ent = self._extract_entity_name(r)
+                if ent and ent in seen_entity:
+                    continue
+                if ent:
+                    seen_entity.add(ent)
                 if "→" in r:
                     pri = 0            # 路径/关系
                 elif "：" in r and "相似度" not in r:
@@ -768,18 +806,13 @@ class Planner:
                 kg_items.append((pri, r))
                 seen.add(r)
         kg_items.sort(key=lambda x: x[0])
-        if kg_items:
-            parts.append((0, "\n\n".join(t for _, t in kg_items)))
 
-        # ── SQL 检索：每条结果单独一个来源 ──
-        if sql_results:
-            for r in sql_results:
-                if r and r not in seen:
-                    parts.append((1.5, r))
-                    seen.add(r)
-
-        # 按优先级排序
-        parts.sort(key=lambda x: x[0])
+        # 组装 parts：图谱/向量在前、SQL 在后，各自独立编号（parts 顺序即最终编号顺序）
+        parts = [(0, r) for _, r in kg_items]
+        for r in sql_results or []:
+            if r and r not in seen:
+                parts.append((1, r))
+                seen.add(r)
 
         # 组装带编号的上下文和来源索引
         combined = ""
@@ -800,6 +833,7 @@ class Planner:
             entity_name = None
             doc_title = None
             author_name = None
+            vector_entities = None
             label = "图谱"
 
             # 提取工具名（可选带检索词后缀，如 [search_full_text:校勘]）
@@ -842,6 +876,8 @@ class Planner:
                 label = "向量检索"
                 # 向量结果可能也包含实体名
                 entity_name = self._extract_entity_name(clean_text)
+                # 语义匹配是「多实体排名」，抽取前 K 个供前端展示（而非只取第一名）
+                vector_entities = self._extract_vector_entities(clean_text)
             else:
                 # Fallback: 从内容判断
                 if "[SQL" in clean_text or "[search_" in clean_text:
@@ -861,6 +897,8 @@ class Planner:
                     source_type = "graph"
                     label = "向量检索"
                     entity_name = self._extract_entity_name(clean_text)
+                    # 语义匹配是「多实体排名」，抽取前 K 个供前端展示（而非只取第一名）
+                    vector_entities = self._extract_vector_entities(clean_text)
                 else:
                     source_type = "graph"
                     label = "图谱"
@@ -885,11 +923,17 @@ class Planner:
                 entry["doc_title"] = doc_title
             if author_name:
                 entry["author_name"] = author_name
+            if vector_entities:
+                # 向量检索来源：附带排名靠前的语义匹配实体列表，供前端展示 Top-K 结果
+                entry["vector_entities"] = vector_entities
 
             # 尾注标签（论文式参考文献列表）：按来源类别生成「知识图谱/数据库 —— 实体/相关文段」。
             ref_label = ""
             if source_type == "graph":
-                ref_label = f"知识图谱 —— 实体 {entity_name}" if entity_name else "知识图谱"
+                if vector_entities:
+                    ref_label = "向量检索 —— 语义匹配结果"
+                else:
+                    ref_label = f"知识图谱 —— 实体 {entity_name}" if entity_name else "知识图谱"
             elif source_type == "sql":
                 if is_text_search:
                     ref_label = "数据库 —— 相关文段" + (f" “{tool_keyword}”" if tool_keyword else "")

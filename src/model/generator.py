@@ -55,6 +55,9 @@ def _to_simplified(text):
 # ========== 从环境变量读取配置 ==========
 USE_API = os.environ.get("USE_API", "false").lower() == "true"
 TWO_PASS = os.environ.get("TWO_PASS", "true").lower() == "true"  # 两段式 CoT 推理
+# RACE 前置分析（Think 步骤）专用轻量模型：四行笔记不需要旗舰推理模型的长思考，
+# 改用快速模型可显著缩短「思考」耗时；可用环境变量 THINK_MODEL 覆盖。
+THINK_MODEL = os.environ.get("THINK_MODEL", "deepseek-v4-flash")
 
 # ========== 模型供应商注册表 ==========
 # 每个供应商一个 key → {label, prefix, base_url, models[]}
@@ -215,6 +218,15 @@ def get_model_config(model_id):
     }
 
 
+def _think_model(main_mid):
+    """轻量步骤（RACE 前置分析等）使用的模型：优先 THINK_MODEL（快速模型），
+    其 API Key 未配置时回退到主模型，避免轻量步骤也陷入旗舰推理模型的长思考。
+    """
+    if get_model_config(THINK_MODEL).get("api_key"):
+        return THINK_MODEL
+    return main_mid
+
+
 def list_providers():
     """返回供应商+模型层级列表（供前端两级下拉菜单）"""
     result = []
@@ -266,20 +278,20 @@ def _build_tool_selection_system_prompt(intent):
     return (
         "你是一个辑佚学文献检索助手。你的任务是根据用户问题选择合适的工具来检索信息。\n"
         "不要直接回答问题，只选择和调用合适的工具。\n\n"
-        "【组合检索铁律 — 必须遵守】\n"
+        "【必须遵守】\n"
         "1. 每次检索必须覆盖三类工具，每类至少调用 2 个：图谱(kg_*) + SQL(search_*/browse_*) + 向量(vector_search)\n"
-        "2. vector_search 是语义兜底，每次都调——防止精确名称在知识图谱中未命中\n"
-        "3. kg_find_entities 和 kg_get_entity_relations 是固定搭档——查属性+查关系网缺一不可\n"
+        "2. vector_search 是语义兜底，每次都调\n"
+        "3. kg_find_entities 和 kg_get_entity_relations 是固定搭档\n"
         "4. 涉及多个实体时，必须对每个实体分别调用 kg_find_entities + kg_get_entity_relations\n"
         "5. 涉及文献名时，必须同时调用 search_document + search_full_text + search_titles\n"
         "6. 涉及人名时，必须同时调用 search_author + kg_find_entities\n"
-        "7. 宁可多调 5 个工具，不可遗漏关键信息。信息充分比精准克制更重要\n\n"
+        "7. 宁可多调 5 个工具，不可遗漏关键信息。\n\n"
         f"【用户意图】{intent} — {guidance}\n\n"
         "【原则】\n"
         "1. 每种工具可调用 1-3 次，用不同参数覆盖不同实体或不同搜索词\n"
         "2. 模糊实体名先用 vector_search 定位，再用 kg_find_entities 查详情\n"
-        "3. 查询古籍原文时使用 search_full_text，注意古文献术语与现代术语的差异\n"
-        "4. 一次调用尽可能多地同时选择工具（并行执行，不会增加延迟）"
+        "3. 查询古籍原文时使用 search_full_text\n"
+        "4. 一次调用尽可能多地同时选择工具"
     )
 
 
@@ -321,17 +333,15 @@ class Generator:
             if deep:
                 system = (
                     "你是一位专精于辑佚学的AI研究助手。直接输出答案正文，不要输出思考过程。\n"
-                    "答案用三段式：[结论]→[考据]→[总结]，简体中文，内容务必详实充分。\n"
-                    "要求：每个论点都充分展开论证，关键事实逐条给出考据；"
-                    "凡能对应参考信息的结论都必须标注其原始编号 [n]，不得重新编号；"
-                    "不要简略带过，不要以「等」「之类」一带而过。\n"
-                    "实体名称逐字照抄【实体名称清单】。"
+                    "答案用三段式：[结论]→[考据]→[总结]，简体中文。\n"
+                    "每个论点都充分展开论证，关键事实逐条给出考据；"
+                    "凡能对应参考信息的结论都必须标注其原始编号 [n]，不得重新编号，知识图谱与sql信息都需要引用；"
                 )
             else:
                 system = (
                     "你是一位专精于辑佚学的AI研究助手。直接输出答案正文，不要输出思考过程。\n"
                     "答案用三段式：[结论]→[考据]→[总结]，简体中文。不要输出 R/A/C/E 等分析格式。\n"
-                    "实体名称逐字照抄【实体名称清单】；引用参考信息用其原始编号 [n]，不得重新编号。"
+                    "引用参考信息用其原始编号 [n]，不得重新编号。"
                 )
 
             # 清理 thinking 中的"不要输出最终回答"等 Think 阶段指令，避免误导第二轮
@@ -582,8 +592,8 @@ class Generator:
             "A：直接相关实体名（照抄原文）\n"
             "C：一句话结论预判\n"
             f"{e_line}\n\n"
-            "不要复述框架定义、不要解释思考过程、不要写\"我需要/我们要\"、不要枚举无关实体。\n"
-            "直接输出笔记，不要输出最终回答。"
+            "不要复述框架定义、不要解释思考过程\n"
+            "直接输出笔记。"
         )
         return [
             {"role": "system", "content": system},
@@ -595,8 +605,9 @@ class Generator:
         失败时返回 None，自动降级为单轮推理。
         """
         messages = self._build_think_messages(question, context)
+        think_mid = _think_model(model_id or self.model_id)
         try:
-            result = self._call_api(messages, max_tokens=4096, model_id=model_id)
+            result = self._call_api(messages, max_tokens=2048, model_id=think_mid)
             if result.startswith("API错误") or result.startswith("API调用失败"):
                 print(f"\033[2m[Think] 分析失败，降级为单轮推理\033[0m")
                 return None
@@ -1055,7 +1066,7 @@ class Generator:
             think_msgs = self._build_think_messages(
                 question, "（尚无参考信息，请基于问题本身预判需要检索的实体与信息）", deep=True
             )
-            for tt, text in self._call_api_stream(think_msgs, max_tokens=4096, model_id=mid, max_reasoning_chars=6000):
+            for tt, text in self._call_api_stream(think_msgs, max_tokens=2048, model_id=_think_model(mid), max_reasoning_chars=1200):
                 # 只捕获 content（RACE 笔记本体），丢弃 reasoning_content
                 if tt == "text" and not text.startswith("API错误") and not text.startswith("API调用失败"):
                     think_full.append(text)
@@ -1197,7 +1208,7 @@ class Generator:
                 yield {"type": "thinking_start"}
                 think_full = []
                 think_msgs = self._build_think_messages(question, plan["context"])
-                for tt, text in self._call_api_stream(think_msgs, max_tokens=4096, model_id=mid, max_reasoning_chars=6000):
+                for tt, text in self._call_api_stream(think_msgs, max_tokens=2048, model_id=_think_model(mid), max_reasoning_chars=1200):
                     # 只捕获 content（RACE 笔记本体）。reasoning_content 是推理模型的自我复述，
                     # 会照抄 prompt 模板并污染下游（实体清单提取、答案格式），必须丢弃。
                     if tt == "text" and not text.startswith("API错误") and not text.startswith("API调用失败"):

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import C from "../constants/colors";
 import ReferenceSidebar from "../components/ReferenceSidebar";
+import { useAuth } from "../context/AuthContext";
 
 // 浅色主题（默认古籍暖色风）+ 深色主题补充语义键
 const LIGHT_C = {
@@ -39,27 +40,32 @@ const DARK_C = {
 };
 
 function renderMessageWithCitations(text, sourceIndex, onCitationClick, citeColor = "#8a4520") {
-  if (!sourceIndex || Object.keys(sourceIndex).length === 0) return text;
+  // 始终返回数组（无引用时返回单元素数组），避免正文子节点在「字符串 ↔ 数组」
+  // 之间切换触发 React 18 的 removeChild NotFoundError（白屏）。
+  const si = sourceIndex && Object.keys(sourceIndex).length > 0 ? sourceIndex : null;
+  if (!text) return [""];
+  if (!si) return [text];
 
   // 匹配 [数字] 格式的引用标记
   const parts = [];
   let lastIndex = 0;
   const regex = /\[(\d+)\]/g;
   let match;
+  let partKey = 0;
 
   while ((match = regex.exec(text)) !== null) {
-    // 添加匹配前的文本
+    // 添加匹配前的文本（包一层 span 保证每个子节点都是带 key 的元素）
     if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
+      parts.push(<span key={`p${partKey++}`}>{text.slice(lastIndex, match.index)}</span>);
     }
 
     const num = match[1];
-    const source = sourceIndex[num];
+    const source = si[num];
     const tooltip = typeof source === 'object' ? source.desc : source;
 
     parts.push(
       <sup
-        key={match.index}
+        key={`c${partKey++}`}
         onClick={(e) => { e.stopPropagation(); onCitationClick && onCitationClick(num); }}
         style={{
           color: citeColor, cursor: "pointer", fontSize: 11,
@@ -75,7 +81,7 @@ function renderMessageWithCitations(text, sourceIndex, onCitationClick, citeColo
 
   // 添加剩余文本
   if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
+    parts.push(<span key={`p${partKey++}`}>{text.slice(lastIndex)}</span>);
   }
 
   return parts;
@@ -129,6 +135,7 @@ function formatToolArgs(args) {
 }
 
 function ResearchSection({ navigate }) {
+  const { user, openLogin } = useAuth();
   const [chatState, setChatState] = useState("landing");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);   // [{role, content}]
@@ -174,6 +181,7 @@ function ResearchSection({ navigate }) {
   };
 
   const loadSessions = async () => {
+    if (!user) { setSessions([]); return; }
     try {
       const res = await fetch("/sessions");
       const data = await res.json();
@@ -184,6 +192,7 @@ function ResearchSection({ navigate }) {
   };
 
   const saveSession = async (fullMessages) => {
+    if (!user) return;   // 未登录不落盘（历史按用户隔离）
     if (!fullMessages || fullMessages.length === 0) return;
     const sid = currentSessionId || `s_${Date.now()}`;
     const title = getSessionTitle(fullMessages);
@@ -213,6 +222,7 @@ function ResearchSection({ navigate }) {
   };
 
   const openSession = async (sid) => {
+    if (!user) return;
     try {
       const res = await fetch(`/sessions/${encodeURIComponent(sid)}`);
       if (!res.ok) return;
@@ -228,6 +238,7 @@ function ResearchSection({ navigate }) {
   };
 
   const deleteSession = async (sid) => {
+    if (!user) return;
     try {
       await fetch(`/sessions/${encodeURIComponent(sid)}`, { method: "DELETE" });
       if (currentSessionId === sid) {
@@ -242,7 +253,12 @@ function ResearchSection({ navigate }) {
   };
 
   useEffect(() => { messagesRef.current = messages; }, [messages]);
-  useEffect(() => { loadSessions(); }, []);
+  // 登录用户变化时：清空当前对话并刷新该用户的历史列表（未登录则清空列表）
+  useEffect(() => {
+    handleNewChat();
+    if (user) loadSessions(); else setSessions([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // 参考资料右侧栏状态
   const [refPanel, setRefPanel] = useState({
@@ -299,11 +315,11 @@ function ResearchSection({ navigate }) {
 
     const updateMsg = (patch) => {
       setMessages(prev => {
-        const updated = [...prev];
-        const last = updated[updated.length - 1];
-        if (!last || last._id !== msgIdx) return updated;
-        Object.assign(last, patch);
-        return updated;
+        const idx = prev.findIndex(m => m._id === msgIdx);
+        if (idx === -1) return prev;
+        const next = [...prev];
+        next[idx] = { ...next[idx], ...patch };  // 不可变更新，避免直接修改 state 对象
+        return next;
       });
     };
 
@@ -405,6 +421,17 @@ function ResearchSection({ navigate }) {
     // sourceData 可能是字符串（旧格式）或对象（新格式）
     const isObject = typeof sourceData === 'object';
     const sourceType = isObject ? sourceData.source_type : null;
+
+    // 向量检索来源：语义匹配是多实体排名，直接展示 Top-K 实体列表，无需查单实体图谱
+    if (isObject && Array.isArray(sourceData.vector_entities) && sourceData.vector_entities.length > 0) {
+      setRefPanel({
+        open: true, citationNum: num, sourceData,
+        detailData: { kind: "vector", entities: sourceData.vector_entities },
+        loading: false,
+      });
+      setGraphTrail([]);
+      return;
+    }
 
     setRefPanel({ open: true, citationNum: num, sourceData, detailData: null, loading: true });
 
@@ -712,8 +739,8 @@ function ResearchSection({ navigate }) {
                     border: `1px solid ${theme.border}`,
                     fontSize: 14, color: theme.text, lineHeight: 1.7, whiteSpace: "pre-wrap",
                   }}>
-                    {msg.role === "assistant" && msg.plan_log?.source_index ? (
-                      renderMessageWithCitations(msg.content, msg.plan_log.source_index, handleCitationClick, theme.citeColor)
+                    {msg.role === "assistant" ? (
+                      renderMessageWithCitations(msg.content, msg.plan_log?.source_index, handleCitationClick, theme.citeColor)
                     ) : (
                       msg.content
                     )}
@@ -862,7 +889,17 @@ function ResearchSection({ navigate }) {
             </div>
             {/* 历史列表 */}
             <div style={{ flex: 1, overflow: "auto", padding: "0 8px 12px" }}>
-              {sessions.length === 0 ? (
+              {!user ? (
+                <div style={{ textAlign: "center", padding: "28px 12px" }}>
+                  <div style={{ color: theme.textM, fontSize: 12.5, lineHeight: 1.7, marginBottom: 12 }}>
+                    登录后可保存并查看您的对话历史
+                  </div>
+                  <button onClick={() => { setHistoryOpen(false); openLogin(); }} style={{
+                    padding: "6px 20px", borderRadius: 8, border: "none", cursor: "pointer",
+                    background: theme.brownBtn, color: "#fff", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
+                  }}>登录</button>
+                </div>
+              ) : sessions.length === 0 ? (
                 <div style={{ color: theme.textL, fontSize: 12, textAlign: "center", padding: "24px 0" }}>
                   暂无历史记录
                 </div>

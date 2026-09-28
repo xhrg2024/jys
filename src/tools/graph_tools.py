@@ -158,15 +158,35 @@ def query_entity_by_name(name):
     return "；\n".join(parts)
 
 
-def query_entity_detail(name):
-    """按名称返回实体结构化详情：{id, name, label, properties}。
-    properties 的 key 已用 KEY_CN 映射为中文，值保留原始类型（含列表）。
-    供前端结构化渲染实体信息卡；查无结果返回 None。
+def resolve_entity(name=None, entity_id=None):
+    """按 id（优先）或名称定位实体，返回单条记录（含 "e" 字段）或 None。
+    仅按 name 时若存在同名实体（如"永乐大典"类书版 vs 辑本版），取邻居数最多的那个。
     """
-    results = _run("MATCH (e:Entity {name: $name}) RETURN e", name=name)
-    if not results:
+    if entity_id:
+        recs = _run("MATCH (e:Entity {id: $id}) RETURN e", id=entity_id)
+    elif name:
+        recs = _run("MATCH (e:Entity {name: $name}) RETURN e", name=name)
+        if len(recs) > 1:
+            def _degree(nid):
+                d = _run("MATCH (a {id: $id})-[r]-(b) RETURN count(DISTINCT b) AS c", id=nid)
+                return d[0]["c"] if d else 0
+            recs = [max(recs, key=lambda r: _degree(r["e"].get("id", "")))]
+    else:
         return None
-    node = results[0]["e"]
+    if not recs:
+        return None
+    return recs[0]
+
+
+def query_entity_detail(name=None, entity_id=None):
+    """按 id（优先）或名称返回实体结构化详情：{id, name, label, properties}。
+    properties 的 key 已用 KEY_CN 映射为中文，值保留原始类型（含列表）。
+    仅按 name 时同名实体取邻居最多者；供前端结构化渲染实体信息卡；查无结果返回 None。
+    """
+    rec = resolve_entity(name=name, entity_id=entity_id)
+    if rec is None:
+        return None
+    node = rec["e"]
     d = dict(node)
     name_val = d.pop("name", "")
     eid = d.pop("id", "")

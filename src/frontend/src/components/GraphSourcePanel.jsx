@@ -109,7 +109,7 @@ function GraphSourcePanel({ data, sourceData, onNodeClick, onEdgeClick, trail, o
           </span>
         </div>
         <div style={{ flex: 1, height: "calc(100% - 30px)" }}>
-          {graph && graph.nodes?.length > 0 ? (
+          {graph && graph.nodes?.length > 0 && graph.edges?.length > 0 ? (
             <KnowledgeGraph
               nodes={graph.nodes}
               edges={graph.edges}
@@ -118,6 +118,16 @@ function GraphSourcePanel({ data, sourceData, onNodeClick, onEdgeClick, trail, o
               onNodeClick={(node) => node && onNodeClick && onNodeClick(node)}
               onEdgeClick={(edge) => edge && onEdgeClick && onEdgeClick(edge)}
             />
+          ) : graph && graph.nodes?.length > 0 ? (
+            <div style={{
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+              height: "100%", color: C.textM, fontSize: 12.5, gap: 6, padding: "0 24px", textAlign: "center",
+            }}>
+              <div style={{ fontSize: 13.5, color: C.text, fontWeight: 600 }}>该实体为孤立节点</div>
+              <div style={{ color: C.textL, lineHeight: 1.7 }}>
+                知识图谱中暂无与其关联的实体或关系，故无法绘制关系图。
+              </div>
+            </div>
           ) : (
             <div style={{
               display: "flex", alignItems: "center", justifyContent: "center",
